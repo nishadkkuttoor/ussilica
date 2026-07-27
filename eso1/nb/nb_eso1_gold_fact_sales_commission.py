@@ -25,10 +25,6 @@
 # ── BUILD (BATCH, architecture like ESO4 / ESO5 / the ESO1 freight fact) ─────────────────
 #   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the fact is missing (re-run to refresh).
-#   • ALL sources are read as STATIC snapshots — no CDF / foreachBatch / checkpoints / streams.
-#     Results are IDENTICAL to the previous streaming version's full-load seed: build_fact() is the old
-#     transform_fact() unchanged (the dead streaming `restrict_orders` scope-filter was the only removal),
-#     and the plain overwrite write matches ESO4/ESO5 (no Gold CDF).
 #
 # Sections:  1) CONFIG   2) FACT BUILDER   3) FACT SOURCES   4) RUN
 # Design: docs/ESO1_gold_layer_design.md · Query: eso1/Filter Capture/SOP0027 - Commission.sql
@@ -45,7 +41,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # `jde` (2026-07-26, was `jde_cdc` / `cdf`) — same as ESO4/ESO5; sources read as STATIC batch snapshots (no CDF needed)
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
@@ -72,13 +68,8 @@ F42119 = "f42119_sales_order_history_file"
 # ── Gold target BUILT here ─────────────────────────────────────────────────────
 FACT = "fact_sales_commission"
 
-# ── REUSED dims (read-only; owned by old_nb jobs) ─────────────────────────────
-R_DIM_AB      = gname("dim_address_book")
-R_DIM_PLANT   = gname("dim_plant")
-R_DIM_SHIP_TO = gname("dim_address_ship_to")
-R_DIM_SOLD_TO = gname("dim_address_sold_to")
-# salesperson (SCSLSP) is an address-book number — relate it to dim_address_book (a salesperson role view can be
-# added later, mirroring ship_to/sold_to/carrier). No new dim is built here.
+# REUSED rpt address/plant dims are read-only (owned by old_nb jobs); salesperson (SCSLSP) is an
+# address-book number related to dim_address_book in the model. No reused dim is built or checked here.
 
 # ── report scaling (business WHERE filters removed — fact carries ALL commission rows) ──
 # Hubble scaled SDAEXP/SDECST by NVL(company.ShiftFactor, 0.01) and the commission amounts (SCTOTL/SCLRCS/SCCOMA)
@@ -322,8 +313,8 @@ def build_fact():
 # FACT_SOURCES structure). The joins are applied inside build_fact() / _line_context(), so join_pairs are []
 # here; the list documents the source inventory and drives the RUN source preflight.  join: spine=F4211 driver
 # (grain), left=F42005 commission ledger (0..N per line), union=F42119 history (optional line-context),
-# static=lookup. The REUSED rpt address/plant dims + dim_category_code_10 are validated separately (the reused-dim
-# preflight in RUN; dim_category_code_10 owned by nb_eso1_gold_dim_category_code_10).
+# static=lookup. The REUSED rpt address/plant dims are read-only (owned by old_nb jobs) and
+# dim_category_code_10 is owned by nb_eso1_gold_dim_category_code_10 — not built or checked here.
 FACT_SOURCES = [
     {"silver": F4211,  "join": "spine",  "join_pairs": []},                    # sales-order detail — the fact DRIVER (grain)
     {"silver": F42005, "join": "left",   "join_pairs": []},                    # commission ledger — LEFT-joined (0..N commission records per line)
@@ -339,17 +330,8 @@ FACT_SOURCES = [
 
 spark.sql("CREATE SCHEMA IF NOT EXISTS {}.{}".format(GOLD_LH, GOLD_SCHEMA))
 
-# ── PREFLIGHT — reused dims must exist/non-empty; F4211 driver + F42005 commission must be present in Silver ──
+# ── PREFLIGHT — F4211 driver + F42005 commission must be present in Silver ──
 _errs = []
-for tbl in [R_DIM_AB, R_DIM_PLANT]:
-    if not _exists(tbl):
-        _errs.append("MISSING {}".format(tbl)); print("  MISSING : {}".format(tbl)); continue
-    n = spark.read.table(tbl).count()
-    if n == 0:
-        _errs.append("EMPTY {}".format(tbl))
-    print("  OK      : {:38s} rows={:,}".format(tbl, n))
-for v in [R_DIM_SHIP_TO, R_DIM_SOLD_TO]:
-    print("  {} : {}  (reused role view)".format('OK     ' if _exists(v) else 'no-spark', v))
 if not _exists(sname(F4211)):
     _errs.append("MISSING driver {} — F4211 is the fact DRIVER; must be ingested to Silver".format(sname(F4211)))
     print("  MISSING : {}  (sales-order detail — the fact DRIVER)".format(sname(F4211)))
@@ -362,8 +344,7 @@ else:
     print("  OK      : {}  (commission ledger — LEFT-joined)".format(sname(F42005)))
 if _errs:
     raise Exception("Commission-fact preflight FAILED: " + "; ".join(_errs)
-                    + ". Build reused dims via old_nb (nb_dim_address_book, nb_dim_plant); "
-                    + "ensure F4211 and F42005 are ingested to lh_jde_silver.jde.")
+                    + ". Ensure F4211 and F42005 are ingested to lh_jde_silver.jde.")
 print("✓ preflight passed")
 
 # ── SOURCE PREFLIGHT — visibility over every declared Silver source (F42119 optional). ──

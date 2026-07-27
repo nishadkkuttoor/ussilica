@@ -8,10 +8,9 @@
 # detection, key integrity, fact↔dimension RI, and report reconciliation
 # (design §8). Writes one row per check to lh_jde_gold.rpt.eso1_validation_log.
 #
-# SELF-CONTAINED — no %run; declares its own constants inline. One of the 4
-# independent nb/ notebooks (alongside nb_eso1_gold_streaming / nb_maintenance_gold_eso1
-# / nb_semantic_model_eso1); none depends on another resolving by name. Run AFTER
-# nb_eso1_gold_streaming has seeded the tables.
+# SELF-CONTAINED — no %run; declares its own constants inline. Independent nb/ notebook
+# (alongside nb_maintenance_gold_eso1 / nb_semantic_model_eso1); none depends on another
+# resolving by name. Run AFTER the Gold build notebooks have seeded the tables.
 
 # In[1]:
 

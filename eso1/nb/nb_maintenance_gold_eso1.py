@@ -3,14 +3,13 @@
 
 # ## nb_maintenance_gold_eso1
 #
-# OPTIMIZE / VACUUM maintenance for the Extended Sales Order 1 Gold tables. Run on
-# a SEPARATE hourly/nightly schedule — NEVER inside the 30-second stream cycle.
-# Frequent MERGEs create many small files; this compacts them so Direct Lake stays
-# fast and the F64 compute budget is protected. Design: docs/ESO1_gold_layer_design.md §7.
+# OPTIMIZE / VACUUM maintenance for the Extended Sales Order 1 Gold tables. Run on a
+# SEPARATE hourly/nightly schedule to compact small files so Direct Lake stays fast and
+# the F64 compute budget is protected. Design: docs/ESO1_gold_layer_design.md §7.
 #
-# SELF-CONTAINED — no %run; declares its own constants inline. One of the 4
-# independent nb/ notebooks (alongside nb_eso1_gold_streaming / nb_validate_gold_eso1
-# / nb_semantic_model_eso1); none depends on another resolving by name.
+# SELF-CONTAINED — no %run; declares its own constants inline. Independent nb/ notebook
+# (alongside nb_validate_gold_eso1 / nb_semantic_model_eso1); none depends on another
+# resolving by name.
 
 # In[1]:
 

@@ -395,8 +395,7 @@ def _po_lines(f4311, la):
     Hubble's orphan set is exactly `po_holadd_superseded = 'N'`, which report 4 filters on.
 
     ⚠ `document_type` is forced to 'SX' on every row here — the query hard-codes `'SX' DCTO` so the UNION
-    lines up with the sales load, and `load_scope_key` depends on it (a PO change must land in the SX
-    load's CDC scope). The PO's OWN document type is kept in `po_order_type` (PDDCTO)."""
+    lines up with the sales load. The PO's OWN document type is kept in `po_order_type` (PDDCTO)."""
     po = f4311 if PO_LEG_UNFILTERED else f4311.where(
         (F.trim(F.col("order_type")) == "OX") & (F.trim(F.col("identifier_2nd_item")) == "HOLADD"))
 
@@ -772,7 +771,7 @@ def build_fact():
 
     df = (agg
           .withColumn("load_scope_key",
-                      load_scope_expr("company", "document_type", "load_number"))   # CDC delete scope (the load)
+                      load_scope_expr("company", "document_type", "load_number"))   # vestigial key — retained so the fact schema is unchanged
           .withColumn("load_line_key", sk(*FACT_GROUP_BY_COLS)))
     df = df.dropDuplicates(["load_line_key"])
     return df.select("load_line_key", "load_scope_key", *FACT_BUSINESS_COLS)

@@ -127,9 +127,6 @@ FACT_GROUP_BY_COLS = [
 # The plant's business-stream code (MCRP20) is available on dim_plant (category_code_cost_ct_020); the
 # fact still reads it straight from F0006 for the business_stream CALC (below), so it is neither grouped
 # on nor carried as a stored column.
-FACT_CARRY_COLS = ["shift_factor_applied"]
-# SUMmed measures (Hubble ReportColumn1-4).
-FACT_MEASURE_COLS = ["taxable_amount", "non_taxable_amount", "tax_amount", "gross_amount"]
 # Stored fact columns, in report order — degenerate dims + FK codes + measures ONLY (star schema).
 FACT_BUSINESS_COLS = [
     "document_company", "invoice_number", "document_type", "order_number", "order_type",
@@ -142,8 +139,7 @@ FACT_BUSINESS_COLS = [
     "tax_status",                                     # derived from the SUMMED tax_amount — see build_fact
     "shift_factor_applied",
 ]
-# Column arithmetic: 18 FACT_GROUP_BY_COLS + 1 FACT_CARRY_COLS + 4 FACT_MEASURE_COLS + 1 derived
-# (tax_status) = 24 FACT_BUSINESS_COLS, + sales_tax_line_key + document_scope_key = 26 stored.
+# Column arithmetic: 24 FACT_BUSINESS_COLS + sales_tax_line_key + document_scope_key = 26 stored.
 
 def build_fact():
     sd  = load_silver_table(F4211)       # sales order detail

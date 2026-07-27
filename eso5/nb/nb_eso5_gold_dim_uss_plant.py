@@ -4,8 +4,8 @@
 # ## nb_eso5_gold_dim_uss_plant
 #
 # **Gold `dim_uss_plant` processor** for Extended Sales Order 5 (Sandbox Load Report with PO Details).
-# Builds and continuously refreshes ONE table — `lh_jde_gold.rpt.dim_uss_plant` — from the Silver
-# user-defined-code values (F0005), UDC system **55 / type UP**, via a single Change Data Feed stream.
+# Builds ONE table — `lh_jde_gold.rpt.dim_uss_plant` — from the Silver user-defined-code values
+# (F0005), UDC system **55 / type UP**.
 #
 # This dim carries the loading-facility (vendor) USS/plant attributes the report role-plays, keyed by
 # `vendor_number` (F0005 DRKY, numeric). The fact `fact_extended_sales_order_5` stores the loading-facility FK

@@ -6,18 +6,14 @@
 # **Gold `fact_sales_order_freight` processor** for Extended Sales Order 1 (Billable v
 # Payable Freight). Builds ONE table — `lh_jde_gold.rpt.fact_sales_order_freight`
 # (order-line grain; freight denormalized) — from the Silver sales-order detail (F4211),
-# freight-audit (F4981) and their supporting sources. Split out of nb_eso1_gold_streaming
-# so the fact and `dim_item` run as independent jobs (own table, own OVERWRITE switch).
-# Relates to the REUSED dims (`rpt.dim_address_book` role views, `rpt.dim_plant`) and to
-# `dim_item` (built by nb_eso1_gold_dim_item) — those are NOT touched here.
+# freight-audit (F4981) and their supporting sources. The fact and `dim_item` run as
+# independent jobs (own table, own overwrite switch). Relates to the REUSED dims
+# (`rpt.dim_address_book` role views, `rpt.dim_plant`) and to `dim_item` (built by
+# nb_eso1_gold_dim_item) — those are NOT touched here.
 #
 # ── BUILD (BATCH, architecture like ESO4 / ESO5 fact notebooks) ─────────────────────────
 #   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the fact is missing (re-run to refresh).
-#   • ALL sources are read as STATIC snapshots — no CDF / foreachBatch / checkpoints / streams.
-#     Results are IDENTICAL to the previous streaming version's full-load seed: build_fact() is the old
-#     transform_fact() unchanged (the dead streaming `restrict_orders` scope-filter was the only removal),
-#     and the plain overwrite write matches ESO4/ESO5 (no Gold CDF).
 #
 # Sections:  1) CONFIG   2) FACT BUILDER   3) FACT SOURCES   4) RUN
 # Design: docs/ESO1_gold_layer_design.md
@@ -34,7 +30,7 @@ from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # `jde` (2026-07-26, was `jde_cdc` / `cdf`) — same as ESO4/ESO5; sources read as STATIC batch snapshots (no CDF needed)
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
@@ -78,14 +74,6 @@ F42119   = "f42119_sales_order_history_file"      # Sales Order History — CONF
 
 # ── Gold target BUILT here (new, rpt) ──────────────────────────────────────────
 FACT         = "fact_sales_order_freight"
-
-# ── REUSED dims (read-only; owned by old_nb jobs) ─────────────────────────────
-R_DIM_AB      = gname("dim_address_book")
-R_DIM_PLANT   = gname("dim_plant")
-R_DIM_SHIP_TO = gname("dim_address_ship_to")
-R_DIM_SOLD_TO = gname("dim_address_sold_to")
-R_DIM_CARRIER = gname("dim_address_carrier")
-R_DIM_PARENT = gname("dim_address_parent")
 
 # ── report scaling (business WHERE filters removed — fact now carries ALL rows) ──
 # (former Hubble hard filters COMPANIES / ALAST_WHITELIST / ship-to address-type gate /
@@ -154,18 +142,6 @@ def pick_col(df, candidates):
             return (c, True)
     return (candidates[0], False)
 
-def _exists(fqn):
-    try:
-        if spark.catalog.tableExists(fqn):
-            return True
-    except Exception:
-        pass
-    try:
-        spark.read.table(fqn).limit(1).collect()
-        return True
-    except Exception:
-        return False
-
 
 # ----------------------------------------------------------------------------
 # 2) FACT BUILDER
@@ -188,11 +164,10 @@ def build_uom_cascades():
     return item_fwd.unionByName(item_rev)
 
 def transform_freight_buckets():
-    f4981 = load_silver_table(F4981)
-    fr = f4981   # no vendor-invoice filter — all freight-audit rows included
+    f4981 = load_silver_table(F4981)   # no vendor-invoice filter — all freight-audit rows included
     bp, cgc, amt = F.trim("billable_payable"), F.trim("charge_code_01"), F.col("net_amount")
     # freight location (FHCTY1/FHADDS/FHADDZ) denormalized at shipment grain (first non-null)
-    return (fr.groupBy("shipment_number").agg(
+    return (f4981.groupBy("shipment_number").agg(
                 F.round(F.sum(F.when((bp == "B") & (cgc == "BFR"),            amt).otherwise(0.0)), 2).alias("billable_freight"),
                 F.round(F.sum(F.when((bp == "B") & (cgc.isin("FSC", "FSB")), amt).otherwise(0.0)), 2).alias("billable_fuel"),
                 F.round(F.sum(F.when((bp == "P") & (cgc == "PFR"),            amt).otherwise(0.0)), 2).alias("payable_freight"),
@@ -480,7 +455,6 @@ def build_fact():
     # resolves downstream via DAX RELATED; missing_conversion_flag marks those rows.
     conv_rate = F.coalesce(F.when(F.trim(F.col("sd.uom_as_input")) == "TN", F.lit(1.0)),
                            F.col("ci.conv_factor"))
-    conv_found = conv_rate
 
     sel = j.select(
         # ── degenerate / order identifiers ──
@@ -545,7 +519,7 @@ def build_fact():
         F.col("sd.uom_primary").alias("uom_primary"),
         F.col("sd.uom_pricing").alias("uom_pricing"),
         conv_rate.alias("conversion_to_tons_rate"),
-        F.when(conv_found.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
+        F.when(conv_rate.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
         # ── filter-only attributes (Power BI slicers; Filter Selections xlsx — ESO1) ──
         F.col("al.price_adjustment_type").alias("price_adjustment_type"),       # ALAST (F4074, actual)
         F.col("st.standard_industry_code").alias("standard_industry_code"),     # ABSIC (ship-to F0101)
@@ -693,7 +667,7 @@ def build_fact():
     df = (df.withColumn("sales_order_line_key",
                         sk("company_key_order_no", "order_type", "order_number", "line_number"))
             .withColumn("order_scope_key", sk("company_key_order_no", "order_type", "order_number")))
-    # one row per order line — no CDF/audit columns stored in the fact
+    # one row per order line
     df = df.dropDuplicates(["sales_order_line_key"])
     df = _add_effective_price_flag(df)                        # M1 — has_effective_price (1:1, no fan-out)
     return df.select("sales_order_line_key", "order_scope_key", *FACT_BUSINESS_COLS)
@@ -709,8 +683,8 @@ def build_fact():
 # helpers build_uom_cascades / transform_freight_buckets / _add_effective_price_flag), so join_pairs
 # are [] here — the joins are not simple FK pairs. The list documents the source inventory and drives
 # the RUN source preflight.  join: spine=F4211 order-line driver, union=F42119 history (optional),
-# static=lookup / denormalized attribute source. The REUSED rpt address/plant dims and dim_item are
-# validated separately (reused-dim preflight in RUN; dim_item owned by nb_eso1_gold_dim_item).
+# static=lookup / denormalized attribute source. The REUSED rpt address/plant dims are read-only
+# (owned by old_nb jobs) and dim_item is owned by nb_eso1_gold_dim_item — not built or checked here.
 FACT_SOURCES = [
     {"silver": F4211,    "join": "spine",  "join_pairs": []},                    # SX order-line driver (grain)
     {"silver": F42119,   "join": "union",  "join_pairs": [], "optional": True},  # Sales Order History — unioned via _load_optional if present
@@ -736,23 +710,6 @@ FACT_SOURCES = [
 # ----------------------------------------------------------------------------
 
 spark.sql("CREATE SCHEMA IF NOT EXISTS {}.{}".format(GOLD_LH, GOLD_SCHEMA))
-
-# ── REUSED-DIMENSION PREFLIGHT — abort if a base reused dim is missing/empty ──
-# Reused rpt dims and dim_item (nb_eso1_gold_dim_item) are owned elsewhere — never built here.
-_errs = []
-for tbl in [R_DIM_AB, R_DIM_PLANT]:
-    if not _exists(tbl):
-        _errs.append("MISSING {}".format(tbl)); print("  MISSING : {}".format(tbl)); continue
-    n = spark.read.table(tbl).count()
-    if n == 0:
-        _errs.append("EMPTY {}".format(tbl))
-    print("  OK      : {:38s} rows={:,}".format(tbl, n))
-for v in [R_DIM_SHIP_TO, R_DIM_SOLD_TO, R_DIM_CARRIER, R_DIM_PARENT]:
-    print("  {} : {}  (reused role view)".format('OK     ' if _exists(v) else 'no-spark', v))
-if _errs:
-    raise Exception("Reused-dimension preflight FAILED: " + "; ".join(_errs)
-                    + ". Build via old_nb (nb_dim_address_book, nb_dim_plant) first.")
-print("✓ reused-dimension preflight passed")
 
 # ── SOURCE PREFLIGHT — confirm every declared Silver source exists before building.
 #    F42119 (Sales Order History) is optional: build_fact() unions it via _load_optional only if present. ──

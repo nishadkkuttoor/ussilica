@@ -5,15 +5,11 @@
 #
 # **Gold `dim_item` processor** for Extended Sales Order 1 (Billable v Payable Freight).
 # Builds ONE table — `lh_jde_gold.rpt.dim_item` — from the Silver item master (F4101).
-# Split out of nb_eso1_gold_streaming so `dim_item` and the fact run as independent jobs
-# (own table, own OVERWRITE switch).
+# Runs as an independent job (own table, own overwrite switch), separate from the fact.
 #
 # ── BUILD (BATCH, structure like ESO4 / ESO5 dim notebooks) ─────────────────────────────
 #   • read the full F4101 snapshot, run build_dim_item() ONCE, overwrite the dim.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the dim is missing (re-run to refresh).
-#   • no CDF / foreachBatch / checkpoints / streams. Result is IDENTICAL to the previous streaming
-#     full-load seed (build_dim_item() is the old transform_dim_item() unchanged, dead `restrict_item`
-#     scope-filter removed); plain overwrite (no Gold CDF) matches ESO4/ESO5.
 #
 # Sections:  1) CONFIG   2) DIM BUILDER   3) RUN
 # Design: docs/ESO1_gold_layer_design.md
@@ -29,14 +25,11 @@ from datetime import datetime, timezone
 from pyspark.sql import functions as F
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # `jde` (2026-07-26, was `jde_cdc` / `cdf`) — same as ESO4/ESO5; sources read as STATIC batch snapshots (no CDF needed)
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
-# ── refresh / runtime config (BATCH build, like ESO4 / ESO5 dim notebooks) ──
-#   MANUAL_OVERWRITE = True  -> full load: drop + rebuild dim_item from the full Silver snapshot.
-#   MANUAL_OVERWRITE = False -> build only if the dim is missing (re-run to refresh).
-MANUAL_OVERWRITE = True    # ⚠ set back to False after the first successful run
+MANUAL_OVERWRITE = True    # True: drop + rebuild from the full snapshot. ⚠ set False after the first successful run
 
 def sname(t): return "{}.{}.{}".format(SILVER_LH, SILVER_SCHEMA, t)
 def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
@@ -70,7 +63,7 @@ def build_dim_item():
     # business columns only — no audit columns
     return (f4101.select(F.col("identifier_short_item").alias("item_number_short"),
                          F.col("description_line_01").alias("item_name"),
-                         F.col("uom_weight").alias("uom_weight"))
+                         F.col("uom_weight"))
             .dropDuplicates(["item_number_short"]))
 
 
@@ -81,9 +74,6 @@ def build_dim_item():
 spark.sql("CREATE SCHEMA IF NOT EXISTS {}.{}".format(GOLD_LH, GOLD_SCHEMA))
 
 # BATCH BUILD — read the full F4101 snapshot, run build_dim_item() once, overwrite the dim.
-#   MANUAL_OVERWRITE = True  -> drop + rebuild from the full Silver snapshot.
-#   MANUAL_OVERWRITE = False -> build only if the dim is missing (re-run to refresh).
-#   Plain overwrite (no Gold CDF) — same execution pattern as ESO4 / ESO5.
 _run_start = time.time()
 if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(DIM)):
     print("== FULL LOAD ==")

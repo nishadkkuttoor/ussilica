@@ -17,9 +17,6 @@
 # ── BUILD (BATCH, structure identical to ESO4 nb_eso4_gold_dim_udc.py / ESO5 dim notebooks) ──
 #   • read the full F0005 snapshot, run build_dim() ONCE (UDC-filtered Type-1 dim), overwrite the dim.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the dim is missing (re-run to refresh).
-#   • no CDF / foreachBatch / checkpoints / streams. Result is IDENTICAL to the previous streaming
-#     full-load seed (build_dim() is the old transform_dim() unchanged, dead `restrict_keys` scope-filter
-#     removed); plain overwrite (no Gold CDF) matches ESO4/ESO5.
 #
 # Sections:  1) CONFIG   2) DIM BUILDER   3) RUN
 # Design: eso1/docs/ESO1_gold_layer_design.md §4.6
@@ -35,7 +32,7 @@ from datetime import datetime, timezone
 from pyspark.sql import functions as F
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # `jde` (2026-07-26, was `jde_cdc` / `cdf`) — same as ESO4/ESO5; sources read as STATIC batch snapshots (no CDF needed)
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
@@ -55,7 +52,7 @@ DIM = "dim_category_code_10"
 print(f"ESO1 Gold dim_category_code_10 processor (batch build) — target {gname(DIM)}")
 
 
-# HELPERS  (identical to the ESO4 dim_udc notebook)
+# HELPERS
 _SOFT_DELETE_COLS = ["is_delete", "deleted_date_time"]
 
 def load_silver_table(table_name):
@@ -89,9 +86,6 @@ def build_dim():
 spark.sql("CREATE SCHEMA IF NOT EXISTS {}.{}".format(GOLD_LH, GOLD_SCHEMA))
 
 # BATCH BUILD — read the full F0005 snapshot, run build_dim() once (UDC 01/10), overwrite the dim.
-#   MANUAL_OVERWRITE = True  -> drop + rebuild from the full Silver snapshot.
-#   MANUAL_OVERWRITE = False -> build only if the dim is missing (re-run to refresh).
-#   Plain overwrite (no Gold CDF) — same execution pattern as ESO4 / ESO5.
 _run_start = time.time()
 if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(DIM)):
     print("== FULL LOAD ==")
