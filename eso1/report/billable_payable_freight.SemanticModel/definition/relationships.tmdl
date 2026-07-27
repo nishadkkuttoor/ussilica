@@ -54,3 +54,7 @@ relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f38
 	fromColumn: fact_sales_commission.category_code_10
 	toColumn: dim_category_code_10.category_code_10
 
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f39
+	fromColumn: fact_sales_order_freight.category_code_05
+	toColumn: dim_category_code_05.category_code_05
+

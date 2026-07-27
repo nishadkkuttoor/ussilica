@@ -18,3 +18,4 @@ ref table dim_address_salesperson
 ref table dim_plant
 ref table dim_mode_of_transport
 ref table dim_category_code_10
+ref table dim_category_code_05

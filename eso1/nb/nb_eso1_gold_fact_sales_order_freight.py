@@ -381,6 +381,12 @@ def build_fact():
     b11d = (b11.groupBy("company_key_order_no", "document_order_invoice_e", "order_type",
                         "line_number", "shipment_number")
                .agg(F.first("seal_no", ignorenulls=True).alias("seal_no")))
+    # Hubble INNER-joins F5642B01 to F0101 on BA55DSTPT = ABAN8, so a booking whose destination port is not
+    # in the address book contributes NO booking attributes. Reproduce as a left-semi (destination_port must
+    # exist in F0101) that drops those booking rows BEFORE the aggregate — matching Hubble's INNER-inside-LEFT.
+    # Line grain is unaffected: b01d stays <=1 row per key and is LEFT-joined below.
+    _dest_ab = f0101.select(F.col("address_number").alias("_dest_an8")).dropDuplicates()
+    b01 = b01.join(_dest_ab, F.col("destination_port") == F.col("_dest_an8"), "left_semi")
     b01d = (b01.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "shipment_number")
                .agg(F.first("booking_no",           ignorenulls=True).alias("booking_no"),
                     F.first("destination_port",      ignorenulls=True).alias("destination_port"),
