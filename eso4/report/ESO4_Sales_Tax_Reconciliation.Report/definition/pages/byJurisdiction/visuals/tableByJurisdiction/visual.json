@@ -1,0 +1,150 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "tableByJurisdiction",
+  "position": {
+    "x": 16,
+    "y": 96,
+    "z": 0,
+    "width": 1000,
+    "height": 600,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_state"
+                    }
+                  },
+                  "Property": "state_name"
+                }
+              },
+              "queryRef": "dim_state.state_name",
+              "nativeQueryRef": "Jurisdiction"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "county"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.county",
+              "nativeQueryRef": "County"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "business_stream"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.business_stream",
+              "nativeQueryRef": "Business Stream"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Taxable Amount"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Taxable Amount",
+              "nativeQueryRef": "Taxable Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Non-Taxable Amount"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Non-Taxable Amount",
+              "nativeQueryRef": "Non-Taxable Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Tax Amount"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Tax Amount",
+              "nativeQueryRef": "Tax Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Gross Amount"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Gross Amount",
+              "nativeQueryRef": "Gross Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Effective Tax Rate"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Effective Tax Rate",
+              "nativeQueryRef": "Effective Tax Rate"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Invoice Count"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Invoice Count",
+              "nativeQueryRef": "Invoice Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

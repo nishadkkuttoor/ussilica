@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "slicerItem",
+  "position": {
+    "x": 964,
+    "y": 16,
+    "z": 0,
+    "width": 300,
+    "height": 64,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "item_number"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.item_number",
+              "nativeQueryRef": "Item Number"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

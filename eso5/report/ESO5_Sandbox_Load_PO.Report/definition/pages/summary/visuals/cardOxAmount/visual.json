@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "cardOxAmount",
+  "position": {
+    "x": 736,
+    "y": 96,
+    "z": 0,
+    "width": 232,
+    "height": 120,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "OX Amount"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.OX Amount",
+              "nativeQueryRef": "OX Amount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

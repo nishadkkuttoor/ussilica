@@ -1,0 +1,242 @@
+SELECT
+  F4211.SDMCU F4211_SDMCU,
+  F4211.SDTRDJ F4211_SDTRDJ,
+  F4211.SDDOCO F4211_SDDOCO,
+  F4211.SDHOLD F4211_SDHOLD,
+  F4211.SDVR01 F4211_SDVR01,
+  F4211.SDDRQJ F4211_SDDRQJ,
+  (126191 - F4211.SDDRQJ) ID_CUSTOM_81cb3d901c74362,
+  F0101.ABALPH F0101_ABALPH,
+  C.ALCTY1 F0116_ALCTY1,
+  C.ALADDS F0116_ALADDS,
+  F4211.SDLITM F4211_SDLITM,
+  F4211.SDMOT F4211_SDMOT,
+  F4211.SDUOM F4211_SDUOM,
+  F4211.SDCARS F4211_SDCARS,
+  F4211.SDFRTH F4211_SDFRTH,
+  F4211.SDTORG F4211_SDTORG,
+  F4211.SDSHPN F4211_SDSHPN,
+  126191 ID_CUSTOM_81cb39be122a647,
+  SUM(F4211.SDAEXP) ReportColumn1,
+  SUM(F4211.SDUORG) ReportColumn3,
+  SUM(F4211.SDPQOR) ReportColumn4,
+  F0010.CCCRCD DomesticCurrency
+FROM
+  PRODDTA.F4211 F4211
+  INNER JOIN (
+    SELECT
+      F0101.ABALPH,
+      F0101.ABSIC,
+      F0101.ABAN8
+    FROM
+      PRODDTA.F0101 F0101
+    WHERE
+      (
+        (F0101.ABAT1 BETWEEN N'A  ' AND N'P  ')
+        OR (F0101.ABAT1 BETWEEN N'R  ' AND N'ZZZ')
+      )
+  ) F0101 ON F0101.ABAN8 = F4211.SDSHAN
+  INNER JOIN PRODDTA.F0116 C
+  INNER JOIN (
+    SELECT
+      F0116.ALAN8,
+      MAX(F0116.ALEFTB) ALEFTB
+    FROM
+      PRODDTA.F0116 F0116
+    GROUP BY
+      F0116.ALAN8
+  ) D ON (C.ALAN8 = D.ALAN8)
+  AND (C.ALEFTB = D.ALEFTB) ON F0101.ABAN8 = D.ALAN8
+  INNER JOIN PRODDTA.F0010 F0010 ON F0010.CCCO = F4211.SDKCOO
+WHERE
+  (
+    (
+      (
+        (
+          (
+            (
+              (
+                (
+                  (
+                    (
+                      (
+                        ((F4211.SDDCTO IN (N'SO')))
+                        AND ((F4211.SDNXTR IN (N'530', N'560')))
+                      )
+                    )
+                    AND (
+                      (
+                        NOT (
+                          NVL (RTRIM (LTRIM (F4211.SDMOT)), N' ') LIKE N'R%'
+                        )
+                      )
+                    )
+                  )
+                )
+                AND ((F4211.SDFRTH IN (N'PP ')))
+              )
+            )
+            AND ((F4211.SDCO IN (N'00400')))
+          )
+        )
+        AND (
+          (
+            NOT (
+              NVL (RTRIM (LTRIM (F0101.ABSIC)), N' ') LIKE N'F%'
+            )
+          )
+        )
+      )
+    )
+    AND ((126191 - F4211.SDDRQJ) > 0)
+  )
+GROUP BY
+  F4211.SDMCU,
+  F4211.SDTRDJ,
+  F4211.SDDOCO,
+  F4211.SDHOLD,
+  F4211.SDVR01,
+  F4211.SDDRQJ,
+  (126191 - F4211.SDDRQJ),
+  F0101.ABALPH,
+  C.ALCTY1,
+  C.ALADDS,
+  F4211.SDLITM,
+  F4211.SDMOT,
+  F4211.SDUOM,
+  F4211.SDCARS,
+  F4211.SDFRTH,
+  F4211.SDTORG,
+  F4211.SDSHPN,
+  F0010.CCCRCD
+UNION ALL
+SELECT
+  F4211.SDMCU F4211_SDMCU,
+  F4211.SDTRDJ F4211_SDTRDJ,
+  F4211.SDDOCO F4211_SDDOCO,
+  F4211.SDHOLD F4211_SDHOLD,
+  F4211.SDVR01 F4211_SDVR01,
+  F4211.SDDRQJ F4211_SDDRQJ,
+  (126191 - F4211.SDDRQJ) ID_CUSTOM_81cb3d901c74362,
+  F0101.ABALPH F0101_ABALPH,
+  C.ALCTY1 F0116_ALCTY1,
+  C.ALADDS F0116_ALADDS,
+  F4211.SDLITM F4211_SDLITM,
+  F4211.SDMOT F4211_SDMOT,
+  F4211.SDUOM F4211_SDUOM,
+  F4211.SDCARS F4211_SDCARS,
+  F4211.SDFRTH F4211_SDFRTH,
+  F4211.SDTORG F4211_SDTORG,
+  F4211.SDSHPN F4211_SDSHPN,
+  126191 ID_CUSTOM_81cb39be122a647,
+  SUM(F4211.SDAEXP) ReportColumn1,
+  SUM(F4211.SDUORG) ReportColumn3,
+  SUM(F4211.SDPQOR) ReportColumn4,
+  F0010.CCCRCD DomesticCurrency
+FROM
+  PRODDTA.F42119 F4211
+  INNER JOIN (
+    SELECT
+      F0101.ABALPH,
+      F0101.ABSIC,
+      F0101.ABAN8
+    FROM
+      PRODDTA.F0101 F0101
+    WHERE
+      (
+        (F0101.ABAT1 BETWEEN N'A  ' AND N'P  ')
+        OR (F0101.ABAT1 BETWEEN N'R  ' AND N'ZZZ')
+      )
+  ) F0101 ON F0101.ABAN8 = F4211.SDSHAN
+  INNER JOIN PRODDTA.F0116 C
+  INNER JOIN (
+    SELECT
+      F0116.ALAN8,
+      MAX(F0116.ALEFTB) ALEFTB
+    FROM
+      PRODDTA.F0116 F0116
+    GROUP BY
+      F0116.ALAN8
+  ) D ON (C.ALAN8 = D.ALAN8)
+  AND (C.ALEFTB = D.ALEFTB) ON F0101.ABAN8 = D.ALAN8
+  INNER JOIN PRODDTA.F0010 F0010 ON F0010.CCCO = F4211.SDKCOO
+WHERE
+  (
+    (
+      (
+        (
+          (
+            (
+              (
+                (
+                  (
+                    (
+                      (
+                        ((F4211.SDDCTO IN (N'SO')))
+                        AND ((F4211.SDNXTR IN (N'530', N'560')))
+                      )
+                    )
+                    AND (
+                      (
+                        NOT (
+                          NVL (RTRIM (LTRIM (F4211.SDMOT)), N' ') LIKE N'R%'
+                        )
+                      )
+                    )
+                  )
+                )
+                AND ((F4211.SDFRTH IN (N'PP ')))
+              )
+            )
+            AND ((F4211.SDCO IN (N'00400')))
+          )
+        )
+        AND (
+          (
+            NOT (
+              NVL (RTRIM (LTRIM (F0101.ABSIC)), N' ') LIKE N'F%'
+            )
+          )
+        )
+      )
+    )
+    AND ((126191 - F4211.SDDRQJ) > 0)
+  )
+GROUP BY
+  F4211.SDMCU,
+  F4211.SDTRDJ,
+  F4211.SDDOCO,
+  F4211.SDHOLD,
+  F4211.SDVR01,
+  F4211.SDDRQJ,
+  (126191 - F4211.SDDRQJ),
+  F0101.ABALPH,
+  C.ALCTY1,
+  C.ALADDS,
+  F4211.SDLITM,
+  F4211.SDMOT,
+  F4211.SDUOM,
+  F4211.SDCARS,
+  F4211.SDFRTH,
+  F4211.SDTORG,
+  F4211.SDSHPN,
+  F0010.CCCRCD
+ORDER BY
+  F4211_SDMCU ASC,
+  F4211_SDDRQJ ASC,
+  F0101_ABALPH ASC,
+  F0116_ALCTY1 ASC,
+  F4211_SDDOCO ASC,
+  F4211_SDLITM ASC,
+  F4211_SDTRDJ ASC,
+  F4211_SDUOM ASC,
+  F4211_SDHOLD ASC,
+  F0116_ALADDS ASC,
+  F4211_SDMOT ASC,
+  F4211_SDTORG ASC,
+  F4211_SDCARS ASC,
+  F4211_SDSHPN ASC,
+  F4211_SDFRTH ASC,
+  F4211_SDVR01 ASC,
+  ID_CUSTOM_81cb3d901c74362 ASC,
+  ID_CUSTOM_81cb39be122a647 ASC

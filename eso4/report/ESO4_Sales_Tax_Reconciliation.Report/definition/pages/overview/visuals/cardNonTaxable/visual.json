@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "cardNonTaxable",
+  "position": {
+    "x": 264,
+    "y": 96,
+    "z": 0,
+    "width": 240,
+    "height": 120,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Non-Taxable Amount"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Non-Taxable Amount",
+              "nativeQueryRef": "Non-Taxable Amount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

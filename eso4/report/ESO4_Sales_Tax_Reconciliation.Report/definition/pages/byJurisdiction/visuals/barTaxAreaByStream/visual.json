@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "barTaxAreaByStream",
+  "position": {
+    "x": 1024,
+    "y": 96,
+    "z": 0,
+    "width": 240,
+    "height": 600,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "tax_area"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.tax_area",
+              "nativeQueryRef": "Tax Area"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Tax Amount"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Tax Amount",
+              "nativeQueryRef": "Tax Amount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

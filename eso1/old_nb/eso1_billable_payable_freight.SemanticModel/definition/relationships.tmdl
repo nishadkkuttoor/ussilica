@@ -1,0 +1,48 @@
+relationship 026c16e5-c963-5dfb-a7df-05226e55ecb2
+	fromColumn: fact_sales_order_line.bill_to
+	toColumn: dim_address_sold_to.address_number
+
+relationship b07ce02d-cbdd-5687-9347-627f89fdea78
+	fromColumn: fact_sales_order_line.ship_to
+	toColumn: dim_address_ship_to.address_number
+
+relationship 5a0daa2b-cc3c-5c8f-af53-fa08c9f446d5
+	fromColumn: fact_sales_order_line.carrier_number
+	toColumn: dim_address_carrier.address_number
+
+relationship 709b94ec-5136-5704-8816-254acdefb3b4
+	fromColumn: fact_sales_order_line.loading_port
+	toColumn: dim_address_loading_port.address_number
+
+relationship 93b19175-9390-5991-b993-fc0168b653b7
+	fromColumn: fact_sales_order_line.ocean_carrier
+	toColumn: dim_address_ocean_carrier.address_number
+
+relationship bd5ea912-564f-5381-bf7e-d3ca448a68b9
+	fromColumn: fact_sales_order_line.port_of_destination
+	toColumn: dim_address_destination.address_number
+
+relationship 46b24154-1adb-5678-a984-eb7b6fffc565
+	fromColumn: fact_sales_order_line.branch_plant
+	toColumn: dim_plant.plant_code
+
+relationship d92f5e77-e647-50a7-b9f3-f4aa1ed3ecaf
+	fromColumn: fact_sales_order_line.shipment_number
+	toColumn: dim_shipment.shipment_number
+
+relationship cc2f157f-e971-5906-82c3-061df0eb02a9
+	fromColumn: fact_freight_audit.carrier_number
+	toColumn: dim_address_carrier.address_number
+
+relationship 84a2b4ed-8fbc-5b39-9d43-4a78915f37e4
+	fromColumn: fact_freight_audit.ship_to
+	toColumn: dim_address_ship_to.address_number
+
+relationship ae2adcb2-5584-529f-80df-3258ee10359f
+	fromColumn: fact_freight_audit.branch_plant
+	toColumn: dim_plant.plant_code
+
+relationship 329d1e08-c332-5f8b-a722-5083d18988b8
+	fromColumn: fact_freight_audit.shipment_number
+	toColumn: dim_shipment.shipment_number
+

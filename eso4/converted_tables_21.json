@@ -1,0 +1,2856 @@
+{
+  "F4211": {
+    "table_name": "sales_order_detail_file",
+    "columns": [
+      {
+        "column_name": "SDSTOP",
+        "snake_case_field": "stop_code"
+      },
+      {
+        "column_name": "SDRCD",
+        "snake_case_field": "reason_code"
+      },
+      {
+        "column_name": "SDROUT",
+        "snake_case_field": "route_code"
+      },
+      {
+        "column_name": "SDFRTH",
+        "snake_case_field": "freight_handling_code"
+      },
+      {
+        "column_name": "SDFRGD",
+        "snake_case_field": "from_grade"
+      },
+      {
+        "column_name": "SDTHGD",
+        "snake_case_field": "thru_grade"
+      },
+      {
+        "column_name": "SDLTTR",
+        "snake_case_field": "status_code_last"
+      },
+      {
+        "column_name": "SDNXTR",
+        "snake_case_field": "status_code_next"
+      },
+      {
+        "column_name": "SDZON",
+        "snake_case_field": "zone_number"
+      },
+      {
+        "column_name": "SDEUSE",
+        "snake_case_field": "end_use"
+      },
+      {
+        "column_name": "SDLOB",
+        "snake_case_field": "lineof_business"
+      },
+      {
+        "column_name": "SDPRP2",
+        "snake_case_field": "purchasing_report_code_02"
+      },
+      {
+        "column_name": "SDSRP5",
+        "snake_case_field": "sales_reporting_code_05"
+      },
+      {
+        "column_name": "SDSRP2",
+        "snake_case_field": "sales_reporting_code_02"
+      },
+      {
+        "column_name": "SDPRP3",
+        "snake_case_field": "purchasing_report_code_03"
+      },
+      {
+        "column_name": "SDPRP1",
+        "snake_case_field": "purchasing_report_code_01"
+      },
+      {
+        "column_name": "SDSRP1",
+        "snake_case_field": "sales_reporting_code_01"
+      },
+      {
+        "column_name": "SDSRP3",
+        "snake_case_field": "sales_reporting_code_03"
+      },
+      {
+        "column_name": "SDSRP4",
+        "snake_case_field": "sales_reporting_code_04"
+      },
+      {
+        "column_name": "SDSHCM",
+        "snake_case_field": "shipping_commodity_class"
+      },
+      {
+        "column_name": "SDPRP4",
+        "snake_case_field": "purchasing_report_code_04"
+      },
+      {
+        "column_name": "SDSHCN",
+        "snake_case_field": "shipping_conditions_code"
+      },
+      {
+        "column_name": "SDPRP5",
+        "snake_case_field": "purchasing_report_code_05"
+      },
+      {
+        "column_name": "SDMOT",
+        "snake_case_field": "mode_of_transport"
+      },
+      {
+        "column_name": "SDOSTP",
+        "snake_case_field": "organization_type_structur"
+      },
+      {
+        "column_name": "SDUOM",
+        "snake_case_field": "uom_as_input"
+      },
+      {
+        "column_name": "SDUOM2",
+        "snake_case_field": "uom_secondary"
+      },
+      {
+        "column_name": "SDWTUM",
+        "snake_case_field": "weight_uom"
+      },
+      {
+        "column_name": "SDVLUM",
+        "snake_case_field": "volume_uom"
+      },
+      {
+        "column_name": "SDUOM4",
+        "snake_case_field": "uom_pricing"
+      },
+      {
+        "column_name": "SDGWUM",
+        "snake_case_field": "uom_gross_wt"
+      },
+      {
+        "column_name": "SDUOM1",
+        "snake_case_field": "uom_primary"
+      },
+      {
+        "column_name": "SDAPUM",
+        "snake_case_field": "uom_ent_up"
+      },
+      {
+        "column_name": "SDXCTO",
+        "snake_case_field": "cross_dock_order_type"
+      },
+      {
+        "column_name": "SDOCTO",
+        "snake_case_field": "original_order_type"
+      },
+      {
+        "column_name": "SDODCT",
+        "snake_case_field": "original_document_type"
+      },
+      {
+        "column_name": "SDRCTO",
+        "snake_case_field": "related_order_type"
+      },
+      {
+        "column_name": "SDDCT",
+        "snake_case_field": "document_type"
+      },
+      {
+        "column_name": "SDEXR1",
+        "snake_case_field": "tax_explanation_code_01"
+      },
+      {
+        "column_name": "SDNTR",
+        "snake_case_field": "nature_of_transaction"
+      },
+      {
+        "column_name": "SDDTYS",
+        "snake_case_field": "duty_status"
+      },
+      {
+        "column_name": "SDUPC1",
+        "snake_case_field": "price_code_01"
+      },
+      {
+        "column_name": "SDUPC3",
+        "snake_case_field": "price_code_03"
+      },
+      {
+        "column_name": "SDUPC2",
+        "snake_case_field": "price_code_02"
+      },
+      {
+        "column_name": "SDHOLD",
+        "snake_case_field": "hold_orders_code"
+      },
+      {
+        "column_name": "SDLCOD",
+        "snake_case_field": "code_location_tax_stat"
+      },
+      {
+        "column_name": "SDOTQY",
+        "snake_case_field": "other_quantity_12"
+      },
+      {
+        "column_name": "SDSBLT",
+        "snake_case_field": "subledger_type"
+      },
+      {
+        "column_name": "SDCRMD",
+        "snake_case_field": "correspondence_method"
+      },
+      {
+        "column_name": "SDRYIN",
+        "snake_case_field": "payment_instrument_a"
+      },
+      {
+        "column_name": "SDINMG",
+        "snake_case_field": "print_message_01"
+      },
+      {
+        "column_name": "SDASN",
+        "snake_case_field": "price_adjustment_schedule_n"
+      },
+      {
+        "column_name": "SDORPR",
+        "snake_case_field": "order_reprice_category"
+      },
+      {
+        "column_name": "SDRPRC",
+        "snake_case_field": "reprice_basket_price_cat"
+      },
+      {
+        "column_name": "SDPRGR",
+        "snake_case_field": "pricing_category"
+      },
+      {
+        "column_name": "SDDCTO",
+        "snake_case_field": "order_type"
+      },
+      {
+        "column_name": "SDLNID",
+        "snake_case_field": "line_number"
+      },
+      {
+        "column_name": "SDDOCO",
+        "snake_case_field": "document_order_invoice_e"
+      },
+      {
+        "column_name": "SDKCOO",
+        "snake_case_field": "company_key_order_no"
+      },
+      {
+        "column_name": "SDDSC2",
+        "snake_case_field": "description_line_02"
+      },
+      {
+        "column_name": "SDURRF",
+        "snake_case_field": "user_reserved_reference"
+      },
+      {
+        "column_name": "SDSPATTN",
+        "snake_case_field": "ship_to_attention"
+      },
+      {
+        "column_name": "SDPOE",
+        "snake_case_field": "port_of_entry_exit"
+      },
+      {
+        "column_name": "SDCNID",
+        "snake_case_field": "container_id"
+      },
+      {
+        "column_name": "SDLOCN",
+        "snake_case_field": "location"
+      },
+      {
+        "column_name": "SDGLC",
+        "snake_case_field": "gl_class"
+      },
+      {
+        "column_name": "SDCMGP",
+        "snake_case_field": "inventory_costing_meth"
+      },
+      {
+        "column_name": "SDLNTY",
+        "snake_case_field": "line_type"
+      },
+      {
+        "column_name": "SDURCD",
+        "snake_case_field": "user_reserved_code"
+      },
+      {
+        "column_name": "SDCO",
+        "snake_case_field": "company"
+      },
+      {
+        "column_name": "SDOKCO",
+        "snake_case_field": "company_key_original"
+      },
+      {
+        "column_name": "SDRKCO",
+        "snake_case_field": "company_key_related"
+      },
+      {
+        "column_name": "SDKCO",
+        "snake_case_field": "company_key"
+      },
+      {
+        "column_name": "SDXKCO",
+        "snake_case_field": "cross_dock_cmpy_key_order_no"
+      },
+      {
+        "column_name": "SDCMCO",
+        "snake_case_field": "customer_master_company"
+      },
+      {
+        "column_name": "SDOKC",
+        "snake_case_field": "document_company_original"
+      },
+      {
+        "column_name": "SDVR03",
+        "snake_case_field": "reference_ucis_no"
+      },
+      {
+        "column_name": "SDVR02",
+        "snake_case_field": "reference_02_vendor"
+      },
+      {
+        "column_name": "SDVR01",
+        "snake_case_field": "reference_01"
+      },
+      {
+        "column_name": "SDLITM",
+        "snake_case_field": "identifier_second_item"
+      },
+      {
+        "column_name": "SDAITM",
+        "snake_case_field": "identifier_third_item"
+      },
+      {
+        "column_name": "SDDSC1",
+        "snake_case_field": "description_line_01"
+      },
+      {
+        "column_name": "SDLOTN",
+        "snake_case_field": "lot"
+      },
+      {
+        "column_name": "SDPMPN",
+        "snake_case_field": "production_number"
+      },
+      {
+        "column_name": "SDIR01",
+        "snake_case_field": "integration_reference_01"
+      },
+      {
+        "column_name": "SDIR03",
+        "snake_case_field": "integration_reference_03"
+      },
+      {
+        "column_name": "SDIR02",
+        "snake_case_field": "integration_reference_02"
+      },
+      {
+        "column_name": "SDIR05",
+        "snake_case_field": "integration_reference_05"
+      },
+      {
+        "column_name": "SDALLSTS",
+        "snake_case_field": "allocation_status"
+      },
+      {
+        "column_name": "SDSERN",
+        "snake_case_field": "serial_number_lot"
+      },
+      {
+        "column_name": "SDIR04",
+        "snake_case_field": "integration_reference_04"
+      },
+      {
+        "column_name": "SDPSIG",
+        "snake_case_field": "pull_signal"
+      },
+      {
+        "column_name": "SDCATNM",
+        "snake_case_field": "catalog_name"
+      },
+      {
+        "column_name": "SDRORN",
+        "snake_case_field": "related_po_so_number"
+      },
+      {
+        "column_name": "SDSBL",
+        "snake_case_field": "subledger"
+      },
+      {
+        "column_name": "SDOORN",
+        "snake_case_field": "original_po_so_number"
+      },
+      {
+        "column_name": "SDCMCG",
+        "snake_case_field": "commission_category"
+      },
+      {
+        "column_name": "SDRLIT",
+        "snake_case_field": "item_number_related_kit"
+      },
+      {
+        "column_name": "SDDMCT",
+        "snake_case_field": "contract_number_distributi"
+      },
+      {
+        "column_name": "SDHDBU",
+        "snake_case_field": "business_unit_header_09"
+      },
+      {
+        "column_name": "SDPMTN",
+        "snake_case_field": "promotion_id"
+      },
+      {
+        "column_name": "SDEMCU",
+        "snake_case_field": "cost_center_header"
+      },
+      {
+        "column_name": "SDDMBU",
+        "snake_case_field": "business_unit_demand"
+      },
+      {
+        "column_name": "SDMCU",
+        "snake_case_field": "cost_center"
+      },
+      {
+        "column_name": "SDPTC",
+        "snake_case_field": "payment_terms_code_01"
+      },
+      {
+        "column_name": "SDMERL",
+        "snake_case_field": "me_revision_level"
+      },
+      {
+        "column_name": "SDXSFX",
+        "snake_case_field": "cross_dock_order_suffix"
+      },
+      {
+        "column_name": "SDRFRV",
+        "snake_case_field": "revision_reason"
+      },
+      {
+        "column_name": "SDCLVL",
+        "snake_case_field": "pricing_category_level_01"
+      },
+      {
+        "column_name": "SDSFXO",
+        "snake_case_field": "order_suffix"
+      },
+      {
+        "column_name": "SDBCRC",
+        "snake_case_field": "currency_code_base"
+      },
+      {
+        "column_name": "SDCRCD",
+        "snake_case_field": "currency_code_from"
+      },
+      {
+        "column_name": "SDPID",
+        "snake_case_field": "program_id"
+      },
+      {
+        "column_name": "SDUSER",
+        "snake_case_field": "user_id"
+      },
+      {
+        "column_name": "SDJOBN",
+        "snake_case_field": "work_station_id"
+      },
+      {
+        "column_name": "SDTXA1",
+        "snake_case_field": "tax_area_01"
+      },
+      {
+        "column_name": "SDTORG",
+        "snake_case_field": "transaction_originator"
+      },
+      {
+        "column_name": "SDBSC",
+        "snake_case_field": "buying_segment_code"
+      },
+      {
+        "column_name": "SDCBSC",
+        "snake_case_field": "current_buying_segment_code"
+      },
+      {
+        "column_name": "SDRLNU",
+        "snake_case_field": "release_number"
+      },
+      {
+        "column_name": "SDTPC",
+        "snake_case_field": "temporary_price_yn"
+      },
+      {
+        "column_name": "SDBACK",
+        "snake_case_field": "backorders_allowed_yn"
+      },
+      {
+        "column_name": "SDKITDIRTY",
+        "snake_case_field": "kit_component_dirty_flag"
+      },
+      {
+        "column_name": "SDSO02",
+        "snake_case_field": "sales_order_status_02"
+      },
+      {
+        "column_name": "SDSO08",
+        "snake_case_field": "sales_order_status_08"
+      },
+      {
+        "column_name": "SDSO04",
+        "snake_case_field": "sales_order_status_04"
+      },
+      {
+        "column_name": "SDSO11",
+        "snake_case_field": "sales_order_status_11"
+      },
+      {
+        "column_name": "SDSO06",
+        "snake_case_field": "sales_order_status_06"
+      },
+      {
+        "column_name": "SDSWMS",
+        "snake_case_field": "status_in_warehouse"
+      },
+      {
+        "column_name": "SDSO12",
+        "snake_case_field": "sales_order_status_12"
+      },
+      {
+        "column_name": "SDPRIO",
+        "snake_case_field": "priority_processing"
+      },
+      {
+        "column_name": "SDTAX1",
+        "snake_case_field": "taxable_yn"
+      },
+      {
+        "column_name": "SDPEND",
+        "snake_case_field": "pending_approval_flag"
+      },
+      {
+        "column_name": "SDSO17",
+        "snake_case_field": "sales_order_status_17"
+      },
+      {
+        "column_name": "SDATXT",
+        "snake_case_field": "associated_text"
+      },
+      {
+        "column_name": "SDPROV",
+        "snake_case_field": "price_override_code"
+      },
+      {
+        "column_name": "SDRESL",
+        "snake_case_field": "resolution_code_bc"
+      },
+      {
+        "column_name": "SDSO19",
+        "snake_case_field": "sales_order_status_19"
+      },
+      {
+        "column_name": "SDSO16",
+        "snake_case_field": "sales_order_status_16"
+      },
+      {
+        "column_name": "SDSO01",
+        "snake_case_field": "sales_order_status_01"
+      },
+      {
+        "column_name": "SDOSCOREO",
+        "snake_case_field": "score_override"
+      },
+      {
+        "column_name": "SDPMTO",
+        "snake_case_field": "payment_terms_override"
+      },
+      {
+        "column_name": "SDSBAL",
+        "snake_case_field": "substitutes_allowed_yn"
+      },
+      {
+        "column_name": "SDSO20",
+        "snake_case_field": "sales_order_status_20"
+      },
+      {
+        "column_name": "SDSO07",
+        "snake_case_field": "sales_order_status_07"
+      },
+      {
+        "column_name": "SDSO13",
+        "snake_case_field": "sales_order_status_13"
+      },
+      {
+        "column_name": "SDOCITT",
+        "snake_case_field": "oc_in_transit_flag"
+      },
+      {
+        "column_name": "SDSO18",
+        "snake_case_field": "sales_order_status_18"
+      },
+      {
+        "column_name": "SDSO09",
+        "snake_case_field": "sales_order_status_09"
+      },
+      {
+        "column_name": "SDSO14",
+        "snake_case_field": "sales_order_status_14"
+      },
+      {
+        "column_name": "SDUNCD",
+        "snake_case_field": "wo_order_freeze_code"
+      },
+      {
+        "column_name": "SDDTBS",
+        "snake_case_field": "basedon_date"
+      },
+      {
+        "column_name": "SDCSTO",
+        "snake_case_field": "cost_override_code"
+      },
+      {
+        "column_name": "SDCOMM",
+        "snake_case_field": "committed_hs"
+      },
+      {
+        "column_name": "SDSO03",
+        "snake_case_field": "sales_order_status_03"
+      },
+      {
+        "column_name": "SDDUAL",
+        "snake_case_field": "dual_uom_item"
+      },
+      {
+        "column_name": "SDXDCK",
+        "snake_case_field": "cross_dock_flag"
+      },
+      {
+        "column_name": "SDORP",
+        "snake_case_field": "order_repriced_indicator"
+      },
+      {
+        "column_name": "SDSO15",
+        "snake_case_field": "sales_order_status_15"
+      },
+      {
+        "column_name": "SDAPTS",
+        "snake_case_field": "partial_shipmnts_allow_y"
+      },
+      {
+        "column_name": "SDSO05",
+        "snake_case_field": "sales_order_status_05"
+      },
+      {
+        "column_name": "SDSO10",
+        "snake_case_field": "sales_order_status_10"
+      },
+      {
+        "column_name": "SDACOM",
+        "snake_case_field": "apply_commission_yn"
+      },
+      {
+        "column_name": "SDALLOC",
+        "snake_case_field": "allocation_flag"
+      },
+      {
+        "column_name": "SDCPNT",
+        "snake_case_field": "component_number"
+      },
+      {
+        "column_name": "SDKTLN",
+        "snake_case_field": "line_number_kit_master"
+      },
+      {
+        "column_name": "SDUPRC",
+        "snake_case_field": "amt_price_per_unit_02"
+      },
+      {
+        "column_name": "SDFPRC",
+        "snake_case_field": "amount_list_price_foreign"
+      },
+      {
+        "column_name": "SDITVL",
+        "snake_case_field": "amount_unit_volume"
+      },
+      {
+        "column_name": "SDTCST",
+        "snake_case_field": "extended_cost_transfer"
+      },
+      {
+        "column_name": "SDGRWT",
+        "snake_case_field": "gross_weight"
+      },
+      {
+        "column_name": "SDLPRC",
+        "snake_case_field": "amt_list_price_per_unit"
+      },
+      {
+        "column_name": "SDUNCS",
+        "snake_case_field": "amount_unit_cost"
+      },
+      {
+        "column_name": "SDFUC",
+        "snake_case_field": "amount_foreign_unit_cost"
+      },
+      {
+        "column_name": "SDITWT",
+        "snake_case_field": "amount_unit_weight"
+      },
+      {
+        "column_name": "SDFUN2",
+        "snake_case_field": "trade_discount_old"
+      },
+      {
+        "column_name": "SDFUP",
+        "snake_case_field": "amt_for_price_per_unit"
+      },
+      {
+        "column_name": "SDSQOR",
+        "snake_case_field": "units_secondary_qty_or"
+      },
+      {
+        "column_name": "SDUORG",
+        "snake_case_field": "units_transaction_qty"
+      },
+      {
+        "column_name": "SDTHRP",
+        "snake_case_field": "thru_potency"
+      },
+      {
+        "column_name": "SDFRMP",
+        "snake_case_field": "from_potency"
+      },
+      {
+        "column_name": "SDQTYT",
+        "snake_case_field": "quantity_shipped_to_date"
+      },
+      {
+        "column_name": "SDXLLN",
+        "snake_case_field": "cross_dock_line_number"
+      },
+      {
+        "column_name": "SDPQOR",
+        "snake_case_field": "units_primary_qty_order"
+      },
+      {
+        "column_name": "SDUOPN",
+        "snake_case_field": "units_open_quantity"
+      },
+      {
+        "column_name": "SDKTP",
+        "snake_case_field": "numb_of_cpnt_per_parent"
+      },
+      {
+        "column_name": "SDCADC",
+        "snake_case_field": "discount_cash"
+      },
+      {
+        "column_name": "SDODLN",
+        "snake_case_field": "original_document_line_no"
+      },
+      {
+        "column_name": "SDTRDC",
+        "snake_case_field": "discount_trade"
+      },
+      {
+        "column_name": "SDSOQS",
+        "snake_case_field": "units_quantity_shipped"
+      },
+      {
+        "column_name": "SDMCLN",
+        "snake_case_field": "matrix_control_line"
+      },
+      {
+        "column_name": "SDOGNO",
+        "snake_case_field": "original_line_number"
+      },
+      {
+        "column_name": "SDSONE",
+        "snake_case_field": "units_quantity_future"
+      },
+      {
+        "column_name": "SDSOBK",
+        "snake_case_field": "units_quan_backor_held"
+      },
+      {
+        "column_name": "SDSOCN",
+        "snake_case_field": "units_quantity_canceled"
+      },
+      {
+        "column_name": "SDOSCORE",
+        "snake_case_field": "order_score"
+      },
+      {
+        "column_name": "SDQRLV",
+        "snake_case_field": "quantity_relieved"
+      },
+      {
+        "column_name": "SDRLLN",
+        "snake_case_field": "related_po_so_line_no"
+      },
+      {
+        "column_name": "SDKITAMTDOM",
+        "snake_case_field": "accumulated_amount_invoiced_domestic"
+      },
+      {
+        "column_name": "SDKITAMTFOR",
+        "snake_case_field": "accumulated_amount_invoiced_foreign"
+      },
+      {
+        "column_name": "SDAEXP",
+        "snake_case_field": "amount_extended_price"
+      },
+      {
+        "column_name": "SDFEC",
+        "snake_case_field": "amount_foreign_ext_cost"
+      },
+      {
+        "column_name": "SDAOPN",
+        "snake_case_field": "amount_open_01"
+      },
+      {
+        "column_name": "SDECST",
+        "snake_case_field": "amount_extended_cost"
+      },
+      {
+        "column_name": "SDFEA",
+        "snake_case_field": "amount_foreign_ext_price"
+      },
+      {
+        "column_name": "SDURAT",
+        "snake_case_field": "user_reserved_amount"
+      },
+      {
+        "column_name": "SDURDT",
+        "snake_case_field": "user_reserved_date"
+      },
+      {
+        "column_name": "SDTRDJ",
+        "snake_case_field": "date_transaction_julian"
+      },
+      {
+        "column_name": "SDDRQJ",
+        "snake_case_field": "date_requested_julian"
+      },
+      {
+        "column_name": "SDADDJ",
+        "snake_case_field": "actual_ship_date"
+      },
+      {
+        "column_name": "SDPPDJ",
+        "snake_case_field": "date_promised_ship_julian"
+      },
+      {
+        "column_name": "SDPDDJ",
+        "snake_case_field": "scheduled_pick_date"
+      },
+      {
+        "column_name": "SDRSDJ",
+        "snake_case_field": "date_release_julian"
+      },
+      {
+        "column_name": "SDOPDJ",
+        "snake_case_field": "date_original_promisde"
+      },
+      {
+        "column_name": "SDIVD",
+        "snake_case_field": "date_invoice_julian"
+      },
+      {
+        "column_name": "SDDGL",
+        "snake_case_field": "dt_for_gl_and_vouch_01"
+      },
+      {
+        "column_name": "SDRLDJ",
+        "snake_case_field": "date_release"
+      },
+      {
+        "column_name": "SDPEFJ",
+        "snake_case_field": "date_price_effective_date"
+      },
+      {
+        "column_name": "SDCNDJ",
+        "snake_case_field": "cancel_date"
+      },
+      {
+        "column_name": "SDUPMJ",
+        "snake_case_field": "date_updated"
+      },
+      {
+        "column_name": "SDTDAY",
+        "snake_case_field": "time_of_day"
+      },
+      {
+        "column_name": "SDCRR",
+        "snake_case_field": "currency_conver_rate_ov"
+      },
+      {
+        "column_name": "SDEXDP",
+        "snake_case_field": "days_past_expiration"
+      },
+      {
+        "column_name": "SDRLTM",
+        "snake_case_field": "time_release"
+      },
+      {
+        "column_name": "SDOPTT",
+        "snake_case_field": "time_original_promised"
+      },
+      {
+        "column_name": "SDOCCARDNO",
+        "snake_case_field": "oc_kanban_card_no"
+      },
+      {
+        "column_name": "SDPRCIDLN",
+        "snake_case_field": "partner_contact_line_num_id"
+      },
+      {
+        "column_name": "SDDEID",
+        "snake_case_field": "demand_unique_key"
+      },
+      {
+        "column_name": "SDPSTM",
+        "snake_case_field": "time_future_02"
+      },
+      {
+        "column_name": "SDUKID",
+        "snake_case_field": "unique_key_id_internal"
+      },
+      {
+        "column_name": "SDXPTY",
+        "snake_case_field": "cross_docking_priority"
+      },
+      {
+        "column_name": "SDKITID",
+        "snake_case_field": "kit_identifier"
+      },
+      {
+        "column_name": "SDCCIDLN",
+        "snake_case_field": "customer_contact_line_number_id"
+      },
+      {
+        "column_name": "SDPDTT",
+        "snake_case_field": "promised_pick_time"
+      },
+      {
+        "column_name": "SDPRAN8",
+        "snake_case_field": "partner_address_number"
+      },
+      {
+        "column_name": "SDSHCCIDLN",
+        "snake_case_field": "ship_to_cus_contact_line_num_id"
+      },
+      {
+        "column_name": "SDPRJM",
+        "snake_case_field": "project_number"
+      },
+      {
+        "column_name": "SDOPPID",
+        "snake_case_field": "opportunity_id"
+      },
+      {
+        "column_name": "SDDVAN",
+        "snake_case_field": "address_number_delivered_to"
+      },
+      {
+        "column_name": "SDRKIT",
+        "snake_case_field": "related_kit_component"
+      },
+      {
+        "column_name": "SDSOOR",
+        "snake_case_field": "source_of_order"
+      },
+      {
+        "column_name": "SDFULPID",
+        "snake_case_field": "fulfillment_plan_id"
+      },
+      {
+        "column_name": "SDDRQT",
+        "snake_case_field": "requested_delivery_time"
+      },
+      {
+        "column_name": "SDAAID",
+        "snake_case_field": "parent_number"
+      },
+      {
+        "column_name": "SDDMCS",
+        "snake_case_field": "contract_supplement_distri"
+      },
+      {
+        "column_name": "SDADTM",
+        "snake_case_field": "actual_shipment_time"
+      },
+      {
+        "column_name": "SDXORN",
+        "snake_case_field": "cross_dock_order_number"
+      },
+      {
+        "column_name": "SDOSEQ",
+        "snake_case_field": "sequence_number"
+      },
+      {
+        "column_name": "SDPSN",
+        "snake_case_field": "pick_slip_number"
+      },
+      {
+        "column_name": "SDSHAN",
+        "snake_case_field": "address_number_ship_to"
+      },
+      {
+        "column_name": "SDODOC",
+        "snake_case_field": "original_document_no"
+      },
+      {
+        "column_name": "SDCORD",
+        "snake_case_field": "number_change_order"
+      },
+      {
+        "column_name": "SDCTRY",
+        "snake_case_field": "century"
+      },
+      {
+        "column_name": "SDFY",
+        "snake_case_field": "fiscal_year_01"
+      },
+      {
+        "column_name": "SDSHPN",
+        "snake_case_field": "shipment_number"
+      },
+      {
+        "column_name": "SDDELN",
+        "snake_case_field": "delivery_number"
+      },
+      {
+        "column_name": "SDDOC",
+        "snake_case_field": "doc_voucher_invoice_e"
+      },
+      {
+        "column_name": "SDPA8",
+        "snake_case_field": "address_number_parent"
+      },
+      {
+        "column_name": "SDCARS",
+        "snake_case_field": "carrier"
+      },
+      {
+        "column_name": "SDANBY",
+        "snake_case_field": "buyer_number"
+      },
+      {
+        "column_name": "SDNUMB",
+        "snake_case_field": "asset_item_number"
+      },
+      {
+        "column_name": "SDVEND",
+        "snake_case_field": "primary_last_vendor_no"
+      },
+      {
+        "column_name": "SDPNS",
+        "snake_case_field": "production_number_short"
+      },
+      {
+        "column_name": "SDRSDT",
+        "snake_case_field": "promised_delivery_time"
+      },
+      {
+        "column_name": "SDPMDT",
+        "snake_case_field": "scheduled_shipment_time"
+      },
+      {
+        "column_name": "SDITM",
+        "snake_case_field": "identifier_short_item"
+      },
+      {
+        "column_name": "SDAN8",
+        "snake_case_field": "address_number"
+      },
+      {
+        "column_name": "SDURAB",
+        "snake_case_field": "user_reserved_number"
+      }
+    ]
+  },
+  "F0101": {
+    "table_name": "address_book_master",
+    "columns": [
+      {
+        "column_name": "ABCLASS04",
+        "snake_case_field": "classification_code_04"
+      },
+      {
+        "column_name": "ABCLASS05",
+        "snake_case_field": "classification_code_05"
+      },
+      {
+        "column_name": "ABCLASS01",
+        "snake_case_field": "classification_code_01"
+      },
+      {
+        "column_name": "ABCLASS03",
+        "snake_case_field": "classification_code_03"
+      },
+      {
+        "column_name": "ABCLASS02",
+        "snake_case_field": "classification_code_02"
+      },
+      {
+        "column_name": "ABAC02",
+        "snake_case_field": "report_code_add_book_002"
+      },
+      {
+        "column_name": "ABAC15",
+        "snake_case_field": "report_code_add_book_015"
+      },
+      {
+        "column_name": "ABAC04",
+        "snake_case_field": "report_code_add_book_004"
+      },
+      {
+        "column_name": "ABAC07",
+        "snake_case_field": "report_code_add_book_007"
+      },
+      {
+        "column_name": "ABAC10",
+        "snake_case_field": "report_code_add_book_010"
+      },
+      {
+        "column_name": "ABAC16",
+        "snake_case_field": "report_code_add_book_016"
+      },
+      {
+        "column_name": "ABAC17",
+        "snake_case_field": "report_code_add_book_017"
+      },
+      {
+        "column_name": "ABAC09",
+        "snake_case_field": "report_code_add_book_009"
+      },
+      {
+        "column_name": "ABAC08",
+        "snake_case_field": "report_code_add_book_008"
+      },
+      {
+        "column_name": "ABAC29",
+        "snake_case_field": "category_code_address_bk_29"
+      },
+      {
+        "column_name": "ABAC05",
+        "snake_case_field": "report_code_add_book_005"
+      },
+      {
+        "column_name": "ABAC01",
+        "snake_case_field": "report_code_add_book_001"
+      },
+      {
+        "column_name": "ABAC27",
+        "snake_case_field": "category_code_address_bk_27"
+      },
+      {
+        "column_name": "ABAC14",
+        "snake_case_field": "report_code_add_book_014"
+      },
+      {
+        "column_name": "ABAC13",
+        "snake_case_field": "report_code_add_book_013"
+      },
+      {
+        "column_name": "ABAC03",
+        "snake_case_field": "report_code_add_book_003"
+      },
+      {
+        "column_name": "ABAC26",
+        "snake_case_field": "category_code_address_bk_26"
+      },
+      {
+        "column_name": "ABAC20",
+        "snake_case_field": "report_code_add_book_020"
+      },
+      {
+        "column_name": "ABAC28",
+        "snake_case_field": "category_code_address_bk_28"
+      },
+      {
+        "column_name": "ABAC11",
+        "snake_case_field": "report_code_add_book_011"
+      },
+      {
+        "column_name": "ABAC21",
+        "snake_case_field": "category_code_address_bk_02"
+      },
+      {
+        "column_name": "ABAC24",
+        "snake_case_field": "category_code_address_bk_24"
+      },
+      {
+        "column_name": "ABAC12",
+        "snake_case_field": "report_code_add_book_012"
+      },
+      {
+        "column_name": "ABAC22",
+        "snake_case_field": "category_code_address_bk_22"
+      },
+      {
+        "column_name": "ABAC18",
+        "snake_case_field": "report_code_add_book_018"
+      },
+      {
+        "column_name": "ABAT1",
+        "snake_case_field": "address_type_01"
+      },
+      {
+        "column_name": "ABAC06",
+        "snake_case_field": "report_code_add_book_006"
+      },
+      {
+        "column_name": "ABAC19",
+        "snake_case_field": "report_code_add_book_019"
+      },
+      {
+        "column_name": "ABAC30",
+        "snake_case_field": "category_code_address_bk_30"
+      },
+      {
+        "column_name": "ABAC25",
+        "snake_case_field": "category_code_address_bk_25"
+      },
+      {
+        "column_name": "ABAC23",
+        "snake_case_field": "category_code_address_bk_23"
+      },
+      {
+        "column_name": "ABCM",
+        "snake_case_field": "credit_message"
+      },
+      {
+        "column_name": "ABLNGP",
+        "snake_case_field": "language_preference"
+      },
+      {
+        "column_name": "ABSBLI",
+        "snake_case_field": "subledger_inactive_code"
+      },
+      {
+        "column_name": "ABSIC",
+        "snake_case_field": "standard_industry_code"
+      },
+      {
+        "column_name": "ABRMK",
+        "snake_case_field": "name_remark"
+      },
+      {
+        "column_name": "ABALPH",
+        "snake_case_field": "name_alpha"
+      },
+      {
+        "column_name": "ABTXCT",
+        "snake_case_field": "certificate_tax_exempt"
+      },
+      {
+        "column_name": "ABURRF",
+        "snake_case_field": "user_reserved_reference"
+      },
+      {
+        "column_name": "ABDUNS",
+        "snake_case_field": "duns_number"
+      },
+      {
+        "column_name": "ABYEARSTAR",
+        "snake_case_field": "year_started"
+      },
+      {
+        "column_name": "ABALP1",
+        "snake_case_field": "kanjialpha"
+      },
+      {
+        "column_name": "ABDC",
+        "snake_case_field": "descrip_compressed"
+      },
+      {
+        "column_name": "ABTX2",
+        "snake_case_field": "tax_id_02"
+      },
+      {
+        "column_name": "ABALKY",
+        "snake_case_field": "alternate_address_key"
+      },
+      {
+        "column_name": "ABTAX",
+        "snake_case_field": "tax_id"
+      },
+      {
+        "column_name": "ABSCCLTP",
+        "snake_case_field": "shortcut_client_type"
+      },
+      {
+        "column_name": "ABURCD",
+        "snake_case_field": "user_reserved_code"
+      },
+      {
+        "column_name": "ABREVRNG",
+        "snake_case_field": "revenue_range"
+      },
+      {
+        "column_name": "ABAEMPGP",
+        "snake_case_field": "employee_group_approvals"
+      },
+      {
+        "column_name": "ABGLBA",
+        "snake_case_field": "gl_bank_account"
+      },
+      {
+        "column_name": "ABMCU",
+        "snake_case_field": "cost_center"
+      },
+      {
+        "column_name": "ABPID",
+        "snake_case_field": "program_id"
+      },
+      {
+        "column_name": "ABUSER",
+        "snake_case_field": "user_id"
+      },
+      {
+        "column_name": "ABJOBN",
+        "snake_case_field": "work_station_id"
+      },
+      {
+        "column_name": "ABEXCHG",
+        "snake_case_field": "stock_exchange"
+      },
+      {
+        "column_name": "ABTICKER",
+        "snake_case_field": "ticker"
+      },
+      {
+        "column_name": "ABPRGF",
+        "snake_case_field": "purge_flag"
+      },
+      {
+        "column_name": "ABAT3",
+        "snake_case_field": "address_type_03"
+      },
+      {
+        "column_name": "ABATE",
+        "snake_case_field": "address_type_employee"
+      },
+      {
+        "column_name": "ABAT5",
+        "snake_case_field": "address_type_05"
+      },
+      {
+        "column_name": "ABAB3",
+        "snake_case_field": "misc_code_03"
+      },
+      {
+        "column_name": "ABATR",
+        "snake_case_field": "address_type_receivables"
+      },
+      {
+        "column_name": "ABAT2",
+        "snake_case_field": "address_type_02"
+      },
+      {
+        "column_name": "ABTAXC",
+        "snake_case_field": "person_corporation_code"
+      },
+      {
+        "column_name": "ABATP",
+        "snake_case_field": "address_type_payables"
+      },
+      {
+        "column_name": "ABAT4",
+        "snake_case_field": "address_type_04"
+      },
+      {
+        "column_name": "ABMSGA",
+        "snake_case_field": "action_message_control"
+      },
+      {
+        "column_name": "ABATPR",
+        "snake_case_field": "add_type_code_04_purch"
+      },
+      {
+        "column_name": "ABACTIN",
+        "snake_case_field": "indicator_flg"
+      },
+      {
+        "column_name": "ABURAT",
+        "snake_case_field": "user_reserved_amount"
+      },
+      {
+        "column_name": "ABURDT",
+        "snake_case_field": "user_reserved_date"
+      },
+      {
+        "column_name": "ABPDI",
+        "snake_case_field": "date_scheduled_in"
+      },
+      {
+        "column_name": "ABEFTB",
+        "snake_case_field": "date_beginning_effective"
+      },
+      {
+        "column_name": "ABUPMJ",
+        "snake_case_field": "date_updated"
+      },
+      {
+        "column_name": "ABNOE",
+        "snake_case_field": "number_of_employee"
+      },
+      {
+        "column_name": "ABGROWTHR",
+        "snake_case_field": "growth_rate"
+      },
+      {
+        "column_name": "ABAN8",
+        "snake_case_field": "address_number"
+      },
+      {
+        "column_name": "ABPTI",
+        "snake_case_field": "time_scheduled_in"
+      },
+      {
+        "column_name": "ABAN81",
+        "snake_case_field": "address_number_first"
+      },
+      {
+        "column_name": "ABAN86",
+        "snake_case_field": "address_number_sixth"
+      },
+      {
+        "column_name": "ABAN82",
+        "snake_case_field": "address_number_second"
+      },
+      {
+        "column_name": "ABAN83",
+        "snake_case_field": "address_number_third"
+      },
+      {
+        "column_name": "ABPERRS",
+        "snake_case_field": "previous_error_status"
+      },
+      {
+        "column_name": "ABAN85",
+        "snake_case_field": "address_number_fifth"
+      },
+      {
+        "column_name": "ABAN84",
+        "snake_case_field": "address_number_forth"
+      },
+      {
+        "column_name": "ABCAAD",
+        "snake_case_field": "server_status"
+      },
+      {
+        "column_name": "ABSYNCS",
+        "snake_case_field": "synchronization_status"
+      },
+      {
+        "column_name": "ABURAB",
+        "snake_case_field": "user_reserved_number"
+      },
+      {
+        "column_name": "ABUPMT",
+        "snake_case_field": "time_last_updated"
+      }
+    ]
+  },
+  "F0116": {
+    "table_name": "address_by_date",
+    "columns": [
+      {
+        "column_name": "ALADDS",
+        "snake_case_field": "state"
+      },
+      {
+        "column_name": "ALCTR",
+        "snake_case_field": "country"
+      },
+      {
+        "column_name": "ALCOUN",
+        "snake_case_field": "county_address"
+      },
+      {
+        "column_name": "ALCTY1",
+        "snake_case_field": "city"
+      },
+      {
+        "column_name": "ALADD2",
+        "snake_case_field": "address_line_02"
+      },
+      {
+        "column_name": "ALADD1",
+        "snake_case_field": "address_line_01"
+      },
+      {
+        "column_name": "ALADD3",
+        "snake_case_field": "address_line_03"
+      },
+      {
+        "column_name": "ALADD4",
+        "snake_case_field": "address_line_04"
+      },
+      {
+        "column_name": "ALCRTE",
+        "snake_case_field": "carrier_route"
+      },
+      {
+        "column_name": "ALBKML",
+        "snake_case_field": "bulk_mailing_center"
+      },
+      {
+        "column_name": "ALADDZ",
+        "snake_case_field": "zip_code_postal"
+      },
+      {
+        "column_name": "ALPID",
+        "snake_case_field": "program_id"
+      },
+      {
+        "column_name": "ALUSER",
+        "snake_case_field": "user_id"
+      },
+      {
+        "column_name": "ALJOBN",
+        "snake_case_field": "work_station_id"
+      },
+      {
+        "column_name": "ALEFTF",
+        "snake_case_field": "effective_date_existence_10"
+      },
+      {
+        "column_name": "ALEFTB",
+        "snake_case_field": "date_beginning_effective"
+      },
+      {
+        "column_name": "ALUPMJ",
+        "snake_case_field": "date_updated"
+      },
+      {
+        "column_name": "ALAN8",
+        "snake_case_field": "address_number"
+      },
+      {
+        "column_name": "ALCAAD",
+        "snake_case_field": "server_status"
+      },
+      {
+        "column_name": "ALSYNCS",
+        "snake_case_field": "synchronization_status"
+      },
+      {
+        "column_name": "ALUPMT",
+        "snake_case_field": "time_last_updated"
+      }
+    ]
+  },
+  "F03B11": {
+    "table_name": "customer_ledger",
+    "columns": [
+      {
+        "column_name": "RPAR01",
+        "snake_case_field": "ar_reporting_code_01_n"
+      },
+      {
+        "column_name": "RPAR10",
+        "snake_case_field": "ar_reporting_code_10"
+      },
+      {
+        "column_name": "RPAR03",
+        "snake_case_field": "ar_reporting_code_03"
+      },
+      {
+        "column_name": "RPAR04",
+        "snake_case_field": "ar_reporting_code_04"
+      },
+      {
+        "column_name": "RPAR05",
+        "snake_case_field": "ar_reporting_code_05"
+      },
+      {
+        "column_name": "RPAR08",
+        "snake_case_field": "ar_reporting_code_08"
+      },
+      {
+        "column_name": "RPAR06",
+        "snake_case_field": "ar_reporting_code_06"
+      },
+      {
+        "column_name": "RPAR09",
+        "snake_case_field": "ar_reporting_code_09"
+      },
+      {
+        "column_name": "RPAR02",
+        "snake_case_field": "ar_reporting_code_02"
+      },
+      {
+        "column_name": "RPAR07",
+        "snake_case_field": "ar_reporting_code_07"
+      },
+      {
+        "column_name": "RPUM",
+        "snake_case_field": "uom"
+      },
+      {
+        "column_name": "RPSDCT",
+        "snake_case_field": "document_type_sales"
+      },
+      {
+        "column_name": "RPPDCT",
+        "snake_case_field": "document_type_purchase"
+      },
+      {
+        "column_name": "RPODCT",
+        "snake_case_field": "original_document_type"
+      },
+      {
+        "column_name": "RPDCTO",
+        "snake_case_field": "order_type"
+      },
+      {
+        "column_name": "RPEXR1",
+        "snake_case_field": "tax_explanation_code_01"
+      },
+      {
+        "column_name": "RPICUT",
+        "snake_case_field": "batch_type"
+      },
+      {
+        "column_name": "RPRSCO",
+        "snake_case_field": "reasn_code"
+      },
+      {
+        "column_name": "RPCORC",
+        "snake_case_field": "collect_reason_code"
+      },
+      {
+        "column_name": "RPDDEX",
+        "snake_case_field": "reason_code_for_claim"
+      },
+      {
+        "column_name": "RPSBLT",
+        "snake_case_field": "subledger_type"
+      },
+      {
+        "column_name": "RPRYIN",
+        "snake_case_field": "payment_instrument_a"
+      },
+      {
+        "column_name": "RPPST",
+        "snake_case_field": "pay_status_code"
+      },
+      {
+        "column_name": "RPDCT",
+        "snake_case_field": "document_type"
+      },
+      {
+        "column_name": "RPDOC",
+        "snake_case_field": "doc_voucher_invoice_e"
+      },
+      {
+        "column_name": "RPSFX",
+        "snake_case_field": "document_pay_item"
+      },
+      {
+        "column_name": "RPKCO",
+        "snake_case_field": "company_key"
+      },
+      {
+        "column_name": "RPRMK",
+        "snake_case_field": "name_remark"
+      },
+      {
+        "column_name": "RPALPH",
+        "snake_case_field": "name_alpha"
+      },
+      {
+        "column_name": "RPURRF",
+        "snake_case_field": "user_reserved_reference"
+      },
+      {
+        "column_name": "RPCTL",
+        "snake_case_field": "ap_checks_control_field"
+      },
+      {
+        "column_name": "RPRMR1",
+        "snake_case_field": "receipt_matching_reference_01"
+      },
+      {
+        "column_name": "RPOBJ",
+        "snake_case_field": "object_account"
+      },
+      {
+        "column_name": "RPGLC",
+        "snake_case_field": "gl_class"
+      },
+      {
+        "column_name": "RPRF",
+        "snake_case_field": "frequency_recurring"
+      },
+      {
+        "column_name": "RPCO",
+        "snake_case_field": "company"
+      },
+      {
+        "column_name": "RPOKCO",
+        "snake_case_field": "company_key_original"
+      },
+      {
+        "column_name": "RPKCOO",
+        "snake_case_field": "company_key_order_no"
+      },
+      {
+        "column_name": "RPSKCO",
+        "snake_case_field": "company_key_sales_ord"
+      },
+      {
+        "column_name": "RPPKCO",
+        "snake_case_field": "company_key_purchase"
+      },
+      {
+        "column_name": "RPVINV",
+        "snake_case_field": "vendor_invoice_number"
+      },
+      {
+        "column_name": "RPVR01",
+        "snake_case_field": "reference_01"
+      },
+      {
+        "column_name": "RPSUB",
+        "snake_case_field": "subsidiary"
+      },
+      {
+        "column_name": "RPSBL",
+        "snake_case_field": "subledger"
+      },
+      {
+        "column_name": "RPAID",
+        "snake_case_field": "account_id"
+      },
+      {
+        "column_name": "RPAID2",
+        "snake_case_field": "account_id_02"
+      },
+      {
+        "column_name": "RPGLBA",
+        "snake_case_field": "gl_bank_account"
+      },
+      {
+        "column_name": "RPUNIT",
+        "snake_case_field": "unit_no"
+      },
+      {
+        "column_name": "RPPO",
+        "snake_case_field": "purchase_order"
+      },
+      {
+        "column_name": "RPMCU2",
+        "snake_case_field": "cost_center_02"
+      },
+      {
+        "column_name": "RPMCU",
+        "snake_case_field": "cost_center"
+      },
+      {
+        "column_name": "RPCRCD",
+        "snake_case_field": "currency_code_from"
+      },
+      {
+        "column_name": "RPBCRC",
+        "snake_case_field": "currency_code_base"
+      },
+      {
+        "column_name": "RPSFXO",
+        "snake_case_field": "order_suffix"
+      },
+      {
+        "column_name": "RPPTC",
+        "snake_case_field": "payment_terms_code_01"
+      },
+      {
+        "column_name": "RPOSFX",
+        "snake_case_field": "original_doc_pay_item"
+      },
+      {
+        "column_name": "RPURC1",
+        "snake_case_field": "user_reserve_code"
+      },
+      {
+        "column_name": "RPPID",
+        "snake_case_field": "program_id"
+      },
+      {
+        "column_name": "RPUSER",
+        "snake_case_field": "user_id"
+      },
+      {
+        "column_name": "RPCMGR",
+        "snake_case_field": "credit_manager"
+      },
+      {
+        "column_name": "RPCLMG",
+        "snake_case_field": "collection_manager"
+      },
+      {
+        "column_name": "RPTORG",
+        "snake_case_field": "transaction_originator"
+      },
+      {
+        "column_name": "RPTXA1",
+        "snake_case_field": "tax_area_01"
+      },
+      {
+        "column_name": "RPJOBN",
+        "snake_case_field": "work_station_id"
+      },
+      {
+        "column_name": "RPPRGF",
+        "snake_case_field": "purge_flag"
+      },
+      {
+        "column_name": "RPCRRM",
+        "snake_case_field": "currency_mode"
+      },
+      {
+        "column_name": "RPISTR",
+        "snake_case_field": "post_status_receivables"
+      },
+      {
+        "column_name": "RPGFL1",
+        "snake_case_field": "generic_flag_01"
+      },
+      {
+        "column_name": "RPRDRL",
+        "snake_case_field": "level_last_reminder"
+      },
+      {
+        "column_name": "RPPOST",
+        "snake_case_field": "gl_posted_code"
+      },
+      {
+        "column_name": "RPNETST",
+        "snake_case_field": "net_status_code"
+      },
+      {
+        "column_name": "RPALT6",
+        "snake_case_field": "gl_post_code_alt_006"
+      },
+      {
+        "column_name": "RPDTXS",
+        "snake_case_field": "deferred_tax_status_vat"
+      },
+      {
+        "column_name": "RPOMOD",
+        "snake_case_field": "originating_system"
+      },
+      {
+        "column_name": "RPCOLL",
+        "snake_case_field": "collection_report"
+      },
+      {
+        "column_name": "RPNBRR",
+        "snake_case_field": "number_reminders"
+      },
+      {
+        "column_name": "RPFNLP",
+        "snake_case_field": "final_payment"
+      },
+      {
+        "column_name": "RPISTC",
+        "snake_case_field": "ar_post_to_cash_management"
+      },
+      {
+        "column_name": "RPDNLT",
+        "snake_case_field": "delinquency_letter"
+      },
+      {
+        "column_name": "RPRP1",
+        "snake_case_field": "ar_ap_misc_code_01"
+      },
+      {
+        "column_name": "RPAM2",
+        "snake_case_field": "account_mode_gl_02"
+      },
+      {
+        "column_name": "RPDMCD",
+        "snake_case_field": "domestic_entry_w_mult_currency"
+      },
+      {
+        "column_name": "RPBALJ",
+        "snake_case_field": "balanced_journal_entries"
+      },
+      {
+        "column_name": "RPSOTF",
+        "snake_case_field": "sales_order_tax_flag"
+      },
+      {
+        "column_name": "RPRP2",
+        "snake_case_field": "ar_ap_misc_code_02"
+      },
+      {
+        "column_name": "RPRP3",
+        "snake_case_field": "ar_ap_misc_code_03"
+      },
+      {
+        "column_name": "RPGFL2",
+        "snake_case_field": "generic_flag_02"
+      },
+      {
+        "column_name": "RPAM",
+        "snake_case_field": "account_mode_gl"
+      },
+      {
+        "column_name": "RPVOD",
+        "snake_case_field": "void_flag"
+      },
+      {
+        "column_name": "RPAFC",
+        "snake_case_field": "apply_fin_charges_yn"
+      },
+      {
+        "column_name": "RPLNID",
+        "snake_case_field": "line_number"
+      },
+      {
+        "column_name": "RPADSC",
+        "snake_case_field": "amt_discount_available"
+      },
+      {
+        "column_name": "RPAAP",
+        "snake_case_field": "amount_open"
+      },
+      {
+        "column_name": "RPADSA",
+        "snake_case_field": "amount_discount_taken"
+      },
+      {
+        "column_name": "RPATXA",
+        "snake_case_field": "amount_taxable"
+      },
+      {
+        "column_name": "RPATXN",
+        "snake_case_field": "amount_tax_exempt"
+      },
+      {
+        "column_name": "RPSTAM",
+        "snake_case_field": "amt_tax_02"
+      },
+      {
+        "column_name": "RPACR",
+        "snake_case_field": "amount_currency"
+      },
+      {
+        "column_name": "RPAG",
+        "snake_case_field": "amount_gross"
+      },
+      {
+        "column_name": "RPCTXA",
+        "snake_case_field": "foreign_taxable_amount"
+      },
+      {
+        "column_name": "RPCDSA",
+        "snake_case_field": "foreign_discount_taken"
+      },
+      {
+        "column_name": "RPCTXN",
+        "snake_case_field": "foreign_tax_exempt"
+      },
+      {
+        "column_name": "RPNRTA",
+        "snake_case_field": "non_recoverable_tax_amt"
+      },
+      {
+        "column_name": "RPCDS",
+        "snake_case_field": "foreign_discount_avail"
+      },
+      {
+        "column_name": "RPATAD",
+        "snake_case_field": "amount_to_distribute"
+      },
+      {
+        "column_name": "RPFNRT",
+        "snake_case_field": "foreign_non_recoverable_tax"
+      },
+      {
+        "column_name": "RPCTAM",
+        "snake_case_field": "foreign_tax_amount"
+      },
+      {
+        "column_name": "RPCTAD",
+        "snake_case_field": "amount_to_distribute_cur"
+      },
+      {
+        "column_name": "RPU",
+        "snake_case_field": "units"
+      },
+      {
+        "column_name": "RPFAP",
+        "snake_case_field": "amount_foreign_open"
+      },
+      {
+        "column_name": "RPURAT",
+        "snake_case_field": "user_reserved_amount"
+      },
+      {
+        "column_name": "RPURDT",
+        "snake_case_field": "user_reserved_date"
+      },
+      {
+        "column_name": "RPERDJ",
+        "snake_case_field": "exchange_rate_date"
+      },
+      {
+        "column_name": "RPDTPB",
+        "snake_case_field": "notification_payment_date"
+      },
+      {
+        "column_name": "RPDGJ",
+        "snake_case_field": "date_for_g_land_voucher_julian"
+      },
+      {
+        "column_name": "RPRDSJ",
+        "snake_case_field": "date_reminder_stop_until_date"
+      },
+      {
+        "column_name": "RPPPDI",
+        "snake_case_field": "invoice_printed_date"
+      },
+      {
+        "column_name": "RPHDGJ",
+        "snake_case_field": "historical_date_julian"
+      },
+      {
+        "column_name": "RPDICJ",
+        "snake_case_field": "date_batch_julian"
+      },
+      {
+        "column_name": "RPDSVJ",
+        "snake_case_field": "date_service_currency"
+      },
+      {
+        "column_name": "RPDDNJ",
+        "snake_case_field": "date_discount_due_julian"
+      },
+      {
+        "column_name": "RPDIVJ",
+        "snake_case_field": "date_invoice_julian"
+      },
+      {
+        "column_name": "RPJCL",
+        "snake_case_field": "date_invoice_closed_09"
+      },
+      {
+        "column_name": "RPRDDJ",
+        "snake_case_field": "dateof_last_sent_reminder_julian"
+      },
+      {
+        "column_name": "RPVLDT",
+        "snake_case_field": "date_value"
+      },
+      {
+        "column_name": "RPLFCJ",
+        "snake_case_field": "date_last_fee_calculated"
+      },
+      {
+        "column_name": "RPSMTJ",
+        "snake_case_field": "date_statement_julian"
+      },
+      {
+        "column_name": "RPVDGJ",
+        "snake_case_field": "void_date_for_gl_julian"
+      },
+      {
+        "column_name": "RPDDJ",
+        "snake_case_field": "date_due_julian"
+      },
+      {
+        "column_name": "RPAJCL",
+        "snake_case_field": "actual_invoice_closed"
+      },
+      {
+        "column_name": "RPUPMJ",
+        "snake_case_field": "date_updated"
+      },
+      {
+        "column_name": "RPCRR",
+        "snake_case_field": "currency_conver_rate_ov"
+      },
+      {
+        "column_name": "RPNETDOC",
+        "snake_case_field": "net_document_number"
+      },
+      {
+        "column_name": "RPPWPG",
+        "snake_case_field": "pay_when_paid_group_number"
+      },
+      {
+        "column_name": "RPHCRR",
+        "snake_case_field": "historical_currency_conver"
+      },
+      {
+        "column_name": "RPPYID",
+        "snake_case_field": "payment_id"
+      },
+      {
+        "column_name": "RPNETTCID",
+        "snake_case_field": "net_transaction_id"
+      },
+      {
+        "column_name": "RPNETRC5",
+        "snake_case_field": "net_line_id"
+      },
+      {
+        "column_name": "RPFY",
+        "snake_case_field": "fiscal_year_01"
+      },
+      {
+        "column_name": "RPODOC",
+        "snake_case_field": "original_document_no"
+      },
+      {
+        "column_name": "RPSHPN",
+        "snake_case_field": "shipment_number"
+      },
+      {
+        "column_name": "RPSDOC",
+        "snake_case_field": "document_sales"
+      },
+      {
+        "column_name": "RPRMDS",
+        "snake_case_field": "total_sent_reminders"
+      },
+      {
+        "column_name": "RPAN8J",
+        "snake_case_field": "add_no_alternate_payee"
+      },
+      {
+        "column_name": "RPCTRY",
+        "snake_case_field": "century"
+      },
+      {
+        "column_name": "RPPN",
+        "snake_case_field": "period_no_general_ledge"
+      },
+      {
+        "column_name": "RPRNID",
+        "snake_case_field": "batch_run_id"
+      },
+      {
+        "column_name": "RPCMC1",
+        "snake_case_field": "commission_code_01"
+      },
+      {
+        "column_name": "RPDRF",
+        "snake_case_field": "recur_frequency_of_paym"
+      },
+      {
+        "column_name": "RPPYR",
+        "snake_case_field": "payor_address_number"
+      },
+      {
+        "column_name": "RPPA8",
+        "snake_case_field": "address_number_parent"
+      },
+      {
+        "column_name": "RPICU",
+        "snake_case_field": "batch_number"
+      },
+      {
+        "column_name": "RPDOCO",
+        "snake_case_field": "document_order_invoice_e"
+      },
+      {
+        "column_name": "RPITM",
+        "snake_case_field": "identifier_short_item"
+      },
+      {
+        "column_name": "RPURAB",
+        "snake_case_field": "user_reserved_number"
+      },
+      {
+        "column_name": "RPAN8",
+        "snake_case_field": "address_number"
+      },
+      {
+        "column_name": "RPUPMT",
+        "snake_case_field": "time_last_updated"
+      }
+    ]
+  },
+  "F0006": {
+    "table_name": "business_unit_master",
+    "columns": [
+      {
+        "column_name": "MCADDS",
+        "snake_case_field": "state"
+      },
+      {
+        "column_name": "MCRP11",
+        "snake_case_field": "category_code_cost_ct_011"
+      },
+      {
+        "column_name": "MCRP07",
+        "snake_case_field": "category_code_cost_ct_007"
+      },
+      {
+        "column_name": "MCRP19",
+        "snake_case_field": "category_code_cost_ct_019"
+      },
+      {
+        "column_name": "MCRP03",
+        "snake_case_field": "category_code_cost_ct_003"
+      },
+      {
+        "column_name": "MCRP06",
+        "snake_case_field": "category_code_cost_ct_006"
+      },
+      {
+        "column_name": "MCRP02",
+        "snake_case_field": "category_code_cost_ct_002"
+      },
+      {
+        "column_name": "MCRP01",
+        "snake_case_field": "category_code_cost_ct_001"
+      },
+      {
+        "column_name": "MCRP10",
+        "snake_case_field": "category_code_cost_ct_010"
+      },
+      {
+        "column_name": "MCRP18",
+        "snake_case_field": "category_code_cost_ct_018"
+      },
+      {
+        "column_name": "MCRP13",
+        "snake_case_field": "category_code_cost_ct_013"
+      },
+      {
+        "column_name": "MCRP05",
+        "snake_case_field": "category_code_cost_ct_005"
+      },
+      {
+        "column_name": "MCRP15",
+        "snake_case_field": "category_code_cost_ct_015"
+      },
+      {
+        "column_name": "MCRP09",
+        "snake_case_field": "category_code_cost_ct_009"
+      },
+      {
+        "column_name": "MCRP20",
+        "snake_case_field": "category_code_cost_ct_020"
+      },
+      {
+        "column_name": "MCRP08",
+        "snake_case_field": "category_code_cost_ct_008"
+      },
+      {
+        "column_name": "MCCNTY",
+        "snake_case_field": "county"
+      },
+      {
+        "column_name": "MCRP14",
+        "snake_case_field": "category_code_cost_ct_014"
+      },
+      {
+        "column_name": "MCRP04",
+        "snake_case_field": "category_code_cost_ct_004"
+      },
+      {
+        "column_name": "MCRP12",
+        "snake_case_field": "category_code_cost_ct_012"
+      },
+      {
+        "column_name": "MCRP17",
+        "snake_case_field": "category_code_cost_ct_017"
+      },
+      {
+        "column_name": "MCRP16",
+        "snake_case_field": "category_code_cost_ct_016"
+      },
+      {
+        "column_name": "MCEXR1",
+        "snake_case_field": "tax_explanation_code_01"
+      },
+      {
+        "column_name": "MCSTYL",
+        "snake_case_field": "cost_center_type"
+      },
+      {
+        "column_name": "MCERC",
+        "snake_case_field": "equipment_rate_code"
+      },
+      {
+        "column_name": "MCSBLI",
+        "snake_case_field": "subledger_inactive_code"
+      },
+      {
+        "column_name": "MCRP23",
+        "snake_case_field": "category_code_cost_ct_023"
+      },
+      {
+        "column_name": "MCRP30",
+        "snake_case_field": "category_code_cost_center_30"
+      },
+      {
+        "column_name": "MCRP29",
+        "snake_case_field": "category_code_cost_center_29"
+      },
+      {
+        "column_name": "MCRP22",
+        "snake_case_field": "category_code_cost_ct_022"
+      },
+      {
+        "column_name": "MCRP26",
+        "snake_case_field": "category_code_cost_center_26"
+      },
+      {
+        "column_name": "MCRP21",
+        "snake_case_field": "category_code_cost_ct_021"
+      },
+      {
+        "column_name": "MCRP27",
+        "snake_case_field": "category_code_cost_center_27"
+      },
+      {
+        "column_name": "MCRP25",
+        "snake_case_field": "category_code_cost_center_25"
+      },
+      {
+        "column_name": "MCRP24",
+        "snake_case_field": "category_code_cost_center_24"
+      },
+      {
+        "column_name": "MCRP28",
+        "snake_case_field": "category_code_cost_center_28"
+      },
+      {
+        "column_name": "MCCT",
+        "snake_case_field": "contract_type_01"
+      },
+      {
+        "column_name": "MCMCU",
+        "snake_case_field": "cost_center"
+      },
+      {
+        "column_name": "MCDL02",
+        "snake_case_field": "description_01002"
+      },
+      {
+        "column_name": "MCDL03",
+        "snake_case_field": "description_01003"
+      },
+      {
+        "column_name": "MCBPTP",
+        "snake_case_field": "branch_type"
+      },
+      {
+        "column_name": "MCDC",
+        "snake_case_field": "descrip_compressed"
+      },
+      {
+        "column_name": "MCOBJ1",
+        "snake_case_field": "gl_object_acct_labor"
+      },
+      {
+        "column_name": "MCOBJ2",
+        "snake_case_field": "gl_objct_acct_labor_prem"
+      },
+      {
+        "column_name": "MCOBJ3",
+        "snake_case_field": "gl_obj_acct_labor_burden"
+      },
+      {
+        "column_name": "MCTC05",
+        "snake_case_field": "tax_deduction_code_05"
+      },
+      {
+        "column_name": "MCTC10",
+        "snake_case_field": "tax_deduction_code_10"
+      },
+      {
+        "column_name": "MCTC04",
+        "snake_case_field": "tax_deduction_code_04"
+      },
+      {
+        "column_name": "MCTC08",
+        "snake_case_field": "tax_deduction_code_08"
+      },
+      {
+        "column_name": "MCTC09",
+        "snake_case_field": "tax_deduction_code_09"
+      },
+      {
+        "column_name": "MCINTL",
+        "snake_case_field": "int_computation_code_rev"
+      },
+      {
+        "column_name": "MCTC03",
+        "snake_case_field": "tax_deduction_code_03"
+      },
+      {
+        "column_name": "MCINTA",
+        "snake_case_field": "int_computation_code_ar"
+      },
+      {
+        "column_name": "MCTC01",
+        "snake_case_field": "tax_deduction_code_01"
+      },
+      {
+        "column_name": "MCTC06",
+        "snake_case_field": "tax_deduction_code_06"
+      },
+      {
+        "column_name": "MCTC02",
+        "snake_case_field": "tax_deduction_code_02"
+      },
+      {
+        "column_name": "MCTC07",
+        "snake_case_field": "tax_deduction_code_07"
+      },
+      {
+        "column_name": "MCALCL",
+        "snake_case_field": "allocation_level"
+      },
+      {
+        "column_name": "MCCO",
+        "snake_case_field": "company"
+      },
+      {
+        "column_name": "MCBUCA",
+        "snake_case_field": "burden_category"
+      },
+      {
+        "column_name": "MCDL04",
+        "snake_case_field": "description_01004"
+      },
+      {
+        "column_name": "MCDL01",
+        "snake_case_field": "description_001"
+      },
+      {
+        "column_name": "MCGLBA",
+        "snake_case_field": "gl_bank_account"
+      },
+      {
+        "column_name": "MCSUB1",
+        "snake_case_field": "subsidiary_burdn_cst_cde"
+      },
+      {
+        "column_name": "MCRMCU1",
+        "snake_case_field": "related_business_unit"
+      },
+      {
+        "column_name": "MCTSBU",
+        "snake_case_field": "target_business_unit"
+      },
+      {
+        "column_name": "MCMCUS",
+        "snake_case_field": "cost_center_subsequent"
+      },
+      {
+        "column_name": "MCPID",
+        "snake_case_field": "program_id"
+      },
+      {
+        "column_name": "MCUSER",
+        "snake_case_field": "user_id"
+      },
+      {
+        "column_name": "MCRP43",
+        "snake_case_field": "category_code_cost_center_43"
+      },
+      {
+        "column_name": "MCRP50",
+        "snake_case_field": "category_code_cost_center_50"
+      },
+      {
+        "column_name": "MCRP35",
+        "snake_case_field": "category_code_cost_center_35"
+      },
+      {
+        "column_name": "MCRP44",
+        "snake_case_field": "category_code_cost_center_44"
+      },
+      {
+        "column_name": "MCRP47",
+        "snake_case_field": "category_code_cost_center_47"
+      },
+      {
+        "column_name": "MCRP37",
+        "snake_case_field": "category_code_cost_center_37"
+      },
+      {
+        "column_name": "MCRP42",
+        "snake_case_field": "category_code_cost_center_42"
+      },
+      {
+        "column_name": "MCRP31",
+        "snake_case_field": "category_code_cost_center_31"
+      },
+      {
+        "column_name": "MCRP33",
+        "snake_case_field": "category_code_cost_center_33"
+      },
+      {
+        "column_name": "MCRP45",
+        "snake_case_field": "category_code_cost_center_45"
+      },
+      {
+        "column_name": "MCRP40",
+        "snake_case_field": "category_code_cost_center_40"
+      },
+      {
+        "column_name": "MCRP46",
+        "snake_case_field": "category_code_cost_center_46"
+      },
+      {
+        "column_name": "MCTA",
+        "snake_case_field": "tax_area"
+      },
+      {
+        "column_name": "MCRP41",
+        "snake_case_field": "category_code_cost_center_41"
+      },
+      {
+        "column_name": "MCRP38",
+        "snake_case_field": "category_code_cost_center_38"
+      },
+      {
+        "column_name": "MCRP48",
+        "snake_case_field": "category_code_cost_center_48"
+      },
+      {
+        "column_name": "MCRP49",
+        "snake_case_field": "category_code_cost_center_49"
+      },
+      {
+        "column_name": "MCRP32",
+        "snake_case_field": "category_code_cost_center_32"
+      },
+      {
+        "column_name": "MCRP36",
+        "snake_case_field": "category_code_cost_center_36"
+      },
+      {
+        "column_name": "MCRP39",
+        "snake_case_field": "category_code_cost_center_39"
+      },
+      {
+        "column_name": "MCRP34",
+        "snake_case_field": "category_code_cost_center_34"
+      },
+      {
+        "column_name": "MCTXA1",
+        "snake_case_field": "tax_area_01"
+      },
+      {
+        "column_name": "MCJOBN",
+        "snake_case_field": "work_station_id"
+      },
+      {
+        "column_name": "MCUAFL",
+        "snake_case_field": "far_unallowable_flag"
+      },
+      {
+        "column_name": "MCFMOD",
+        "snake_case_field": "model_accountsand_consolid"
+      },
+      {
+        "column_name": "MCBTYP",
+        "snake_case_field": "billing_type_cost_center"
+      },
+      {
+        "column_name": "MCND04",
+        "snake_case_field": "distribute_tax_code_004"
+      },
+      {
+        "column_name": "MCND02",
+        "snake_case_field": "distribute_tax_code_002"
+      },
+      {
+        "column_name": "MCND07",
+        "snake_case_field": "distribute_tax_code_007"
+      },
+      {
+        "column_name": "MCAPSB",
+        "snake_case_field": "aps_business_unit"
+      },
+      {
+        "column_name": "MCCC09",
+        "snake_case_field": "tax_or_ded_comp_stat_09"
+      },
+      {
+        "column_name": "MCLDM",
+        "snake_case_field": "level_of_detail_cc_code"
+      },
+      {
+        "column_name": "MCND03",
+        "snake_case_field": "distribute_tax_code_003"
+      },
+      {
+        "column_name": "MCCC10",
+        "snake_case_field": "tax_or_ded_comp_stat_10"
+      },
+      {
+        "column_name": "MCND05",
+        "snake_case_field": "distribute_tax_code_005"
+      },
+      {
+        "column_name": "MCALS",
+        "snake_case_field": "alloca_summariza_method"
+      },
+      {
+        "column_name": "MCCC05",
+        "snake_case_field": "tax_or_ded_comp_stat_05"
+      },
+      {
+        "column_name": "MCCC04",
+        "snake_case_field": "tax_or_ded_comp_stat_04"
+      },
+      {
+        "column_name": "MCISS",
+        "snake_case_field": "invstmt_summariza_method"
+      },
+      {
+        "column_name": "MCND06",
+        "snake_case_field": "distribute_tax_code_006"
+      },
+      {
+        "column_name": "MCCC07",
+        "snake_case_field": "tax_or_ded_comp_stat_07"
+      },
+      {
+        "column_name": "MCEEO",
+        "snake_case_field": "equal_employment_opport"
+      },
+      {
+        "column_name": "MCLMTH",
+        "snake_case_field": "labor_loading_method"
+      },
+      {
+        "column_name": "MCADJENT",
+        "snake_case_field": "adjustment_entry"
+      },
+      {
+        "column_name": "MCND10",
+        "snake_case_field": "distribute_tax_code_010"
+      },
+      {
+        "column_name": "MCCERT",
+        "snake_case_field": "certified_job"
+      },
+      {
+        "column_name": "MCND09",
+        "snake_case_field": "distribute_tax_code_009"
+      },
+      {
+        "column_name": "MCND01",
+        "snake_case_field": "distribute_tax_code_001"
+      },
+      {
+        "column_name": "MCCC02",
+        "snake_case_field": "tax_or_ded_comp_stat_02"
+      },
+      {
+        "column_name": "MCCC06",
+        "snake_case_field": "tax_or_ded_comp_stat_06"
+      },
+      {
+        "column_name": "MCPECC",
+        "snake_case_field": "posting_edit_cost_center"
+      },
+      {
+        "column_name": "MCCC01",
+        "snake_case_field": "tax_or_ded_comp_stat_01"
+      },
+      {
+        "column_name": "MCCC03",
+        "snake_case_field": "tax_or_ded_comp_stat_03"
+      },
+      {
+        "column_name": "MCND08",
+        "snake_case_field": "distribute_tax_code_008"
+      },
+      {
+        "column_name": "MCCC08",
+        "snake_case_field": "tax_or_ded_comp_stat_08"
+      },
+      {
+        "column_name": "MCLF",
+        "snake_case_field": "labor_loading_factor"
+      },
+      {
+        "column_name": "MCPAC",
+        "snake_case_field": "amt_profit_at_completion"
+      },
+      {
+        "column_name": "MCTOU",
+        "snake_case_field": "units_total"
+      },
+      {
+        "column_name": "MCPCA",
+        "snake_case_field": "per_complete_aggregate"
+      },
+      {
+        "column_name": "MCCAC",
+        "snake_case_field": "amt_cost_at_completion"
+      },
+      {
+        "column_name": "MCPCC",
+        "snake_case_field": "amt_cost_to_complete_ob"
+      },
+      {
+        "column_name": "MCD4J",
+        "snake_case_field": "date_actual_complete_j"
+      },
+      {
+        "column_name": "MCD2J",
+        "snake_case_field": "date_actual_start_j"
+      },
+      {
+        "column_name": "MCD1J",
+        "snake_case_field": "date_planned_start_j"
+      },
+      {
+        "column_name": "MCD5J",
+        "snake_case_field": "date_other_05_j"
+      },
+      {
+        "column_name": "MCFPDJ",
+        "snake_case_field": "dte_final_paymnt_julian"
+      },
+      {
+        "column_name": "MCD6J",
+        "snake_case_field": "date_other_06_j"
+      },
+      {
+        "column_name": "MCD3J",
+        "snake_case_field": "date_planned_complete_j"
+      },
+      {
+        "column_name": "MCUPMJ",
+        "snake_case_field": "date_updated"
+      },
+      {
+        "column_name": "MCCLNU",
+        "snake_case_field": "contract_level_number"
+      },
+      {
+        "column_name": "MCPC",
+        "snake_case_field": "percent_complete"
+      },
+      {
+        "column_name": "MCAN8GCA4",
+        "snake_case_field": "address_number_04"
+      },
+      {
+        "column_name": "MCAN8GCA2",
+        "snake_case_field": "address_number_02"
+      },
+      {
+        "column_name": "MCAN8GCA3",
+        "snake_case_field": "address_number_03"
+      },
+      {
+        "column_name": "MCAN8GCA5",
+        "snake_case_field": "address_number_05"
+      },
+      {
+        "column_name": "MCANPA",
+        "snake_case_field": "supervisor"
+      },
+      {
+        "column_name": "MCAN8O",
+        "snake_case_field": "address_number_job_ar"
+      },
+      {
+        "column_name": "MCAN8GCA1",
+        "snake_case_field": "address_number_01"
+      },
+      {
+        "column_name": "MCPCTN",
+        "snake_case_field": "parent_cont_number"
+      },
+      {
+        "column_name": "MCTXJS",
+        "snake_case_field": "tax_entity"
+      },
+      {
+        "column_name": "MCDOCO",
+        "snake_case_field": "document_order_invoice_e"
+      },
+      {
+        "column_name": "MCAN8",
+        "snake_case_field": "address_number"
+      },
+      {
+        "column_name": "MCUPMT",
+        "snake_case_field": "time_last_updated"
+      }
+    ]
+  },
+  "F0005": {
+    "table_name": null,
+    "columns": [
+      {
+        "column_name": "DRSY",
+        "snake_case_field": "product_code"
+      },
+      {
+        "column_name": "DRKY",
+        "snake_case_field": "user_defined_code"
+      },
+      {
+        "column_name": "DRRT",
+        "snake_case_field": "user_defined_codes"
+      },
+      {
+        "column_name": "DRDL02",
+        "snake_case_field": "description_01002"
+      },
+      {
+        "column_name": "DRDL01",
+        "snake_case_field": "description_001"
+      },
+      {
+        "column_name": "DRPID",
+        "snake_case_field": "program_id"
+      },
+      {
+        "column_name": "DRUSER",
+        "snake_case_field": "user_id"
+      },
+      {
+        "column_name": "DRJOBN",
+        "snake_case_field": "work_station_id"
+      },
+      {
+        "column_name": "DRSPHD",
+        "snake_case_field": "special_handling_code"
+      },
+      {
+        "column_name": "DRHRDC",
+        "snake_case_field": "hard_coded_yn"
+      },
+      {
+        "column_name": "DRUDCO",
+        "snake_case_field": "udc_ownershipflag"
+      },
+      {
+        "column_name": "DRUPMJ",
+        "snake_case_field": "date_updated"
+      },
+      {
+        "column_name": "DRUPMT",
+        "snake_case_field": "time_last_updated"
+      }
+    ]
+  }
+}

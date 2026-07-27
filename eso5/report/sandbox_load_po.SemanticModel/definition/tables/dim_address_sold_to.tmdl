@@ -1,0 +1,88 @@
+table dim_address_sold_to
+	lineageTag: 349ade68-3f15-b366-a78a-13a163ff2750
+
+	column address_number
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: address_number
+		lineageTag: e69ec9ff-c003-a78c-2c0b-b3caffe3bb90
+
+	column name_alpha
+		dataType: string
+		summarizeBy: none
+		sourceColumn: name_alpha
+		lineageTag: adcc3c5f-4d77-c983-cdc8-154515ca177f
+
+	column address_type_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_type_01
+		lineageTag: b8d3dd30-14b4-9a0a-4230-f01122cb0bb2
+
+	column standard_industry_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+		lineageTag: 1409b4fc-f3ac-5a01-9211-d04a25fc49dc
+
+	column city
+		dataType: string
+		summarizeBy: none
+		sourceColumn: city
+		lineageTag: 5354a99c-37f4-316c-7244-f1250be39bf5
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: 7ae933e5-9752-61fa-d907-42399abe93e2
+
+	column country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: country
+		lineageTag: ff8602d2-7ee8-b451-2e2e-125b4a74989a
+
+	column zip_code_postal
+		dataType: string
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+		lineageTag: 5c575f31-bcfc-a954-ab70-66a965cb3c1b
+
+	column address_line_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_01
+		lineageTag: 573b8fb5-fc9e-aa1b-2124-d033ebe5a2bd
+
+	column address_line_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_02
+		lineageTag: b4b536da-e4f1-9e33-e354-144200483cc6
+
+	column address_line_03
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_03
+		lineageTag: 9fa04f8f-389a-10f5-6b9b-7de53ca11313
+
+	column address_line_04
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_04
+		lineageTag: 852cb2bd-ddf1-8b78-daca-9016335b2e85
+
+	column has_postal_address
+		dataType: string
+		summarizeBy: none
+		sourceColumn: has_postal_address
+		lineageTag: 79c13f4d-4550-bfa2-32d6-7218ddb12b9c
+
+	partition dim_address_sold_to = entity
+		mode: directLake
+		source
+			entityName: dim_address_sold_to
+			schemaName: rpt
+			expressionSource: DatabaseQuery

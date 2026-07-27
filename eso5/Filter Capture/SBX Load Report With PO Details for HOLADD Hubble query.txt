@@ -1,0 +1,389 @@
+SELECT RawF0101.XSBXLOADPOVIEWHOLADD_DOCO   SBXLOADPOVIEWHOLADD_DOCO,
+       RawF0101.XSBXLOADPOVIEWHOLADD_DCTO   SBXLOADPOVIEWHOLADD_DCTO,
+       RawF0101.XSBXLOADPOVIEWHOLADD_KCOO   SBXLOADPOVIEWHOLADD_KCOO,
+       RawF0101.XSBXLOADPOVIEWHOLADD_MCU    SBXLOADPOVIEWHOLADD_MCU,
+       RawF0101.XSBXLOADPOVIEWHOLADD_AN8    SBXLOADPOVIEWHOLADD_AN8,
+       RawF0101.XSBXLOADPOVIEWHOL8ca81369   SBXLOADPOVIEWHOLAa75cba95,
+       RawF0101.XSBXLOADPOVIEWHOL63bb6fdc   SBXLOADPOVIEWHOLA785b5e14,
+       RawF0101.XSBXLOADPOVIEWHOLADD_VR01   SBXLOADPOVIEWHOLADD_VR01,
+       RawF0101.XF554201T_QCDS50            F554201T_QCDS50,
+       RawF0101.XSBXLOADPOVIEWHOLADD_LITM   SBXLOADPOVIEWHOLADD_LITM,
+       RawF0101.XSBXLOADPOVIEWHOLADD_DSC1   SBXLOADPOVIEWHOLADD_DSC1,
+       RawF0101.XSBXLOADPOVIEWHOLa59c6cbd   SBXLOADPOVIEWHOLAcbfaae1,
+       RawF0101.XSBXLOADPOVIEWHOL52e3d3d3   SBXLOADPOVIEWHOLA90588bf,
+       RawF0101.XSBXLOADPOVIEWHOLADD_LOFA   SBXLOADPOVIEWHOLADD_LOFA,
+       RawF0101.XF0101_ABALPH               F0101_ABALPH,
+       RawF0101.XSBXLOADPOVIEWHOL4862c2ef   SBXLOADPOVIEWHOLAe74dfcdb,
+       RawF0101.XSBXLOADPOVIEWHOLADD_BOL    SBXLOADPOVIEWHOLADD_BOL,
+       RawF0101.XSBXLOADPOVIEWHOLADD_UOM    SBXLOADPOVIEWHOLADD_UOM,
+       RawF0101.XSBXLOADPOVIEWHOLADD_QTY    SBXLOADPOVIEWHOLADD_QTY,
+       RawF0101.XSBXLOADPOVIEWHOLADD_UPRC   SBXLOADPOVIEWHOLADD_UPRC,
+       RawF0101.XSBXLOADPOVIEWHOLb9fe6c0d   SBXLOADPOVIEWHOLA4d36de89,
+       RawF0101.XSBXLOADPOVIEWHOLADD_LTTR   SBXLOADPOVIEWHOLADD_LTTR,
+       RawF0101.XSBXLOADPOVIEWHOLADD_NXTR   SBXLOADPOVIEWHOLADD_NXTR,
+       RawF0101.XSBXLOADPOVIEWHOLADD_DOC    SBXLOADPOVIEWHOLADD_DOC,
+       RawF0101.XSBXLOADPOVIEWHOLe8ec213d   SBXLOADPOVIEWHOLA65a9ab71,
+       RawF0101.XSBXLOADPOVIEWHOL4d7a6053   SBXLOADPOVIEWHOLA4401cb1f,
+       RawF0101.XSBXLOADPOVIEWHOL218b6baf   SBXLOADPOVIEWHOLADD_OXAMT,
+       RawF0101.XSBXLOADPOVIEWHOL286899db   SBXLOADPOVIEWHOLA1fdae29f,
+       RawF0101.XSBXLOADPOVIEWHOL28f84ab8   SBXLOADPOVIEWHOLADD_GLDGJ,
+       RawF0101.XSBXLOADPOVIEWHOLADD_LNID   SBXLOADPOVIEWHOLADD_LNID,
+       SUM(RawF0101.ZReportColumn10001)     ReportColumn1,
+       SUM(RawF0101.XRowIDX_F0101_0_XRowID) RowIDX_F0101_0_XRowID,
+       SUM(RawF0101.XRowIDX_F0101_1_XRowID) RowIDX_F0101_1_XRowID,
+       SUM(RawF0101.XRowIDX_F0101_2_XRowID) RowIDX_F0101_2_XRowID
+FROM   (SELECT DISTINCT SBXLOADPOVIEWHOLADD.DOCO                                                                                     XSBXLOADPOVIEWHOLADD_DOCO,
+                        SBXLOADPOVIEWHOLADD.DCTO                                                                                     XSBXLOADPOVIEWHOLADD_DCTO,
+                        SBXLOADPOVIEWHOLADD.KCOO                                                                                     XSBXLOADPOVIEWHOLADD_KCOO,
+                        SBXLOADPOVIEWHOLADD.MCU                                                                                      XSBXLOADPOVIEWHOLADD_MCU,
+                        SBXLOADPOVIEWHOLADD.AN8                                                                                      XSBXLOADPOVIEWHOLADD_AN8,
+                        SBXLOADPOVIEWHOLADD.SHIPTO                                                                                   XSBXLOADPOVIEWHOL8ca81369,
+                        SBXLOADPOVIEWHOLADD.CARRIER                                                                                  XSBXLOADPOVIEWHOL63bb6fdc,
+                        SBXLOADPOVIEWHOLADD.VR01                                                                                     XSBXLOADPOVIEWHOLADD_VR01,
+                        F554201T.QCDS50                                                                                              XF554201T_QCDS50,
+                        SBXLOADPOVIEWHOLADD.LITM                                                                                     XSBXLOADPOVIEWHOLADD_LITM,
+                        SBXLOADPOVIEWHOLADD.DSC1                                                                                     XSBXLOADPOVIEWHOLADD_DSC1,
+                        ( TO_CHAR(SBXLOADPOVIEWHOLADD.ORDATE, N'YYYY') - 1900 ) * 1000 + TO_CHAR(SBXLOADPOVIEWHOLADD.ORDATE, N'DDD') XSBXLOADPOVIEWHOLa59c6cbd,
+                        ( TO_CHAR(SBXLOADPOVIEWHOLADD.GLDATE, N'YYYY') - 1900 ) * 1000 + TO_CHAR(SBXLOADPOVIEWHOLADD.GLDATE, N'DDD') XSBXLOADPOVIEWHOL52e3d3d3,
+                        SBXLOADPOVIEWHOLADD.LOFA                                                                                     XSBXLOADPOVIEWHOLADD_LOFA,
+                        F0101.ABALPH                                                                                                 XF0101_ABALPH,
+                        SBXLOADPOVIEWHOLADD.SANDTKT                                                                                  XSBXLOADPOVIEWHOL4862c2ef,
+                        SBXLOADPOVIEWHOLADD.BOL                                                                                      XSBXLOADPOVIEWHOLADD_BOL,
+                        SBXLOADPOVIEWHOLADD.UOM                                                                                      XSBXLOADPOVIEWHOLADD_UOM,
+                        SBXLOADPOVIEWHOLADD.QTY                                                                                      XSBXLOADPOVIEWHOLADD_QTY,
+                        SBXLOADPOVIEWHOLADD.UPRC                                                                                     XSBXLOADPOVIEWHOLADD_UPRC,
+                        SBXLOADPOVIEWHOLADD.EXTAMT                                                                                   XSBXLOADPOVIEWHOLb9fe6c0d,
+                        SBXLOADPOVIEWHOLADD.LTTR                                                                                     XSBXLOADPOVIEWHOLADD_LTTR,
+                        SBXLOADPOVIEWHOLADD.NXTR                                                                                     XSBXLOADPOVIEWHOLADD_NXTR,
+                        SBXLOADPOVIEWHOLADD.DOC                                                                                      XSBXLOADPOVIEWHOLADD_DOC,
+                        SBXLOADPOVIEWHOLADD.OXLTTR                                                                                   XSBXLOADPOVIEWHOLe8ec213d,
+                        SBXLOADPOVIEWHOLADD.OXNXTR                                                                                   XSBXLOADPOVIEWHOL4d7a6053,
+                        SBXLOADPOVIEWHOLADD.OXAMT                                                                                    XSBXLOADPOVIEWHOL218b6baf,
+                        SBXLOADPOVIEWHOLADD.GLPOST                                                                                   XSBXLOADPOVIEWHOL286899db,
+                        SBXLOADPOVIEWHOLADD.GLDGJ                                                                                    XSBXLOADPOVIEWHOL28f84ab8,
+                        SBXLOADPOVIEWHOLADD.LNID                                                                                     XSBXLOADPOVIEWHOLADD_LNID,
+                        F0101.ABURAT * 0.01                                                                                          ZReportColumn10001,
+                        F0101.ABAN8                                                                                                  PK__F0101__ABAN8,
+                        DBMS_UTILITY.GET_HASH_VALUE(TO_CHAR(F0101.ABAN8)
+                                                     || N'_InDeX_0_SaLt', -1048576, 2097152)                                         XRowIDX_F0101_0_XRowID,
+                        DBMS_UTILITY.GET_HASH_VALUE(TO_CHAR(F0101.ABAN8)
+                                                     || N'_InDeX_1_SaLt', -1048576, 2097152)                                         XRowIDX_F0101_1_XRowID,
+                        DBMS_UTILITY.GET_HASH_VALUE(TO_CHAR(F0101.ABAN8)
+                                                     || N'_InDeX_2_SaLt', -1048576, 2097152)                                         XRowIDX_F0101_2_XRowID
+        FROM   (select KCOO,
+                       DOCO,
+                       DCTO,
+                       VR01,
+                       AN8,
+                       SHIPTO,
+                       CARRIER,
+                       MCU,
+                       LITM,
+                       DSC1,
+                       BOL,
+                       SANDTKT,
+                       UOM,
+                       QTY,
+                       ORDATE,
+                       LOFA,
+                       UPRC,
+                       EXTAMT,
+                       GLDATE,
+                       LTTR,
+                       NXTR,
+                       DOC,
+                       OXNXTR,
+                       OXLTTR,
+                       OXAMT,
+                       GLPOST,
+                       GLDGJ,
+                       LNID
+                FROM   (SELECT SDKCOO                                          KCOO,
+                               SDDOCO                                          DOCO,
+                               'SX'                                            DCTO,
+                               SDVR01                                          VR01,
+                               SDAN8                                           AN8,
+                               SDSHAN                                          SHIPTO,
+                               SDCARS                                          CARRIER,
+                               SDMCU                                           MCU,
+                               SDLITM                                          LITM,
+                               SDDSC1                                          DSC1,
+                               (select MAX(I.sddsc1)
+                                from   proddta.F4211 I
+                                where  I.sddoco = F4211.SDDOCO
+                                       and I.sddcto = F4211.SDDCTO
+                                       and I.sdlitm = 'BOL')                   AS BOL,
+                               (select MAX(I.sddsc1)
+                                from   proddta.F4211 I
+                                where  I.sddoco = F4211.SDDOCO
+                                       and I.sddcto = F4211.SDDCTO
+                                       and I.sdlitm = 'SANDTKTNBR')            as SANDTKT,
+                               F4211.SDUOM                                     AS UOM,
+                               DECODE(F4211.SDPRP1, 'COM', ( F4211.SDUORG / 1000 ) / 2000,
+                                                    F4211.SDUORG / 1000)       AS Qty,
+                               TO_DATE(TO_CHAR(SDTRDJ + 1900000), 'YYYYDDD')   AS ORDATE,
+                               SDVEND                                          AS LOFA,
+                               sduprc / 1000000                                UPRC,
+                               F4211.SDAEXP / 100                              AS EXTAMT,
+                               CASE
+                                 WHEN F4211.SDdgl = 0 THEN TO_DATE ('1900001', 'YYYYDDD')
+                                 WHEN F4211.SDdgl IS NULL THEN TO_DATE('1900001', 'YYYYDDD')
+                                 ELSE TO_DATE(TO_CHAR(F4211.SDdgl + 1900000), 'YYYYDDD')
+                               END                                             AS GLDATE,
+                               F4211.SDLTTR                                    AS LTTR,
+                               F4211.SDNXTR                                    AS NXTR,
+                               F4211.SDDOC                                     AS DOC,
+                               (select MAX(pdnxtr)
+                                from   proddta.F4311
+                                where  pddcto = 'OX'
+                                       and pdkcoo = '00750'
+                                       and pdlitm = F4211.SDLITM
+                                       and pddoco = F4211.sddoco)              AS OXNXTR,
+                               (select MAX(pdlttr)
+                                from   proddta.F4311
+                                where  pddcto = 'OX'
+                                       and pdkcoo = '00750'
+                                       and pdlitm = F4211.SDLITM
+                                       and pddoco = F4211.Sddoco)              AS OXLTTR,
+                               CASE
+                                 WHEN F4211.SDLITM IN ( 'HOLADD' )
+                                      and F4211.SDLTTR <> '980' THEN (select SUM(pdAEXP)
+                                                                      from   proddta.F4311
+                                                                      where  pddcto = 'OX'
+                                                                             and pdkcoo = '00750'
+                                                                             and pdlitm = F4211.SDLITM
+                                                                             and pddoco = F4211.Sddoco)
+                                 ELSE 0
+                               END                                             AS OXAMT,
+                               (select max(glpost)
+                                from   proddta.F0911
+                                where  gldct = 'OV'
+                                       and glkco = '00750'
+                                       and gldoc in (select prdoc
+                                                     from   proddta.F43121
+                                                     where  sdcars = pran8
+                                                            and F4211.sdkcoo = prkcoo
+                                                            and F4211.sddoco = prdoco
+                                                            and F4211.sdlitm = prlitm
+                                                            and prdct = 'OV')) GLPost,
+                               (select MAX(to_char(to_date(to_char(1900000 + f43121.PRDGL), 'yyyyddd'), 'mm/dd/yyyy'))
+                                from   proddta.F43121
+                                where  F4211.sdcars = F43121.pran8
+                                       and F4211.sdkcoo = F43121.prkcoo
+                                       and F4211.sddoco = F43121.prdoco
+                                       and F4211.sdlitm = F43121.prlitm
+                                       and F43121.prdct = 'OV'
+                                       AND F43121.PRMATC = '1'
+                                       AND F43121.PRDGL > 1)                   GLdgj,
+                               SDLNID                                          LNID
+                        FROM   PRODDTA.F4211
+                        WHERE  F4211.SDDCTO = 'SX'
+                               and F4211.sdlnty <> 'TL'
+                               and F4211.sdkcoo = '00750'
+                               and F4211.SDLITM = 'HOLADD')
+                UNION
+                select KCOO,
+                       DOCO,
+                       DCTO,
+                       VR01,
+                       AN8,
+                       SHIPTO,
+                       CARRIER,
+                       MCU,
+                       LITM,
+                       DSC1,
+                       BOL,
+                       SANDTKT,
+                       UOM,
+                       QTY,
+                       ORDATE,
+                       LOFA,
+                       UPRC,
+                       EXTAMT,
+                       GLDATE,
+                       LTTR,
+                       NXTR,
+                       DOC,
+                       OXNXTR,
+                       OXLTTR,
+                       OXAMT,
+                       GLPOST,
+                       GLDGJ,
+                       LNID
+                FROM   (SELECT PDKCOO                                          KCOO,
+                               PDDOCO                                          DOCO,
+                               'SX'                                            DCTO,
+                               (SELECT MAX(f4211.SDVR01)
+                                FROM   PRODDTA.f4211
+                                WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                       AND F4211.SDDCTO = 'SX'
+                                       AND F4211.SDKCOO = F4311.PDKCOO
+                                       AND F4211.SDLITM = 'FRT')               VR01,
+                               (SELECT MAX(f4211.SDAN8)
+                                FROM   PRODDTA.f4211
+                                WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                       AND F4211.SDDCTO = 'SX'
+                                       AND F4211.SDKCOO = F4311.PDKCOO
+                                       AND F4211.SDLITM = 'FRT')               AN8,
+                               PDSHAN                                          SHIPTO,
+                               PDAN8                                           CARRIER,
+                               pDMCU                                           MCU,
+                               PDLITM                                          LITM,
+                               PDDSC1                                          DSC1,
+                               (select MAX(I.sddsc1)
+                                from   proddta.F4211 I
+                                where  I.sddoco = F4311.PDDOCO
+                                       and I.sddcto = 'SX'
+                                       and I.sdlitm = 'BOL')                   AS BOL,
+                               (select MAX(I.sddsc1)
+                                from   proddta.F4211 I
+                                where  I.sddoco = F4311.PDDOCO
+                                       and I.sddcto = 'SX'
+                                       and I.sdlitm = 'SANDTKTNBR')            as SANDTKT,
+                               F4311.PDUOM                                     AS UOM,
+                               pduorg / 1000                                   AS QTY,
+                               TO_DATE(TO_CHAR(PDTRDJ + 1900000), 'YYYYDDD')   AS ORDATE,
+                               (SELECT MAX(f4211.SDVend)
+                                FROM   PRODDTA.f4211
+                                WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                       AND F4211.SDDCTO = 'SX'
+                                       AND F4211.SDKCOO = F4311.PDKCOO
+                                       AND F4211.SDLITM = 'FRT')               LOFA,
+                               0                                               UPRC,
+                               0                                               AS EXTAMT,
+                               (SELECT CASE
+                                         WHEN MAX(F4211.SDdgl) = 0 THEN TO_DATE ('1900001', 'YYYYDDD')
+                                         WHEN MAX(F4211.SDdgl) IS NULL THEN TO_DATE('1900001', 'YYYYDDD')
+                                         ELSE TO_DATE(TO_CHAR(MAX(F4211.SDdgl) + 1900000), 'YYYYDDD')
+                                       END
+                                FROM   PRODDTA.f4211
+                                WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                       AND F4211.SDDCTO = 'SX'
+                                       AND F4211.SDKCOO = F4311.PDKCOO
+                                       AND F4211.SDLITM = 'FRT')               GLDATE,
+                               (SELECT MAX(f4211.SDLTTR)
+                                FROM   PRODDTA.f4211
+                                WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                       AND F4211.SDDCTO = 'SX'
+                                       AND F4211.SDKCOO = F4311.PDKCOO
+                                       AND F4211.SDLITM = 'FRT')               LTTR,
+                               (SELECT MAX(f4211.SDNXTR)
+                                FROM   PRODDTA.f4211
+                                WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                       AND F4211.SDDCTO = 'SX'
+                                       AND F4211.SDKCOO = F4311.PDKCOO
+                                       AND F4211.SDLITM = 'FRT')               NXTR,
+                               (SELECT MAX(f4211.SDDOC)
+                                FROM   PRODDTA.f4211
+                                WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                       AND F4211.SDDCTO = 'SX'
+                                       AND F4211.SDKCOO = F4311.PDKCOO
+                                       AND F4211.SDLITM = 'FRT')               as DOC,
+                               pdnxtr                                          OXNXTR,
+                               PDLTTR                                          OXLTTR,
+                               pdAEXP / 100                                    OXAMT,
+                               (select max(glpost)
+                                from   proddta.F0911
+                                where  gldct = 'OV'
+                                       and glkco = '00750'
+                                       and gldoc in (select prdoc
+                                                     from   proddta.F43121
+                                                     where  F4311.Pdan8 = pran8
+                                                            and F4311.Pdkcoo = prkcoo
+                                                            and F4311.Pddoco = prdoco
+                                                            and F4311.Pdlitm = prlitm
+                                                            and prdct = 'OV')) GLPost,
+                               (select MAX(to_char(to_date(to_char(1900000 + f43121.PRDGL), 'yyyyddd'), 'mm/dd/yyyy'))
+                                from   proddta.F43121
+                                where  F4311.pdan8 = F43121.pran8
+                                       and F4311.pdkcoo = F43121.prkcoo
+                                       and F4311.pddoco = F43121.prdoco
+                                       and F4311.pdlitm = F43121.prlitm
+                                       and F43121.prdct = 'OV'
+                                       AND F43121.PRMATC = '1'
+                                       AND F43121.PRDGL > 1)                   GLdgj,
+                               PDLNID                                          LNID
+                        FROM   PRODDTA.F4311
+                        WHERE  F4311.PDDCTO = 'OX'
+                               and F4311.Pdkcoo = '00750'
+                               and F4311.PDLITM = 'HOLADD'
+                               AND NOT EXISTS (SELECT '1'
+                                               FROM   PRODDTA.f4211
+                                               WHERE  f4211.SDDOCO = F4311.PDDOCO
+                                                      AND F4211.SDDCTO = 'SX'
+                                                      AND F4211.SDKCOO = F4311.PDKCOO
+                                                      AND F4211.SDLITM = F4311.PDLITM
+                                                      AND F4211.SDLTTR <> '980'))) SBXLOADPOVIEWHOLADD
+               LEFT JOIN PRODDTA.F554201T F554201T
+                 ON ( ( SUBSTR(N'00000'
+                                || TO_CHAR(RTRIM(LTRIM(SBXLOADPOVIEWHOLADD.KCOO))), LENGTH(TO_CHAR(RTRIM(LTRIM(SBXLOADPOVIEWHOLADD.KCOO)))) + 1, 5) = F554201T.QCKCOO )
+                      AND ( SBXLOADPOVIEWHOLADD.DOCO = F554201T.QCDOCO ) )
+                    AND ( SBXLOADPOVIEWHOLADD.DCTO = F554201T.QCDCTO )
+               LEFT JOIN (SELECT F0101.ABALPH,
+                                 F0101.ABURAT,
+                                 F0101.ABAN8
+                          FROM   PRODDTA.F0101 F0101
+                          WHERE  ( ( F0101.ABAT1 BETWEEN N'A  ' AND N'P  ' )
+                                    OR ( F0101.ABAT1 BETWEEN N'R  ' AND N'ZZZ' ) )) F0101
+                 ON SBXLOADPOVIEWHOLADD.LOFA = F0101.ABAN8
+        WHERE  ( ( TO_CHAR(SBXLOADPOVIEWHOLADD.ORDATE, N'YYYY') - 1900 ) * 1000 + TO_CHAR(SBXLOADPOVIEWHOLADD.ORDATE, N'DDD') BETWEEN 122182 AND 122212 )) RawF0101
+GROUP  BY RawF0101.XSBXLOADPOVIEWHOLADD_DOCO,
+          RawF0101.XSBXLOADPOVIEWHOLADD_DCTO,
+          RawF0101.XSBXLOADPOVIEWHOLADD_KCOO,
+          RawF0101.XSBXLOADPOVIEWHOLADD_MCU,
+          RawF0101.XSBXLOADPOVIEWHOLADD_AN8,
+          RawF0101.XSBXLOADPOVIEWHOL8ca81369,
+          RawF0101.XSBXLOADPOVIEWHOL63bb6fdc,
+          RawF0101.XSBXLOADPOVIEWHOLADD_VR01,
+          RawF0101.XF554201T_QCDS50,
+          RawF0101.XSBXLOADPOVIEWHOLADD_LITM,
+          RawF0101.XSBXLOADPOVIEWHOLADD_DSC1,
+          RawF0101.XSBXLOADPOVIEWHOLa59c6cbd,
+          RawF0101.XSBXLOADPOVIEWHOL52e3d3d3,
+          RawF0101.XSBXLOADPOVIEWHOLADD_LOFA,
+          RawF0101.XF0101_ABALPH,
+          RawF0101.XSBXLOADPOVIEWHOL4862c2ef,
+          RawF0101.XSBXLOADPOVIEWHOLADD_BOL,
+          RawF0101.XSBXLOADPOVIEWHOLADD_UOM,
+          RawF0101.XSBXLOADPOVIEWHOLADD_QTY,
+          RawF0101.XSBXLOADPOVIEWHOLADD_UPRC,
+          RawF0101.XSBXLOADPOVIEWHOLb9fe6c0d,
+          RawF0101.XSBXLOADPOVIEWHOLADD_LTTR,
+          RawF0101.XSBXLOADPOVIEWHOLADD_NXTR,
+          RawF0101.XSBXLOADPOVIEWHOLADD_DOC,
+          RawF0101.XSBXLOADPOVIEWHOLe8ec213d,
+          RawF0101.XSBXLOADPOVIEWHOL4d7a6053,
+          RawF0101.XSBXLOADPOVIEWHOL218b6baf,
+          RawF0101.XSBXLOADPOVIEWHOL286899db,
+          RawF0101.XSBXLOADPOVIEWHOL28f84ab8,
+          RawF0101.XSBXLOADPOVIEWHOLADD_LNID
+ORDER  BY SBXLOADPOVIEWHOLADD_AN8 ASC,
+          SBXLOADPOVIEWHOLADD_BOL ASC,
+          SBXLOADPOVIEWHOLA785b5e14 ASC,
+          SBXLOADPOVIEWHOLADD_DCTO ASC,
+          SBXLOADPOVIEWHOLADD_DOC ASC,
+          SBXLOADPOVIEWHOLADD_DOCO ASC,
+          SBXLOADPOVIEWHOLADD_DSC1 ASC,
+          SBXLOADPOVIEWHOLA4d36de89 ASC,
+          SBXLOADPOVIEWHOLA90588bf ASC,
+          SBXLOADPOVIEWHOLADD_GLDGJ ASC,
+          SBXLOADPOVIEWHOLA1fdae29f ASC,
+          SBXLOADPOVIEWHOLADD_KCOO ASC,
+          SBXLOADPOVIEWHOLADD_LITM ASC,
+          SBXLOADPOVIEWHOLADD_LNID ASC,
+          SBXLOADPOVIEWHOLADD_LOFA ASC,
+          SBXLOADPOVIEWHOLADD_LTTR ASC,
+          SBXLOADPOVIEWHOLADD_MCU ASC,
+          SBXLOADPOVIEWHOLADD_NXTR ASC,
+          SBXLOADPOVIEWHOLAcbfaae1 ASC,
+          SBXLOADPOVIEWHOLADD_OXAMT ASC,
+          SBXLOADPOVIEWHOLA65a9ab71 ASC,
+          SBXLOADPOVIEWHOLA4401cb1f ASC,
+          SBXLOADPOVIEWHOLADD_QTY ASC,
+          SBXLOADPOVIEWHOLAe74dfcdb ASC,
+          SBXLOADPOVIEWHOLAa75cba95 ASC,
+          SBXLOADPOVIEWHOLADD_UOM ASC,
+          SBXLOADPOVIEWHOLADD_UPRC ASC,
+          SBXLOADPOVIEWHOLADD_VR01 ASC,
+          F554201T_QCDS50 ASC,
+          F0101_ABALPH ASC 

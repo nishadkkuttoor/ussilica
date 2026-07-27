@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "cardSbxWeight",
+  "position": {
+    "x": 976,
+    "y": 96,
+    "z": 0,
+    "width": 232,
+    "height": 120,
+    "tabOrder": 3
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "SBX Weight"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.SBX Weight",
+              "nativeQueryRef": "SBX Weight"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

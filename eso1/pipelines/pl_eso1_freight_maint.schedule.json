@@ -1,0 +1,11 @@
+{
+  "_comment": "Fabric Item-Schedule body for pl_eso1_freight_maint. Apply via the pipeline Schedule UI (Daily 02:00) OR the Fabric REST API: POST /v1/workspaces/{workspaceId}/items/{pipelineId}/jobs/Pipeline/schedules with this body.",
+  "enabled": true,
+  "configuration": {
+    "type": "Daily",
+    "times": ["02:00"],
+    "startDateTime": "2026-06-16T00:00:00",
+    "endDateTime": "2035-12-31T23:59:59",
+    "localTimeZoneId": "Eastern Standard Time"
+  }
+}

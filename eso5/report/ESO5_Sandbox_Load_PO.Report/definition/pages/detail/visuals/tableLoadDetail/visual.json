@@ -1,0 +1,570 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "tableLoadDetail",
+  "position": {
+    "x": 16,
+    "y": 96,
+    "z": 0,
+    "width": 1248,
+    "height": 600,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "load_number"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.load_number",
+              "nativeQueryRef": "Load Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "document_type"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.document_type",
+              "nativeQueryRef": "Document Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "company"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.company",
+              "nativeQueryRef": "Company"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "district"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.district",
+              "nativeQueryRef": "District"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "sold_to"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.sold_to",
+              "nativeQueryRef": "Customer"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "ship_to"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.ship_to",
+              "nativeQueryRef": "Ship To"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "carrier"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.carrier",
+              "nativeQueryRef": "Carrier"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "customer_po"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.customer_po",
+              "nativeQueryRef": "Customer PO"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "sand_po_number"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.sand_po_number",
+              "nativeQueryRef": "Sand PO Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "uss_customer_po"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.uss_customer_po",
+              "nativeQueryRef": "USS Customer PO#"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "item_number"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.item_number",
+              "nativeQueryRef": "Item Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "item_description"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.item_description",
+              "nativeQueryRef": "Item Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "order_date"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.order_date",
+              "nativeQueryRef": "Order Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "gl_date"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.gl_date",
+              "nativeQueryRef": "GL Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "loading_facility"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.loading_facility",
+              "nativeQueryRef": "Loading Facility"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_loading_facility"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_loading_facility.name_alpha",
+              "nativeQueryRef": "Loading Facility Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_uss_plant"
+                    }
+                  },
+                  "Property": "lofa_mcu"
+                }
+              },
+              "queryRef": "dim_uss_plant.lofa_mcu",
+              "nativeQueryRef": "LOFA MCU"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_uss_plant"
+                    }
+                  },
+                  "Property": "shipped_from"
+                }
+              },
+              "queryRef": "dim_uss_plant.shipped_from",
+              "nativeQueryRef": "Shipped From"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_uss_plant"
+                    }
+                  },
+                  "Property": "uss_plant_sand"
+                }
+              },
+              "queryRef": "dim_uss_plant.uss_plant_sand",
+              "nativeQueryRef": "USS PLANT SAND (Y/N)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "uss_match"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.uss_match",
+              "nativeQueryRef": "USS Match (Y/N)"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "uss_so_order_no"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.uss_so_order_no",
+              "nativeQueryRef": "USS SO Order #"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "uss_so_weight"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.uss_so_weight",
+              "nativeQueryRef": "USS SO Weight"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "sbx_weight"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.sbx_weight",
+              "nativeQueryRef": "SBX Weight"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "so_alt_bol_no"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.so_alt_bol_no",
+              "nativeQueryRef": "SO Alt BOL #"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "sand_ticket"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.sand_ticket",
+              "nativeQueryRef": "Sand Ticket"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "bol"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.bol",
+              "nativeQueryRef": "BOL"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "uom"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.uom",
+              "nativeQueryRef": "Unit of Measure"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "quantity"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.quantity",
+              "nativeQueryRef": "Quantity per UoM"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "unit_price"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.unit_price",
+              "nativeQueryRef": "Unit Price"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "total_amount"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.total_amount",
+              "nativeQueryRef": "Total Amount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "last_status"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.last_status",
+              "nativeQueryRef": "Last Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "next_status"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.next_status",
+              "nativeQueryRef": "Next Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "invoice_number"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.invoice_number",
+              "nativeQueryRef": "Invoice Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "ox_last_status"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.ox_last_status",
+              "nativeQueryRef": "OX Last Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "ox_next_status"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.ox_next_status",
+              "nativeQueryRef": "OX Next Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "ox_amount"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.ox_amount",
+              "nativeQueryRef": "OX Amount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "carrier_po_gl_post_flag"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.carrier_po_gl_post_flag",
+              "nativeQueryRef": "Carrier PO GL Post Flag"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "po_receipt_gl_date"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.po_receipt_gl_date",
+              "nativeQueryRef": "PO Receipt GL Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "line_id"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.line_id",
+              "nativeQueryRef": "Line ID"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

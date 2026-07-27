@@ -1,0 +1,83 @@
+table dim_address_carrier
+	lineageTag: 29ff7419-3f5c-5cdf-acc4-2b90abace131
+
+	column address_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: address_number
+		lineageTag: f4ddee1d-64fc-5412-a2ce-0531d13ce58a
+
+	column name_alpha
+		dataType: string
+		summarizeBy: none
+		sourceColumn: name_alpha
+		lineageTag: cc9ea877-9647-581d-b581-73a6fb8b18d6
+
+	column address_type_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_type_01
+		lineageTag: f3a2a185-38bc-5c20-bf9d-df300a3d6cc7
+
+	column standard_industry_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+		lineageTag: 1944b517-74e1-5415-a757-ea486c2a63b4
+
+	column city
+		dataType: string
+		summarizeBy: none
+		sourceColumn: city
+		lineageTag: ae8a2113-f69a-59ba-a057-662375c24279
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: b89653e5-f2ac-5d8e-8541-217ef9543c64
+
+	column country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: country
+		lineageTag: 4e4be926-bc1b-5bc2-bd71-d850920c6b1a
+
+	column zip_code_postal
+		dataType: string
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+		lineageTag: 15c5c175-29b0-562f-921c-d5a49ecc69f3
+
+	column address_line_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_01
+		lineageTag: a0cf0f54-2e27-5079-bc6a-e81403626693
+
+	column address_line_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_02
+		lineageTag: 17932959-5f32-5ec9-bf1f-54a6fa099d5c
+
+	column address_line_03
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_03
+		lineageTag: 4d425770-7987-542f-b9dc-09baa35474c4
+
+	column address_line_04
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_04
+		lineageTag: e4bf9487-42ca-5100-8f53-64542cc40942
+
+	partition dim_address_carrier = entity
+		mode: directLake
+		source
+			entityName: dim_address_carrier
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+

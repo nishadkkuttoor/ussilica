@@ -1,0 +1,51 @@
+What should be done at the Power BI report level to avoid duplicate rows?
+
+Short answer: the fact itself has no duplicate rows — every row is unique on load_line_key, which is deduped at build time. So anything you see doubled at the report level comes from one of three specific places, and only one of them is a true duplicate.
+
+1. The real duplicate: the HOLADD double-count
+
+This is the one that actually shows the same money twice. A holding charge can exist both as an F4211 SX HOLADD sales line and as an F4311 OX HOLADD purchase-order line. Hubble suppressed the PO copy with its NOT EXISTS. I removed that (it was a status filter), so both rows are now in the fact.
+
+On the HOLADD page, filter po_holadd_superseded = "N". That column is exactly Hubble's NOT EXISTS, and without it every already-invoiced holding charge appears twice and Total Amount / OX Amount double.
+
+2. Missing row_class filter — a load repeated once per class
+
+Without it, one load contributes its LINE rows and its TEXT rows and its HOLADD rows and the whole of F4311. That reads as duplicates because the load number repeats.
+
+┌───────────────────────┬────────────────────────────────────────────────────────────────────┐
+│         Page          │                               Filter                               │
+├───────────────────────┼────────────────────────────────────────────────────────────────────┤
+│ Core / (New) / no-USS │ row_class = "LINE"                                                 │
+├───────────────────────┼────────────────────────────────────────────────────────────────────┤
+│ for HOLADD            │ row_class IN ("HOLADD","PO_HOLADD") and po_holadd_superseded = "N" │
+├───────────────────────┼────────────────────────────────────────────────────────────────────┤
+│ Reconciliation        │ row_class IN ("LINE","HOLADD","TEXT")                              │
+└───────────────────────┴────────────────────────────────────────────────────────────────────┘
+
+Plus document_type = "SX" and company = "00750" on all of them. Set these at report level, not page level, so a new visual can't omit them.
+
+3. Load-level values repeated on every line — inflated totals, not duplicate rows
+
+This is the subtle one. sbx_weight, uss_so_weight, load_last_status, bol, sand_ticket and the header_* columns are constant per load but physically stored on every line of that load. lofa_rate is constant per loading facility. At line grain they display correctly — but the moment you total, subtotal, or roll up, SUM multiplies them by the line count.
+
+Three of your existing measures are plain SUM and will inflate:
+
+dax
+SBX Weight   = SUMX(VALUES(fact_extended_sales_order_5[load_number]),
+                    CALCULATE(MAX(fact_extended_sales_order_5[sbx_weight])))
+USS SO Weight = SUMX(VALUES(fact_extended_sales_order_5[load_number]),
+                    CALCULATE(MAX(fact_extended_sales_order_5[uss_so_weight])))
+Rate         = SUMX(VALUES(fact_extended_sales_order_5[loading_facility]),
+                    CALCULATE(MAX(fact_extended_sales_order_5[lofa_rate])))
+
+SUMX(VALUES(key), …) counts each load (or facility) once regardless of how many lines it has. Total Amount, OX Amount and Quantity are genuinely additive per line and can stay as SUM.
+
+4. The Reconciliation page must be at load grain
+
+Its native grain is one row per load. Put only load-level fields on the visual — load_number, the header_* columns, bol, sand_ticket, load_last_status — plus the 19 reconciliation measures. Drop line_id, item_number or any line-level column onto it and it fans out to one row per line, which looks exactly like duplication.
+
+Two things to verify on the dim side
+
+All five relationships are many-to-one, so they can't fan out — provided the dim keys are unique. If rpt.dim_address_book has more than one row per address_number, or rpt.dim_plant more than one per plant_code, Power BI will silently degrade the relationship to many-to-many and every fact row will multiply. Worth a DISTINCTCOUNT check on both after loading.
+
+Want me to apply the three measure fixes to the TMDL now? They're a real correctness bug as written — I defined them as plain SUM back when the fact was line-grain-per-load and the inflation wasn't visible.

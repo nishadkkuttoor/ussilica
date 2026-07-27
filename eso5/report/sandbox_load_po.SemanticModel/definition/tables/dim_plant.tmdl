@@ -1,0 +1,80 @@
+/// REUSED conformed dim — the existing Gold `rpt.dim_plant` (F0006 Business Unit / Plant Master),
+/// built by an upstream job (NOT rebuilt by ESO5). ESO5 points fact_extended_sales_order_5[district]
+/// (SDMCU) at it via plant_code (= MCMCU). Replaced the former reused dim_business_unit (2026-07-26):
+/// the ESO4-owned dim_business_unit builder was retired, and dim_plant is the same F0006 master.
+/// NOTE: dim_plant has no single "code - description" concat column (business_unit_display); to render
+/// "771010 - SBX TRANS DISTRICT-WEST TEXAS" use the fact's district code + plant_name as two fields.
+table dim_plant
+	lineageTag: 5e1d7b04-83af-4c96-a570-2f6b91c8de37
+
+	/// MCMCU — the district / plant code. PK; matches fact[district] (both trimmed strings).
+	column plant_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_code
+		lineageTag: c07f4a12-9e63-4d85-b21a-386df05c9b47
+
+	/// MCDL01 — the plant / district description (e.g. "SBX TRANS DISTRICT-WEST TEXAS").
+	column plant_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_name
+		lineageTag: 41a8309d-6c52-4e17-93b6-08f7d2ae5b19
+
+	column plant_name_compressed
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: plant_name_compressed
+		lineageTag: 9b25e6c8-1f70-42a3-85d9-4c0e73ba1265
+
+	column plant_category_code_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_category_code_02
+		lineageTag: 7fc3b581-04ea-4d29-a16c-95208e6df347
+
+	column related_business_unit
+		dataType: string
+		summarizeBy: none
+		sourceColumn: related_business_unit
+		lineageTag: 2610cd7f-b94e-483a-a05c-d3197fe4b026
+
+	column company
+		dataType: string
+		summarizeBy: none
+		sourceColumn: company
+		lineageTag: 1a2b3c4d-5e6f-4708-9a0b-1c2d3e4f5061
+
+	/// MCRP20 — business-stream code (was business_stream_code on dim_business_unit).
+	column category_code_cost_ct_020
+		dataType: string
+		summarizeBy: none
+		sourceColumn: category_code_cost_ct_020
+		lineageTag: e8945a30-7d16-4c02-b6f9-51a0c37be284
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: 2b3c4d5e-6f70-4819-ab1c-2d3e4f506172
+
+	column parent_plant_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: parent_plant_code
+		lineageTag: 3c4d5e6f-7081-492a-bc2d-3e4f50617283
+
+	column last_refreshed_timestamp
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		sourceColumn: last_refreshed_timestamp
+		lineageTag: 4d5e6f70-8192-4a3b-cd3e-4f5061728394
+
+	partition dim_plant = entity
+		mode: directLake
+		source
+			entityName: dim_plant
+			schemaName: rpt
+			expressionSource: DatabaseQuery

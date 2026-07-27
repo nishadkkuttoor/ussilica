@@ -1,0 +1,29 @@
+table dim_item
+	lineageTag: 9eb9dacb-dbcf-51bf-b3e3-fe2046981c2d
+
+	column item_number_short
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: item_number_short
+		lineageTag: 10fb1c9a-e25c-5dca-8596-55c53eda79c8
+
+	column item_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: item_name
+		lineageTag: 78747d9c-1404-5e34-894a-abf246ce6a9b
+
+	column uom_weight
+		dataType: string
+		summarizeBy: none
+		sourceColumn: uom_weight
+		lineageTag: 5dedc4a9-603b-583b-8f74-3d38c63bf149
+
+	partition dim_item = entity
+		mode: directLake
+		source
+			entityName: dim_item
+			schemaName: otc
+			expressionSource: DatabaseQuery
+

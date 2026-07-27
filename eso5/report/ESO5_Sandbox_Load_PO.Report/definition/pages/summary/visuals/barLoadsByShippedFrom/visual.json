@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "barLoadsByShippedFrom",
+  "position": {
+    "x": 648,
+    "y": 232,
+    "z": 0,
+    "width": 616,
+    "height": 360,
+    "tabOrder": 9
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_uss_plant"
+                    }
+                  },
+                  "Property": "shipped_from"
+                }
+              },
+              "queryRef": "dim_uss_plant.shipped_from",
+              "nativeQueryRef": "Shipped From"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "Load Count"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.Load Count",
+              "nativeQueryRef": "Load Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

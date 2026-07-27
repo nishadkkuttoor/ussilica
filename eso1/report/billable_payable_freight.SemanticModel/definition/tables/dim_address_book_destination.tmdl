@@ -1,0 +1,52 @@
+table dim_address_book_destination
+	lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f50
+
+	column address_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: address_number
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f51
+
+	column name_alpha
+		dataType: string
+		summarizeBy: none
+		sourceColumn: name_alpha
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f52
+
+	column address_type_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_type_01
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f53
+
+	column city
+		dataType: string
+		summarizeBy: none
+		sourceColumn: city
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f54
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f55
+
+	column country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: country
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f56
+
+	column zip_code_postal
+		dataType: string
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f57
+
+	partition dim_address_book_destination = entity
+		mode: directLake
+		source
+			entityName: dim_address_book_destination
+			schemaName: rpt
+			expressionSource: DatabaseQuery

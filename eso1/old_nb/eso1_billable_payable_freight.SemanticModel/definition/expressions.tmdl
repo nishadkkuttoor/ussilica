@@ -1,0 +1,7 @@
+expression DatabaseQuery =
+		let
+		    Source = Sql.Database("<SQL_ANALYTICS_ENDPOINT>", "<LH_JDE_GOLD_DATABASE>")
+		in
+		    Source
+	lineageTag: e0f118c0-2cc9-5c62-9a08-8c52c4b3ac7d
+	annotation PBI_IncludeFutureArtifacts = False

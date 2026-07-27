@@ -1,0 +1,21 @@
+table dim_sic
+	lineageTag: 3f6b1a20-9c4e-4d17-b8a2-1e5f7c9a0d31
+
+	column sic_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sic_code
+		lineageTag: 7a1c8e44-2b93-4f60-9d15-6c0e2a7b4f81
+
+	column sic_description
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sic_description
+		lineageTag: 9e2d5b71-4c08-4a36-8f92-3b7d1e6c0a54
+
+	partition dim_sic = entity
+		mode: directLake
+		source
+			entityName: dim_sic
+			schemaName: rpt
+			expressionSource: DatabaseQuery

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "colAmountByLofa",
+  "position": {
+    "x": 16,
+    "y": 232,
+    "z": 0,
+    "width": 620,
+    "height": 360,
+    "tabOrder": 8
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_loading_facility"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_loading_facility.name_alpha",
+              "nativeQueryRef": "Loading Facility Name"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_5"
+                    }
+                  },
+                  "Property": "Total Amount"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_5.Total Amount",
+              "nativeQueryRef": "Total Amount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,219 @@
+SELECT F4201.SHHOLD                          F4201_SHHOLD,
+       F0101.ABSIC                           F0101_ABSIC,
+       F4211.SDMCU                           F4211_SDMCU,
+       F0101.ABALPH                          F0101_ABALPH,
+       C.ALCTY1                              F0116_ALCTY1,
+       C.ALADDS                              F0116_ALADDS,
+       F4211.SDDOCO                          F4211_SDDOCO,
+       CAST(F4211.SDLNID AS FLOAT) / 1000    F4211_SDLNID,
+       F4211.SDHOLD                          F4211_SDHOLD,
+       F4211.SDDCTO                          F4211_SDDCTO,
+       F4211.SDTRDJ                          F4211_SDTRDJ,
+       F4211.SDDRQJ                          F4211_SDDRQJ,
+       F4211.SDADDJ                          F4211_SDADDJ,
+       F4211.SDLITM                          F4211_SDLITM,
+       F4211.SDMOT                           F4211_SDMOT,
+       F4211.SDFRTH                          F4211_SDFRTH,
+       F4211.SDUOM                           F4211_SDUOM,
+       F4211.SDCNID                          F4211_SDCNID,
+       F4211.SDSHAN                          F4211_SDSHAN,
+       F4211.SDPA8                           F4211_SDPA8,
+       F4211.SDURAB                          F4211_SDURAB,
+       F4211.SDVR01                          F4211_SDVR01,
+       CAST(F4211.SDUPRC AS FLOAT) / 1000000 F4211_SDUPRC,
+       F4211.SDLTTR                          F4211_SDLTTR,
+       F4211.SDNXTR                          F4211_SDNXTR,
+       F4211.SDSRP1                          F4211_SDSRP1,
+       F4211.SDTORG                          F4211_SDTORG,
+       F4201.SHDEL1                          F4201_SHDEL1,
+       F4201.SHDEL2                          F4201_SHDEL2,
+       F4211.SDODCT                          F4211_SDODCT,
+       F4211.SDOORN                          F4211_SDOORN,
+       F4211.SDODOC                          F4211_SDODOC,
+       SUM(F4211.SDAEXP)                     ReportColumn1,
+       SUM(F4211.SDUORG)                     ReportColumn3,
+       SUM(F4211.SDPQOR)                     ReportColumn4,
+       F0010.CCCRCD                          DomesticCurrency
+FROM   PRODDTA.F4211 F4211
+       INNER JOIN PRODDTA.F4201 F4201
+         ON ( ( F4201.SHDCTO = F4211.SDDCTO )
+              AND ( F4201.SHDOCO = F4211.SDDOCO ) )
+            AND ( F4201.SHKCOO = F4211.SDKCOO )
+       INNER JOIN (SELECT F0101.ABSIC,
+                          F0101.ABALPH,
+                          F0101.ABAN8
+                   FROM   PRODDTA.F0101 F0101
+                   WHERE  ( ( F0101.ABAT1 BETWEEN N'A  ' AND N'P  ' )
+                             OR ( F0101.ABAT1 BETWEEN N'R  ' AND N'ZZZ' ) )) F0101
+         ON F0101.ABAN8 = F4211.SDSHAN
+       INNER JOIN PRODDTA.F0116 C
+                  INNER JOIN (SELECT F0116.ALAN8,
+                                     MAX(F0116.ALEFTB) ALEFTB
+                              FROM   PRODDTA.F0116 F0116
+                              GROUP  BY F0116.ALAN8) D
+                    ON ( C.ALAN8 = D.ALAN8 )
+                       AND ( C.ALEFTB = D.ALEFTB )
+         ON F0101.ABAN8 = D.ALAN8
+       INNER JOIN PRODDTA.F0010 F0010
+         ON F0010.CCCO = F4211.SDKCOO
+WHERE  ( (( F4211.SDADDJ BETWEEN 118060 AND 118060 ))
+         AND (( F4211.SDDCTO IN ( N'SO', N'CO' ) )) )
+GROUP  BY F4201.SHHOLD,
+          F0101.ABSIC,
+          F4211.SDMCU,
+          F0101.ABALPH,
+          C.ALCTY1,
+          C.ALADDS,
+          F4211.SDDOCO,
+          CAST(F4211.SDLNID AS FLOAT) / 1000,
+          F4211.SDHOLD,
+          F4211.SDDCTO,
+          F4211.SDTRDJ,
+          F4211.SDDRQJ,
+          F4211.SDADDJ,
+          F4211.SDLITM,
+          F4211.SDMOT,
+          F4211.SDFRTH,
+          F4211.SDUOM,
+          F4211.SDCNID,
+          F4211.SDSHAN,
+          F4211.SDPA8,
+          F4211.SDURAB,
+          F4211.SDVR01,
+          CAST(F4211.SDUPRC AS FLOAT) / 1000000,
+          F4211.SDLTTR,
+          F4211.SDNXTR,
+          F4211.SDSRP1,
+          F4211.SDTORG,
+          F4201.SHDEL1,
+          F4201.SHDEL2,
+          F4211.SDODCT,
+          F4211.SDOORN,
+          F4211.SDODOC,
+          F0010.CCCRCD
+UNION ALL
+SELECT F4201.SHHOLD                          F4201_SHHOLD,
+       F0101.ABSIC                           F0101_ABSIC,
+       F4211.SDMCU                           F4211_SDMCU,
+       F0101.ABALPH                          F0101_ABALPH,
+       C.ALCTY1                              F0116_ALCTY1,
+       C.ALADDS                              F0116_ALADDS,
+       F4211.SDDOCO                          F4211_SDDOCO,
+       CAST(F4211.SDLNID AS FLOAT) / 1000    F4211_SDLNID,
+       F4211.SDHOLD                          F4211_SDHOLD,
+       F4211.SDDCTO                          F4211_SDDCTO,
+       F4211.SDTRDJ                          F4211_SDTRDJ,
+       F4211.SDDRQJ                          F4211_SDDRQJ,
+       F4211.SDADDJ                          F4211_SDADDJ,
+       F4211.SDLITM                          F4211_SDLITM,
+       F4211.SDMOT                           F4211_SDMOT,
+       F4211.SDFRTH                          F4211_SDFRTH,
+       F4211.SDUOM                           F4211_SDUOM,
+       F4211.SDCNID                          F4211_SDCNID,
+       F4211.SDSHAN                          F4211_SDSHAN,
+       F4211.SDPA8                           F4211_SDPA8,
+       F4211.SDURAB                          F4211_SDURAB,
+       F4211.SDVR01                          F4211_SDVR01,
+       CAST(F4211.SDUPRC AS FLOAT) / 1000000 F4211_SDUPRC,
+       F4211.SDLTTR                          F4211_SDLTTR,
+       F4211.SDNXTR                          F4211_SDNXTR,
+       F4211.SDSRP1                          F4211_SDSRP1,
+       F4211.SDTORG                          F4211_SDTORG,
+       F4201.SHDEL1                          F4201_SHDEL1,
+       F4201.SHDEL2                          F4201_SHDEL2,
+       F4211.SDODCT                          F4211_SDODCT,
+       F4211.SDOORN                          F4211_SDOORN,
+       F4211.SDODOC                          F4211_SDODOC,
+       SUM(F4211.SDAEXP)                     ReportColumn1,
+       SUM(F4211.SDUORG)                     ReportColumn3,
+       SUM(F4211.SDPQOR)                     ReportColumn4,
+       F0010.CCCRCD                          DomesticCurrency
+FROM   PRODDTA.F42119 F4211
+       INNER JOIN PRODDTA.F4201 F4201
+         ON ( ( F4201.SHDCTO = F4211.SDDCTO )
+              AND ( F4201.SHDOCO = F4211.SDDOCO ) )
+            AND ( F4201.SHKCOO = F4211.SDKCOO )
+       INNER JOIN (SELECT F0101.ABSIC,
+                          F0101.ABALPH,
+                          F0101.ABAN8
+                   FROM   PRODDTA.F0101 F0101
+                   WHERE  ( ( F0101.ABAT1 BETWEEN N'A  ' AND N'P  ' )
+                             OR ( F0101.ABAT1 BETWEEN N'R  ' AND N'ZZZ' ) )) F0101
+         ON F0101.ABAN8 = F4211.SDSHAN
+       INNER JOIN PRODDTA.F0116 C
+                  INNER JOIN (SELECT F0116.ALAN8,
+                                     MAX(F0116.ALEFTB) ALEFTB
+                              FROM   PRODDTA.F0116 F0116
+                              GROUP  BY F0116.ALAN8) D
+                    ON ( C.ALAN8 = D.ALAN8 )
+                       AND ( C.ALEFTB = D.ALEFTB )
+         ON F0101.ABAN8 = D.ALAN8
+       INNER JOIN PRODDTA.F0010 F0010
+         ON F0010.CCCO = F4211.SDKCOO
+WHERE  ( (( F4211.SDADDJ BETWEEN 118060 AND 118060 ))
+         AND (( F4211.SDDCTO IN ( N'SO', N'CO' ) )) )
+GROUP  BY F4201.SHHOLD,
+          F0101.ABSIC,
+          F4211.SDMCU,
+          F0101.ABALPH,
+          C.ALCTY1,
+          C.ALADDS,
+          F4211.SDDOCO,
+          CAST(F4211.SDLNID AS FLOAT) / 1000,
+          F4211.SDHOLD,
+          F4211.SDDCTO,
+          F4211.SDTRDJ,
+          F4211.SDDRQJ,
+          F4211.SDADDJ,
+          F4211.SDLITM,
+          F4211.SDMOT,
+          F4211.SDFRTH,
+          F4211.SDUOM,
+          F4211.SDCNID,
+          F4211.SDSHAN,
+          F4211.SDPA8,
+          F4211.SDURAB,
+          F4211.SDVR01,
+          CAST(F4211.SDUPRC AS FLOAT) / 1000000,
+          F4211.SDLTTR,
+          F4211.SDNXTR,
+          F4211.SDSRP1,
+          F4211.SDTORG,
+          F4201.SHDEL1,
+          F4201.SHDEL2,
+          F4211.SDODCT,
+          F4211.SDOORN,
+          F4211.SDODOC,
+          F0010.CCCRCD
+ORDER  BY F4211_SDDOCO ASC,
+          F4211_SDLITM ASC,
+          F4211_SDDCTO ASC,
+          F0101_ABALPH ASC,
+          F4211_SDDRQJ ASC,
+          F4211_SDTRDJ ASC,
+          F4211_SDLTTR ASC,
+          F4211_SDNXTR ASC,
+          F4211_SDUOM ASC,
+          F4211_SDSRP1 ASC,
+          F4201_SHDEL1 ASC,
+          F4201_SHDEL2 ASC,
+          F4211_SDLNID ASC,
+          F4211_SDHOLD ASC,
+          F4211_SDADDJ ASC,
+          F0116_ALCTY1 ASC,
+          F0116_ALADDS ASC,
+          F4211_SDMOT ASC,
+          F4211_SDCNID ASC,
+          F4211_SDTORG ASC,
+          F4211_SDPA8 ASC,
+          F4211_SDUPRC ASC,
+          F4211_SDODCT ASC,
+          F4211_SDOORN ASC,
+          F4211_SDODOC ASC,
+          F0101_ABSIC ASC,
+          F4211_SDFRTH ASC,
+          F4201_SHHOLD ASC,
+          F4211_SDMCU ASC,
+          F4211_SDSHAN ASC,
+          F4211_SDURAB ASC,
+          F4211_SDVR01 ASC 

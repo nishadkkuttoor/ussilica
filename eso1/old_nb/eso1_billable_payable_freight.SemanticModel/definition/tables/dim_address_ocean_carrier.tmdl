@@ -1,0 +1,83 @@
+table dim_address_ocean_carrier
+	lineageTag: 79aa9648-fad9-5ff6-953c-73f95bf20d38
+
+	column address_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: address_number
+		lineageTag: a4102c54-3e14-53ef-bbb4-813799b57588
+
+	column name_alpha
+		dataType: string
+		summarizeBy: none
+		sourceColumn: name_alpha
+		lineageTag: b935767f-9865-5533-9233-5919739551d3
+
+	column address_type_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_type_01
+		lineageTag: ae2c4dd3-9e62-5e37-8a86-a0102a4382f3
+
+	column standard_industry_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+		lineageTag: 2069bbf7-413d-5c22-b2b1-4e9e8f1cd881
+
+	column city
+		dataType: string
+		summarizeBy: none
+		sourceColumn: city
+		lineageTag: 5233b310-4218-5f53-b06b-5f3c9d17db41
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: 403c9770-c00c-5487-baf5-bd3f3a9bb64b
+
+	column country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: country
+		lineageTag: 99e3d165-e9c2-5b0b-be97-323e4fa0bd2c
+
+	column zip_code_postal
+		dataType: string
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+		lineageTag: cf4e5b25-2f6f-51cc-92b5-2e0dade2fad1
+
+	column address_line_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_01
+		lineageTag: 26e7d5bc-3fa9-597a-9b19-c1ffd8a72c19
+
+	column address_line_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_02
+		lineageTag: 9c7de659-7f59-578a-85dc-31790a3d3712
+
+	column address_line_03
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_03
+		lineageTag: a2cc6484-0abc-5339-8dd4-c7e3d27ba7d5
+
+	column address_line_04
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_04
+		lineageTag: 7655c206-9458-5715-a9eb-809ab2ab5a0f
+
+	partition dim_address_ocean_carrier = entity
+		mode: directLake
+		source
+			entityName: dim_address_ocean_carrier
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "slicerLofa",
+  "position": {
+    "x": 16,
+    "y": 16,
+    "z": 0,
+    "width": 300,
+    "height": 64,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_loading_facility"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_loading_facility.name_alpha",
+              "nativeQueryRef": "Loading Facility Name"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

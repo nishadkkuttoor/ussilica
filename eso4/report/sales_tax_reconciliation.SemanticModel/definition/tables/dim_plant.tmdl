@@ -1,0 +1,71 @@
+table dim_plant
+	lineageTag: 3a7f21e0-8c14-4b52-9e63-1d0a5f2b7c40
+
+	column plant_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_code
+		lineageTag: 4b8a32f1-9d25-4c63-8f74-2e1b6a3c8d51
+
+	column plant_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_name
+		lineageTag: 5c9b43a2-ae36-4d74-9a85-3f2c7b4d9e62
+
+	column plant_name_compressed
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: plant_name_compressed
+		lineageTag: 6dac54b3-bf47-4e85-ab96-4a3d8c5eaf73
+
+	column plant_category_code_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: plant_category_code_02
+		lineageTag: 7ebd65c4-c058-4f96-bca7-5b4e9d6fb084
+
+	column related_business_unit
+		dataType: string
+		summarizeBy: none
+		sourceColumn: related_business_unit
+		lineageTag: 8fce76d5-d169-4a07-cdb8-6c5fae7fc195
+
+	column company
+		dataType: string
+		summarizeBy: none
+		sourceColumn: company
+		lineageTag: 9adf87e6-e27a-4b18-dcc9-7d60bf8fd2a6
+
+	column category_code_cost_ct_020
+		dataType: string
+		summarizeBy: none
+		sourceColumn: category_code_cost_ct_020
+		lineageTag: 0be098f7-f38b-4c29-edda-8e71c0a9e3b7
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: 1cf1a908-041c-4d3a-feeb-9f82d1baf4c8
+
+	column parent_plant_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: parent_plant_code
+		lineageTag: 2d02ba19-152d-4e4b-affc-a093e2cb05d9
+
+	column last_refreshed_timestamp
+		dataType: dateTime
+		isHidden
+		summarizeBy: none
+		sourceColumn: last_refreshed_timestamp
+		lineageTag: 3e13cb2a-263e-4f5c-b00d-b1a4e3dc16ea
+
+	partition dim_plant = entity
+		mode: directLake
+		source
+			entityName: dim_plant
+			schemaName: rpt
+			expressionSource: DatabaseQuery

@@ -1,0 +1,21 @@
+table dim_state
+	lineageTag: 5c8a3e92-7d16-4b40-a1f7-2e9b0c4d6f83
+
+	column state_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state_code
+		lineageTag: 1b4f7a63-8e25-4c19-9d70-5a2c8f0b3e46
+
+	column state_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state_name
+		lineageTag: 6d0e9c37-2a58-4f81-b394-7c1e5b8a0f29
+
+	partition dim_state = entity
+		mode: directLake
+		source
+			entityName: dim_state
+			schemaName: rpt
+			expressionSource: DatabaseQuery

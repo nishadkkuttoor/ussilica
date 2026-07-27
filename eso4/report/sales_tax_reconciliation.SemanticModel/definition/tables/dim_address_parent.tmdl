@@ -1,0 +1,88 @@
+table dim_address_parent
+	lineageTag: a65998d5-3373-4a04-b4ac-bd4e1d56ec49
+
+	column address_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: address_number
+		lineageTag: ccc130a7-de54-4216-8572-e2264e2c5651
+
+	column name_alpha
+		dataType: string
+		summarizeBy: none
+		sourceColumn: name_alpha
+		lineageTag: 0c98fb53-05d0-4fd1-8b71-fa07dc8ed86a
+
+	column address_type_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_type_01
+		lineageTag: 671c4005-9a4a-47c1-b61b-49fadb36e969
+
+	column standard_industry_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+		lineageTag: b428a327-99a4-4a09-9936-3e07f1ae49f3
+
+	column city
+		dataType: string
+		summarizeBy: none
+		sourceColumn: city
+		lineageTag: 80714a64-fab8-450d-9040-7db2f08e25c3
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: 342b0394-cfc9-4ca7-bb55-e63550e56cd7
+
+	column country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: country
+		lineageTag: 5c6b0a49-d1a3-41bc-ac0f-f00a94a56551
+
+	column zip_code_postal
+		dataType: string
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+		lineageTag: df0fb83c-8e50-42f9-9e02-db7b42db5742
+
+	column address_line_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_01
+		lineageTag: e8bf4be6-1fb7-4dbf-9b0e-52f09eefb3b3
+
+	column address_line_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_02
+		lineageTag: 135e9df2-ab34-4c70-8e63-5a194251dffc
+
+	column address_line_03
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_03
+		lineageTag: 59661680-c51d-4803-af20-55e74547ded3
+
+	column address_line_04
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_04
+		lineageTag: aa6cad4d-54f0-47b4-a90b-30eff60add36
+
+	column has_postal_address
+		dataType: string
+		summarizeBy: none
+		sourceColumn: has_postal_address
+		lineageTag: cb7ce566-544a-4f50-8f9b-daf5b5c27283
+
+	partition dim_address_parent = entity
+		mode: directLake
+		source
+			entityName: dim_address_parent
+			schemaName: rpt
+			expressionSource: DatabaseQuery

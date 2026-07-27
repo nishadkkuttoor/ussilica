@@ -1,0 +1,123 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/1.0.0/schema.json",
+  "name": "holadd",
+  "displayName": "HOLADD Load Detail",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "holaddCompany",
+        "field": {
+          "Column": {
+            "Expression": { "SourceRef": { "Entity": "fact_extended_sales_order_5" } },
+            "Property": "company"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [ { "Name": "f", "Entity": "fact_extended_sales_order_5", "Type": 0 } ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    { "Column": { "Expression": { "SourceRef": { "Source": "f" } }, "Property": "company" } }
+                  ],
+                  "Values": [ [ { "Literal": { "Value": "'00750'" } } ] ]
+                }
+              }
+            }
+          ]
+        },
+        "displayName": "Company = 00750 (sandbox)"
+      },
+      {
+        "name": "holaddDocumentType",
+        "field": {
+          "Column": {
+            "Expression": { "SourceRef": { "Entity": "fact_extended_sales_order_5" } },
+            "Property": "document_type"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [ { "Name": "f", "Entity": "fact_extended_sales_order_5", "Type": 0 } ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    { "Column": { "Expression": { "SourceRef": { "Source": "f" } }, "Property": "document_type" } }
+                  ],
+                  "Values": [ [ { "Literal": { "Value": "'SX'" } } ] ]
+                }
+              }
+            }
+          ]
+        },
+        "displayName": "Document Type = SX"
+      },
+      {
+        "name": "holaddRowClass",
+        "field": {
+          "Column": {
+            "Expression": { "SourceRef": { "Entity": "fact_extended_sales_order_5" } },
+            "Property": "row_class"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [ { "Name": "f", "Entity": "fact_extended_sales_order_5", "Type": 0 } ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    { "Column": { "Expression": { "SourceRef": { "Source": "f" } }, "Property": "row_class" } }
+                  ],
+                  "Values": [
+                    [ { "Literal": { "Value": "'HOLADD'" } } ],
+                    [ { "Literal": { "Value": "'PO_HOLADD'" } } ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "displayName": "Row Class in (HOLADD, PO_HOLADD)"
+      },
+      {
+        "name": "holaddSuperseded",
+        "field": {
+          "Column": {
+            "Expression": { "SourceRef": { "Entity": "fact_extended_sales_order_5" } },
+            "Property": "po_holadd_superseded"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [ { "Name": "f", "Entity": "fact_extended_sales_order_5", "Type": 0 } ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    { "Column": { "Expression": { "SourceRef": { "Source": "f" } }, "Property": "po_holadd_superseded" } }
+                  ],
+                  "Values": [ [ { "Literal": { "Value": "'N'" } } ] ]
+                }
+              }
+            }
+          ]
+        },
+        "displayName": "PO HOLADD Superseded = N (Hubble NOT EXISTS)"
+      }
+    ]
+  }
+}

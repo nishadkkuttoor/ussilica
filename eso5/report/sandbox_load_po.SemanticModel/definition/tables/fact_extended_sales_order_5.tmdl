@@ -1,0 +1,594 @@
+table fact_extended_sales_order_5
+	lineageTag: b984ce0d-eb27-4501-5c56-421ff2dad32e
+
+	/// SEMI-ADDITIVE. lofa_rate is a per-Loading-Facility rate, physically repeated on every line of every
+	/// load that ships from that facility — a plain SUM would multiply it by the line count. SUMX over
+	/// VALUES() counts each facility exactly once, whatever the grain of the visual.
+	measure 'Rate' = SUMX(VALUES(fact_extended_sales_order_5[loading_facility]), CALCULATE(MAX(fact_extended_sales_order_5[lofa_rate])))
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Amounts
+		lineageTag: 69b96f30-cb8f-a6e8-67bd-67c9af742ee7
+
+	measure 'Total Amount' = SUM(fact_extended_sales_order_5[total_amount])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Amounts
+		lineageTag: 1068a8f9-27b6-e55a-c23c-4a219cd9a5e4
+
+	measure 'OX Amount' = SUM(fact_extended_sales_order_5[ox_amount])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Amounts
+		lineageTag: 4b894999-c896-ee40-795f-ea0db3bef328
+
+	measure 'Quantity' = SUM(fact_extended_sales_order_5[quantity])
+		formatString: #,0.00
+		displayFolder: Weights & Qty
+		lineageTag: ad5962df-df3a-304e-06c3-a5c4ff8f1ff4
+
+	/// PER-LOAD, not per-line. SOWEIGHT is one value for the whole load, physically repeated on every line
+	/// of it — a plain SUM multiplies it by the line count. SUMX over VALUES(load_scope_key) counts each
+	/// load exactly once. load_scope_key is used rather than load_number because it is sha2(company ‖
+	/// document_type ‖ load_number) — the true load identity, so this stays correct even on a visual that
+	/// spans companies or document types.
+	measure 'USS SO Weight' = SUMX(VALUES(fact_extended_sales_order_5[load_scope_key]), CALCULATE(MAX(fact_extended_sales_order_5[uss_so_weight])))
+		formatString: #,0.00
+		displayFolder: Weights & Qty
+		lineageTag: 470a8641-4707-ae4a-0895-f84ec0ddea6f
+
+	/// PER-LOAD, not per-line — SXWEIGHT is one value for the whole load. Same dedup as USS SO Weight.
+	measure 'SBX Weight' = SUMX(VALUES(fact_extended_sales_order_5[load_scope_key]), CALCULATE(MAX(fact_extended_sales_order_5[sbx_weight])))
+		formatString: #,0.00
+		displayFolder: Weights & Qty
+		lineageTag: 0707632e-3773-4b6a-1fd8-5f398b7c179d
+
+	/// Counts LOADS, on load_scope_key = sha2(company ‖ document_type ‖ load_number) — the true load
+	/// identity. DISTINCTCOUNT(load_number) alone would conflate two loads that share a document number
+	/// under different companies or document types, which the fact now spans.
+	measure 'Load Count' = DISTINCTCOUNT(fact_extended_sales_order_5[load_scope_key])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 370a982f-018d-f9fc-3040-7883eb85f495
+
+	measure 'Line Count' = COUNTROWS(fact_extended_sales_order_5)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: f4633173-b1aa-1941-3ccf-a6a506b61596
+
+	/// SBX Load Reconciliation Report — the per-load pivots of its SBXLOADDETAIL view, expressed over
+	/// the same line-grain rows. Every one restricts to row_class IN ("LINE","HOLADD","TEXT") — exactly
+	/// SBXLOADDETAIL's population, which is F4201 INNER JOIN F4211 and never sees F4311.
+	/// ⚠ FIXED 2026-07-20. These previously guarded `row_class <> "PO_HOLADD"`, which was wrong twice
+	/// over: (a) it does NOT exclude PO_OTHER — every F4311 line that is not OX+HOLADD — and those rows
+	/// carry item_number = PDLITM and units_ordered = PDUORG, so any measure keyed on item_number
+	/// double-counted (Miles was the visible one: 54 became 108); and (b) a boolean predicate inside
+	/// CALCULATE is FILTER(ALL(column), ...), so it REPLACED the page filter on row_class rather than
+	/// intersecting with it — meaning a correctly-filtered page could not save it. The positive set is
+	/// self-sufficient: these are right even with no page filter at all.
+	measure 'Sand Weight' = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[product_category] = "COM", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: #,0.00
+		displayFolder: Reconciliation\Weights
+		lineageTag: 2f0a1c74-6b9e-4d51-9c02-1a5e77b30d41
+
+	measure 'Ext Weight' = CALCULATE(SUM(fact_extended_sales_order_5[item_weight]), fact_extended_sales_order_5[product_category] = "FRT", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: #,0.00
+		displayFolder: Reconciliation\Weights
+		lineageTag: 7c31b6a2-04df-4e18-8a77-c5b9021ee3d6
+
+	measure 'Sand Tons' = DIVIDE([Sand Weight], 2000)
+		formatString: #,0.00
+		displayFolder: Reconciliation\Weights
+		lineageTag: b8d4e017-95a3-4c60-b21f-3e7ac9d4f582
+
+	measure 'Ext Tons' = DIVIDE([Ext Weight], 2000)
+		formatString: #,0.00
+		displayFolder: Reconciliation\Weights
+		lineageTag: 0e6f27bb-c1a8-4972-93d5-6bd0c81a4e77
+
+	measure 'Miles' = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[item_number] = "FRT", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: #,0.00
+		displayFolder: Reconciliation\Detention & Miles
+		lineageTag: 5a9c3d8e-72b1-4f06-ae34-9d02c7b155a9
+
+	measure 'LOFA Detention Hours' = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[item_number] = "LOFADET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: #,0.00
+		displayFolder: Reconciliation\Detention & Miles
+		lineageTag: 91b7f0c5-3e26-48da-bc19-4f8e6a0d2731
+
+	measure 'Well Detention Hours' = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[item_number] = "WELLDET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: #,0.00
+		displayFolder: Reconciliation\Detention & Miles
+		lineageTag: 6d20a94f-88c7-41b3-95e0-7ab3c1f6e408
+
+	measure 'LOFA Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "LOFADET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: c4e81b36-1d59-4a7c-8f62-20be95d7a013
+
+	measure 'Well Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "WELLDET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: a70d5c92-6f34-4e88-b1a7-8c53d0e26bf1
+
+	measure 'LOFA PP Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "LOFADETPP", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: 3fb69e04-52ca-4d17-9036-e8a71b45cd29
+
+	measure 'Well PP Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "WELLDETPP", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: 8e1c47a5-b930-4265-a7d8-15f2609be3c4
+
+	measure 'LOFA PB Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "LOFADETPB", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: d52a8f13-7e46-49b0-83c1-6079ba4e18d7
+
+	measure 'Well PB Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "WELLDETPB", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: 14b0e6da-9c25-4f73-b58a-2d1e7c930fb6
+
+	measure 'Freight Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[product_category] = "FRT", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: 9a3d71ec-40b8-4a19-96f5-c7e208b4d165
+
+	measure 'Fuel Surcharge Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "FSC", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: 47f9c0b8-2a61-4d3e-8b74-591ae6c2073b
+
+	/// SANDAMT keys off the sales reporting code (SDSRP1 = '352'), NOT the item number.
+	measure 'Sand Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[sales_report_code_01] = "352", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: e206b5d4-8f17-4c92-a0e3-73b6d19af845
+
+	measure 'Holding Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "HOLADD", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0;-\$#,0
+		displayFolder: Reconciliation\Amounts
+		lineageTag: 5b8e39f7-c04a-4d16-92b8-a1c76e0d4239
+
+	/// PROP / LOFA on the reconciliation view are the COM (sand) line's values, not the current row's.
+	measure 'Proppant' = CALCULATE(MAX(fact_extended_sales_order_5[item_description]), fact_extended_sales_order_5[product_category] = "COM", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		displayFolder: Reconciliation
+		lineageTag: 76c1a80b-e534-4f28-b96d-0e83f27ac541
+
+	measure 'Load LOFA' = CALCULATE(MAX(fact_extended_sales_order_5[loading_facility]), fact_extended_sales_order_5[product_category] = "COM", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: 0
+		displayFolder: Reconciliation
+		lineageTag: 28d7f4a6-91b0-4e35-87c2-4fd6903be172
+
+	/// SBXLOADDETAIL_GLDATE — the load's G/L date, MAX(SDDGL) across its lines. A measure and not a
+	/// column: the model discourages implicit measures, and gl_date can differ line to line, so using
+	/// it as a grouping column would split one load into several rows.
+	measure 'Load GL Date' = CALCULATE(MAX(fact_extended_sales_order_5[gl_date]), fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: mm/dd/yyyy
+		displayFolder: Reconciliation
+		lineageTag: a1c47f30-8b62-4d19-9e05-3f7c81d2b640
+
+	/// SBXLOADDETAIL_SDDOC — the load's invoice number, MAX(SDDOC) across its lines. Same reasoning as
+	/// [Load GL Date].
+	measure 'Load Invoice No' = CALCULATE(MAX(fact_extended_sales_order_5[invoice_number]), fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: 0
+		displayFolder: Reconciliation
+		lineageTag: b2d58e41-9c73-4e2a-8f16-4a8d92e3c751
+
+	/// SBXLOADDETAIL_SDNXTR — the load's next status, MAX(SDNXTR) across its lines. Same reasoning as
+	/// [Load GL Date]. Note this is the LINE-level next status rolled up; [load_last_status] is a
+	/// different thing — a derived CASE reproduced in the notebook (design §3e).
+	measure 'Load Next Status' = CALCULATE(MAX(fact_extended_sales_order_5[next_status]), fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		displayFolder: Reconciliation
+		lineageTag: c3e69f52-ad84-4f3b-9027-5b9ea3f4d862
+
+	column load_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: load_number
+		lineageTag: b89636e9-b2f0-ad78-a50f-5f4c3d497e8a
+
+	column document_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: document_type
+		lineageTag: 99fcd70f-0d6b-2dfd-d463-4c525e1e99ac
+
+	column company
+		dataType: string
+		summarizeBy: none
+		sourceColumn: company
+		lineageTag: d4e2bc8c-0ba8-b01c-0225-04807ea51fc3
+
+	column district
+		dataType: string
+		summarizeBy: none
+		sourceColumn: district
+		lineageTag: 19b96fba-eca6-18c4-ede2-0011787a244b
+
+	column sold_to
+		dataType: double
+		summarizeBy: none
+		sourceColumn: sold_to
+		lineageTag: b128be09-3609-63ce-0442-72d443974828
+
+	column ship_to
+		dataType: double
+		summarizeBy: none
+		sourceColumn: ship_to
+		lineageTag: 3a16c20f-3f74-a2f5-44eb-94d662a3e7f3
+
+	column carrier
+		dataType: double
+		summarizeBy: none
+		sourceColumn: carrier
+		lineageTag: 63d96888-d996-3ca7-624d-b19f5de5025a
+
+	column loading_facility
+		dataType: double
+		summarizeBy: none
+		sourceColumn: loading_facility
+		lineageTag: 4b8e0739-fe19-a7a3-09c0-94cdae5d00c8
+
+	column customer_po
+		dataType: string
+		summarizeBy: none
+		sourceColumn: customer_po
+		lineageTag: f38c8622-e36a-5d95-dca2-189237d6242f
+
+	column sand_po_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sand_po_number
+		lineageTag: 064fa164-46dd-1fdc-c360-a3a99ae692ad
+
+	column uss_customer_po
+		dataType: string
+		summarizeBy: none
+		sourceColumn: uss_customer_po
+		lineageTag: 843bca81-db66-4bb8-4728-3b1b6de0f443
+
+	column item_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: item_number
+		lineageTag: c2803722-d02c-b3de-5c08-a35e97022467
+
+	column item_description
+		dataType: string
+		summarizeBy: none
+		sourceColumn: item_description
+		lineageTag: bc4d64fe-26ab-16b6-4365-1a842626dd2c
+
+	column order_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: order_date
+		lineageTag: a2a4cd52-0e06-d13d-fec6-220cf5d00db0
+
+	column gl_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: gl_date
+		lineageTag: e2f2b3e3-db69-f68a-00da-b2c3a76b83fe
+
+	column uss_match
+		dataType: string
+		summarizeBy: none
+		sourceColumn: uss_match
+		lineageTag: 0c241e34-0b0f-cfc7-7860-3b8e84641d9a
+
+	column uss_so_order_no
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: uss_so_order_no
+		lineageTag: a553294d-9186-25c8-8db9-7e569385aac4
+
+	column uss_so_weight
+		dataType: double
+		summarizeBy: none
+		sourceColumn: uss_so_weight
+		lineageTag: 2fca8de1-5452-f244-c638-0d4243673b63
+
+	column sbx_weight
+		dataType: double
+		summarizeBy: none
+		sourceColumn: sbx_weight
+		lineageTag: 5934e523-a2b6-3793-265c-93fd9977db75
+
+	column so_alt_bol_no
+		dataType: string
+		summarizeBy: none
+		sourceColumn: so_alt_bol_no
+		lineageTag: 834a035b-41e2-0f9f-bfd4-3ab2b3095c60
+
+	column sand_ticket
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sand_ticket
+		lineageTag: 9101dc2e-b77e-42c1-fd6c-5be65968442a
+
+	column bol
+		dataType: string
+		summarizeBy: none
+		sourceColumn: bol
+		lineageTag: 4d59bc1d-336e-1888-47ef-ca83b88946fe
+
+	column uom
+		dataType: string
+		summarizeBy: none
+		sourceColumn: uom
+		lineageTag: fea001a1-7cc5-6fd0-e5fd-5e07e38b1657
+
+	column quantity
+		dataType: double
+		summarizeBy: none
+		sourceColumn: quantity
+		lineageTag: 9685b13f-eba7-3ce9-c3ca-ee80cfa162e0
+
+	column unit_price
+		dataType: double
+		summarizeBy: none
+		sourceColumn: unit_price
+		lineageTag: f844c125-eaba-cb33-48a1-a7abd217c2ce
+
+	column total_amount
+		dataType: double
+		summarizeBy: none
+		sourceColumn: total_amount
+		lineageTag: cdb8d521-8989-5229-c967-1168a82505cb
+
+	column last_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: last_status
+		lineageTag: 2901870b-35ac-7fce-c98f-cf4953b308cd
+
+	column next_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: next_status
+		lineageTag: d0ff77e5-1294-25a6-376a-44cf4d4f9d2e
+
+	/// Numeric copy of [next_status] for the core report's page filter SDNXTR < '581'. Hubble does this as
+	/// a STRING comparison, which only orders correctly while every status is a uniform 3-char code; this
+	/// integer column makes the filter next_status_num < 581 unambiguous. NULL where next_status is blank
+	/// or non-numeric. Display uses [next_status]; filter on this.
+	column next_status_num
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: next_status_num
+		lineageTag: e1f2a3b4-c5d6-47e8-9a0b-1c2d3e4f5a6b
+
+	column invoice_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: invoice_number
+		lineageTag: e15a36d6-f9da-cdbc-0814-7bc8b7edea24
+
+	column ox_last_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ox_last_status
+		lineageTag: 2e1fc6d0-2e01-a3ce-4091-dc6afb734bc2
+
+	column ox_next_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ox_next_status
+		lineageTag: 2eb1d6f2-e54e-724b-4b24-a123c2afc84e
+
+	column ox_amount
+		dataType: double
+		summarizeBy: none
+		sourceColumn: ox_amount
+		lineageTag: 97dd9ad2-cbf1-e56c-b549-fafe60d8fcb9
+
+	column carrier_po_gl_post_flag
+		dataType: string
+		summarizeBy: none
+		sourceColumn: carrier_po_gl_post_flag
+		lineageTag: dbc9b4a6-7547-0d43-54e8-c7bb34e2bd02
+
+	column po_receipt_gl_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: po_receipt_gl_date
+		lineageTag: e238c645-6dcd-7ddb-ba6d-8bf44530d375
+
+	/// The RAW JDE line number (SDLNID): 1.00 renders as 1000, a kit line 1.010 as 1010. Silver decoded the
+	/// 3 implied decimals; the notebook puts them back, so this is an exact integer with nothing truncated.
+	column line_id
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: line_id
+		lineageTag: 7c813422-2c4e-b030-b5e5-0022bba128f3
+
+	column lofa_rate
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: lofa_rate
+		lineageTag: 81071e52-3608-08df-0ea7-805a9eb205b4
+
+	column load_line_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: load_line_key
+		lineageTag: 7b414e78-f814-cdcb-3a3c-a34ff3146868
+
+	column load_scope_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: load_scope_key
+		lineageTag: c152cb01-6c8f-c824-ddee-e811affdbc39
+
+	/// STATUS. The notebook applies NO status filter anywhere — every status predicate that used to drop
+	/// rows is now one of these fields, and status filtering is entirely the report's job (design §7d).
+	///
+	/// 'Y' ⇔ the load already carries a LIVE (last_status <> "980") SX HOLADD sales line. This WAS report
+	/// 4's `NOT EXISTS(...)`, which suppressed the PO row. Hubble's orphan set is exactly "N", so report 4
+	/// filters po_holadd_superseded = "N". Always "N" on non-PO_HOLADD rows.
+	column po_holadd_superseded
+		dataType: string
+		summarizeBy: none
+		sourceColumn: po_holadd_superseded
+		lineageTag: 8c41d70e-5b93-4a26-b1f8-e03927ad6c15
+
+	/// PDDCTO on a purchase-order row. [document_type] is forced to "SX" on those rows (the query hard-codes
+	/// it so the UNION lines up with the sales load), so the PO's own document type needs its own column.
+	/// NULL on F4211 rows.
+	column po_order_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: po_order_type
+		lineageTag: 3d92c0f5-7a41-4e68-b530-9c74e1a8d206
+
+	/// MXLTTR / MILTTR — the reconciliation view's per-load MAX/MIN of last_status, and the two inputs to
+	/// [load_last_status]. Surfaced so the report can audit or re-derive that CASE rather than trusting a
+	/// status rule baked into the fact.
+	column load_max_last_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: load_max_last_status
+		lineageTag: 4e93a02c-16bf-4d78-95a1-c780b62e3fd4
+
+	column load_min_last_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: load_min_last_status
+		lineageTag: a57f28d1-c604-49eb-83b7-9e21d0576cb8
+
+	/// The F4311 OX money with NO item/status condition. [ox_amount] follows Hubble's rule
+	/// (item="FRT", or item="HOLADD" AND last_status<>"980", else 0) — which bakes a status decision into
+	/// the value. This column exposes the same money unconditioned, so the report can apply its own.
+	column ox_amount_gross
+		dataType: double
+		summarizeBy: none
+		sourceColumn: ox_amount_gross
+		lineageTag: 07b6e5c3-9d48-41fa-a267-3b18e40cd792
+
+	/// Which report(s) a row belongs to. Five mutually-exclusive classes, all CALCULATED (the notebook
+	/// filters nothing — the fact is F4211 and F4311 in full):
+	///   LINE      F4211 line, not TL, not HOLADD  -> Sandbox Load Report w/ PO Details (+ (New), + no-USS) and Reconciliation
+	///   HOLADD    F4211 line, not TL, item HOLADD -> ...for HOLADD  and Reconciliation
+	///   TEXT      F4211 line, line type TL        ->                   Reconciliation
+	///   PO_HOLADD F4311 line, OX + item HOLADD    -> ...for HOLADD  (with po_holadd_superseded = "N")
+	///   PO_OTHER  every other F4311 line          -> NO report reads it
+	/// EVERY report page MUST filter on this column — see docs/ESO5_gold_layer_design.md §7b.
+	/// NOTE [document_type] is forced to "SX" on PO rows, so it alone does NOT exclude them; row_class does.
+	column row_class
+		dataType: string
+		summarizeBy: none
+		sourceColumn: row_class
+		lineageTag: 1a4e9c37-05b8-4d62-9e71-8c30f5ab6d24
+
+	column line_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: line_type
+		lineageTag: 63f2b8d0-4a17-49ce-b085-2d7e9014cf3a
+
+	column product_category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: product_category
+		lineageTag: 90c5e1a8-b743-4f26-8d19-57ba30e6c4f1
+
+	column sales_report_code_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sales_report_code_01
+		lineageTag: 4d81f37b-2e69-4a05-93c8-b16f0ae2d759
+
+	/// RAW decoded units (SDUORG). [quantity] is the report-facing version (COM lines divided to tons);
+	/// the reconciliation pivots need the undivided value.
+	column units_ordered
+		dataType: double
+		summarizeBy: none
+		sourceColumn: units_ordered
+		lineageTag: 8b0a65ef-71d4-4c93-a2e6-3f5719cb08d2
+
+	column item_weight
+		dataType: double
+		summarizeBy: none
+		sourceColumn: item_weight
+		lineageTag: 2c7d94b1-6f30-4e85-91af-d0836e5b1a47
+
+	/// The reconciliation view's per-load SDLTTR: 980 when the whole load is cancelled, else the newest
+	/// status across the load's billable (non-HOLADD, amount<>0) lines. Constant within a load.
+	column load_last_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: load_last_status
+		lineageTag: f18c30ae-5b92-4d71-86c4-70e9a2d4f6b3
+
+	column leg_1
+		dataType: string
+		summarizeBy: none
+		sourceColumn: leg_1
+		lineageTag: 7e4b21c6-93af-4058-b7d2-1c60e853fa09
+
+	column leg_2
+		dataType: string
+		summarizeBy: none
+		sourceColumn: leg_2
+		lineageTag: 05a9d763-8c14-4b2f-9e63-fa27b019d5c8
+
+	column leg_3
+		dataType: string
+		summarizeBy: none
+		sourceColumn: leg_3
+		lineageTag: b3627ed9-0af5-41c8-95b1-6e8d4c07a2f6
+
+	column qc_string_3
+		dataType: string
+		summarizeBy: none
+		sourceColumn: qc_string_3
+		lineageTag: cd58704a-2b16-4e93-807f-95a1362be7d4
+
+	/// F4201 sales-order HEADER attributes. The reconciliation report groups by these (SHMCU/SHAN8/
+	/// SHSHAN/SHCARS/SHVR01/SHTRDJ), which are header values and need not equal the line's own.
+	column header_district
+		dataType: string
+		summarizeBy: none
+		sourceColumn: header_district
+		lineageTag: 3a0f8b45-c927-4d61-ae83-2f5790cd6e1b
+
+	column header_sold_to
+		dataType: double
+		summarizeBy: none
+		sourceColumn: header_sold_to
+		lineageTag: 9f13c6d2-70e8-4a59-b34c-816da025f7e3
+
+	column header_ship_to
+		dataType: double
+		summarizeBy: none
+		sourceColumn: header_ship_to
+		lineageTag: 61e805fa-3d47-42b9-8c06-b7f294a1d035
+
+	column header_carrier
+		dataType: double
+		summarizeBy: none
+		sourceColumn: header_carrier
+		lineageTag: 27bd4f19-a6c0-4e72-95d8-0e63817ca94f
+
+	column header_customer_po
+		dataType: string
+		summarizeBy: none
+		sourceColumn: header_customer_po
+		lineageTag: 84ca0e37-1b95-46df-a028-c7f5b3e69d10
+
+	column header_order_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: header_order_date
+		lineageTag: fe790b26-84d3-4c15-9a67-30b28ed5c7a4
+
+	partition fact_extended_sales_order_5 = entity
+		mode: directLake
+		source
+			entityName: fact_extended_sales_order_5
+			schemaName: rpt
+			expressionSource: DatabaseQuery

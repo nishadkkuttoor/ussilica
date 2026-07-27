@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "colLinesByHasFreight",
+  "position": {
+    "x": 16,
+    "y": 232,
+    "z": 0,
+    "width": 500,
+    "height": 360,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "freight_handling_code"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.freight_handling_code",
+              "nativeQueryRef": "FHC"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "Order Lines"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.Order Lines",
+              "nativeQueryRef": "Order Lines"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

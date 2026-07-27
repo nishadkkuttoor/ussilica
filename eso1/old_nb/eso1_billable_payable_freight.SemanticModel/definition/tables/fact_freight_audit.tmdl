@@ -1,0 +1,172 @@
+table fact_freight_audit
+	lineageTag: 52a0e749-ef66-51a8-8421-63aa692871b8
+
+	measure 'Billable Freight' = CALCULATE(SUM(fact_freight_audit[billable_freight]), fact_freight_audit[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: 95743e21-e557-5439-8e23-44db2a39d7db
+
+	measure 'Billable Fuel' = CALCULATE(SUM(fact_freight_audit[billable_fuel]), fact_freight_audit[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: fff890fd-c31f-565c-868e-0e3954edabc8
+
+	measure 'Total Billable' = CALCULATE(SUM(fact_freight_audit[total_billable]), fact_freight_audit[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: 4264434d-6865-5816-bc8f-c045dd24764e
+
+	measure 'Payable Freight' = CALCULATE(SUM(fact_freight_audit[payable_freight]), fact_freight_audit[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: a43e7600-d8b6-5e6c-8f1b-5a52ec84557c
+
+	measure 'Payable Fuel' = CALCULATE(SUM(fact_freight_audit[payable_fuel]), fact_freight_audit[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: aadd5cc4-de7d-5d85-8b8c-b019ba5d3465
+
+	measure 'Total Payable' = CALCULATE(SUM(fact_freight_audit[total_payable]), fact_freight_audit[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: daa2447f-212e-5399-bc58-4f85f386ecdf
+
+	measure 'Freight Variance' = [Billable Freight] - [Payable Freight]
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: 83059df3-eeb0-502f-b092-a7bb3fa9d13a
+
+	measure 'Total Variance' = [Total Billable] - [Total Payable]
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Freight
+		lineageTag: aca07dd1-98aa-5a8a-b764-1d8f35b2e43e
+
+	measure 'Freight CM %' = DIVIDE([Freight Variance], [Billable Freight])
+		formatString: 0.0%
+		displayFolder: Freight
+		lineageTag: 76d73bb9-a460-5dd2-85ba-00f7af07f921
+
+	measure 'Total CM %' = DIVIDE([Total Variance], [Total Billable])
+		formatString: 0.0%
+		displayFolder: Freight
+		lineageTag: beae7fe2-1e3e-5654-b08c-5c86cd6eaefe
+
+	measure 'Freight Shipments' = CALCULATE(DISTINCTCOUNT(fact_freight_audit[shipment_number]), fact_freight_audit[is_deleted]=FALSE())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: ea59c47f-b519-5e8b-8d43-1e4738eb421a
+
+	column shipment_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: shipment_number
+		lineageTag: b5bddaf6-0677-5230-ae9b-97a43ae53966
+
+	column company
+		dataType: string
+		summarizeBy: none
+		sourceColumn: company
+		lineageTag: 2922993b-0324-5a30-a3b0-f4724035a064
+
+	column carrier_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: carrier_number
+		lineageTag: e0ed9493-bc4d-5d66-ad1c-8956f2f41fa9
+
+	column ship_to
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ship_to
+		lineageTag: 742d38c9-2551-5c99-996f-38659a306f73
+
+	column branch_plant
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: branch_plant
+		lineageTag: fda3ff9f-4fd4-5fa1-8923-71b7befabf5a
+
+	column route_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: route_number
+		lineageTag: 2b87d074-173b-5a05-a178-edaffdb1f65c
+
+	column gl_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: gl_date
+		lineageTag: e4ddcfa0-4c82-583b-b587-0411a5b42e84
+
+	column actual_ship_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: actual_ship_date
+		lineageTag: 0eb43e48-b1cc-5809-9d8a-73adb0c93e5f
+
+	column billable_freight
+		dataType: double
+		summarizeBy: none
+		sourceColumn: billable_freight
+		lineageTag: d745d659-33cd-5e7d-a6b7-ac57c1b28197
+
+	column billable_fuel
+		dataType: double
+		summarizeBy: none
+		sourceColumn: billable_fuel
+		lineageTag: 979e42f4-4dee-54e6-b137-2898ba9ad674
+
+	column total_billable
+		dataType: double
+		summarizeBy: none
+		sourceColumn: total_billable
+		lineageTag: 7a04e264-af6f-55d2-be0a-f08fd8629ffc
+
+	column payable_freight
+		dataType: double
+		summarizeBy: none
+		sourceColumn: payable_freight
+		lineageTag: a4300562-3572-5c6d-b69d-78ec714b3f48
+
+	column payable_fuel
+		dataType: double
+		summarizeBy: none
+		sourceColumn: payable_fuel
+		lineageTag: e8004c03-5d30-51f5-8828-1a3a3d1e26e4
+
+	column total_payable
+		dataType: double
+		summarizeBy: none
+		sourceColumn: total_payable
+		lineageTag: bac3743a-f51e-5b13-82af-e1dc86616f17
+
+	column freight_variance
+		dataType: double
+		summarizeBy: none
+		sourceColumn: freight_variance
+		lineageTag: ff4828eb-e638-5396-a9cd-47917cbcd8c1
+
+	column total_variance
+		dataType: double
+		summarizeBy: none
+		sourceColumn: total_variance
+		lineageTag: d0b74925-8245-5b10-aeb1-54b4db00122a
+
+	column is_deleted
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: is_deleted
+		lineageTag: d9f899b2-bc7a-5f31-9cb0-50883c8e4a2b
+
+	partition fact_freight_audit = entity
+		mode: directLake
+		source
+			entityName: fact_freight_audit
+			schemaName: otc
+			expressionSource: DatabaseQuery
+

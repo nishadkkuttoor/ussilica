@@ -1,0 +1,86 @@
+table dim_shipment
+	lineageTag: e16a0897-ccc5-54bc-be2b-862a22102db9
+
+	column shipment_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: shipment_number
+		lineageTag: eb948da8-4333-51b4-9d1f-420b4799c92b
+
+	column company
+		dataType: string
+		summarizeBy: none
+		sourceColumn: company
+		lineageTag: 75e15615-25d7-517f-b06f-21c798fa1ea3
+
+	column carrier_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: carrier_number
+		lineageTag: 8626172f-ba31-5ad9-9b18-391427d7ddf3
+
+	column ship_to
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ship_to
+		lineageTag: 8a0f9c38-8ab1-5c25-8ba3-e3f968044678
+
+	column branch_plant
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: branch_plant
+		lineageTag: b6d9f1e4-2792-5052-a529-573468a015eb
+
+	column mode_of_transport
+		dataType: string
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+		lineageTag: 70044182-e643-5d10-a253-a921da57bb69
+
+	column freight_handling_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: freight_handling_code
+		lineageTag: 5edb1c2e-fe25-56a8-8387-f5cec45f3b3a
+
+	column route_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: route_number
+		lineageTag: 992a09a3-3517-52a6-b502-7e9ee5289f63
+
+	column actual_ship_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: actual_ship_date
+		lineageTag: a1c98a64-42a6-59b3-b6fd-2ee30153c834
+
+	column has_order_line
+		dataType: string
+		summarizeBy: none
+		sourceColumn: has_order_line
+		lineageTag: d949d842-f0ec-5163-9d2d-c8694ca83a0a
+
+	column has_freight
+		dataType: string
+		summarizeBy: none
+		sourceColumn: has_freight
+		lineageTag: 29ad550d-8862-5c89-b9ee-ee280e21a354
+
+	column is_active
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: is_active
+		lineageTag: b6464079-be17-55da-a86c-700ff8a070f2
+
+	partition dim_shipment = entity
+		mode: directLake
+		source
+			entityName: dim_shipment
+			schemaName: otc
+			expressionSource: DatabaseQuery
+

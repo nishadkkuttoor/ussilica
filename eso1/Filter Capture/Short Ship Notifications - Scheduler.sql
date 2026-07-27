@@ -1,0 +1,134 @@
+SELECT
+  RawF4211.XF4211_SDKCOO F4211_SDKCOO,
+  RawF4211.XC_F4211_SDMCU C_F4211_SDMCU,
+  RawF4211.XF4211_SDMCU F4211_SDMCU,
+  RawF4211.XF4211_SDAN8 F4211_SDAN8,
+  RawF4211.XF4211_SDDOCO F4211_SDDOCO,
+  RawF4211.XF4211_SDDCTO F4211_SDDCTO,
+  RawF4211.XF4211_SDLNID F4211_SDLNID,
+  RawF4211.XF4211_SDLITM F4211_SDLITM,
+  RawF4211.XF4211_SDLTTR F4211_SDLTTR,
+  RawF4211.XF4211_SDNXTR F4211_SDNXTR,
+  RawF4211.XF4211_SDUOM F4211_SDUOM,
+  RawF4211.XF4211_SDCNDJ F4211_SDCNDJ,
+  RawF4211.XF41002_UMCONV F41002_UMCONV,
+  126191 ID_CUSTOM_8c3d05eda49080d,
+  RawF4211.XID_CUSTOM_8c3d0a2e808da8 ID_CUSTOM_8c3d0ae9a246dc0,
+  SUM(RawF4211.ZReportColumn10001) ReportColumn1,
+  SUM(RawF4211.ZReportColumn20001) ReportColumn2,
+  SUM(RawF4211.ZReportColumn60001) ReportColumn6,
+  SUM(RawF4211.ZReportColumn70001) ReportColumn7
+FROM
+  (
+    SELECT DISTINCT
+      F4211.SDKCOO XF4211_SDKCOO,
+      F4211.SDMCU XC_F4211_SDMCU,
+      F4211.SDMCU XF4211_SDMCU,
+      F4211.SDAN8 XF4211_SDAN8,
+      F4211.SDDOCO XF4211_SDDOCO,
+      F4211.SDDCTO XF4211_SDDCTO,
+      CAST(F4211.SDLNID AS FLOAT) / 1000 XF4211_SDLNID,
+      F4211.SDLITM XF4211_SDLITM,
+      F4211.SDLTTR XF4211_SDLTTR,
+      F4211.SDNXTR XF4211_SDNXTR,
+      F4211.SDUOM XF4211_SDUOM,
+      F4211.SDCNDJ XF4211_SDCNDJ,
+      CAST(F41002.UMCONV AS FLOAT) / 10000000 XF41002_UMCONV,
+      CASE
+        WHEN (126191 IS NULL)
+        OR (126191 = 0) THEN NULL
+        WHEN (F4211.SDCNDJ IS NULL)
+        OR (F4211.SDCNDJ = 0) THEN NULL
+        ELSE (TO_DATE (N'01/01/2026', N'dd/mm/yyyy') + 190) - (
+          TO_DATE (
+            N'01/01/' || TO_CHAR (FLOOR(TO_NUMBER (F4211.SDCNDJ / 1000)) + 1900),
+            N'dd/mm/yyyy'
+          ) + F4211.SDCNDJ - FLOOR(TO_NUMBER (F4211.SDCNDJ / 1000)) * 1000 - 1
+        )
+      END XID_CUSTOM_8c3d0a2e808da8,
+      F4211.SDSOQS ZReportColumn10001,
+      F4211.SDPQOR ZReportColumn20001,
+      F4211.SDUORG ZReportColumn60001,
+      F4211.SDSOCN ZReportColumn70001,
+      F4211.SDLNID PK__F4211__SDLNID
+    FROM
+      PRODDTA.F4211 F4211
+      LEFT JOIN PRODDTA.F41002 F41002 ON (
+        (F4211.SDITM = F41002.UMITM)
+        AND (F41002.UMRUM = N'TN')
+      )
+      AND (F4211.SDUOM = F41002.UMUM)
+    WHERE
+      (
+        (
+          (
+            (
+              (
+                (
+                  (
+                    (
+                      (
+                        (
+                          (
+                            (F4211.SDMCU IN (N'         651', N'         661'))
+                          )
+                          AND ((F4211.SDLNTY IN (N'S ')))
+                        )
+                      )
+                      AND ((F4211.SDDCTO IN (N'SE')))
+                    )
+                  )
+                  AND ((F4211.SDNXTR IN (N'999')))
+                )
+              )
+              AND ((F4211.SDLTTR IN (N'980')))
+            )
+          )
+          AND ((F4211.SDCO IN (N'00640', N'00645')))
+        )
+      )
+      AND (
+        CASE
+          WHEN (126191 IS NULL)
+          OR (126191 = 0) THEN NULL
+          WHEN (F4211.SDCNDJ IS NULL)
+          OR (F4211.SDCNDJ = 0) THEN NULL
+          ELSE (TO_DATE (N'01/01/2026', N'dd/mm/yyyy') + 190) - (
+            TO_DATE (
+              N'01/01/' || TO_CHAR (FLOOR(TO_NUMBER (F4211.SDCNDJ / 1000)) + 1900),
+              N'dd/mm/yyyy'
+            ) + F4211.SDCNDJ - FLOOR(TO_NUMBER (F4211.SDCNDJ / 1000)) * 1000 - 1
+          )
+        END = 1
+      )
+  ) RawF4211
+GROUP BY
+  RawF4211.XF4211_SDKCOO,
+  RawF4211.XC_F4211_SDMCU,
+  RawF4211.XF4211_SDMCU,
+  RawF4211.XF4211_SDAN8,
+  RawF4211.XF4211_SDDOCO,
+  RawF4211.XF4211_SDDCTO,
+  RawF4211.XF4211_SDLNID,
+  RawF4211.XF4211_SDLITM,
+  RawF4211.XF4211_SDLTTR,
+  RawF4211.XF4211_SDNXTR,
+  RawF4211.XF4211_SDUOM,
+  RawF4211.XF4211_SDCNDJ,
+  RawF4211.XF41002_UMCONV,
+  RawF4211.XID_CUSTOM_8c3d0a2e808da8
+ORDER BY
+  F4211_SDMCU ASC,
+  F4211_SDDCTO ASC,
+  F4211_SDCNDJ ASC,
+  F4211_SDLNID ASC,
+  F4211_SDDOCO ASC,
+  F4211_SDLITM ASC,
+  F4211_SDLTTR ASC,
+  F4211_SDNXTR ASC,
+  F41002_UMCONV ASC,
+  F4211_SDKCOO ASC,
+  F4211_SDUOM ASC,
+  F4211_SDAN8 ASC,
+  ID_CUSTOM_8c3d05eda49080d ASC,
+  ID_CUSTOM_8c3d0ae9a246dc0 ASC

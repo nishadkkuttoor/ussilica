@@ -1,0 +1,213 @@
+table fact_sales_tax_reconciliation
+	lineageTag: 37fa0528-2e15-4a9c-a2bb-31c333dcc5fd
+
+	measure 'Taxable Amount' = SUM(fact_sales_tax_reconciliation[taxable_amount])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Tax
+		lineageTag: 98337150-d3b0-45a6-b724-6b0c26f02bfb
+
+	measure 'Non-Taxable Amount' = SUM(fact_sales_tax_reconciliation[non_taxable_amount])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Tax
+		lineageTag: b18852d9-b5c5-4829-9a31-25743a2ed204
+
+	measure 'Tax Amount' = SUM(fact_sales_tax_reconciliation[tax_amount])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Tax
+		lineageTag: ab280b76-e99d-4f74-82d3-2e0083476963
+
+	measure 'Gross Amount' = SUM(fact_sales_tax_reconciliation[gross_amount])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Tax
+		lineageTag: 5198b168-fafa-4514-91a3-610ad4b78159
+
+	measure 'Effective Tax Rate' = DIVIDE([Tax Amount], [Taxable Amount])
+		formatString: 0.0%
+		displayFolder: Tax
+		lineageTag: f6514ae8-6119-417c-986d-e4b0eb1f9f9e
+
+	measure 'Invoice Count' = DISTINCTCOUNT(fact_sales_tax_reconciliation[avalara_code])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 7ef4b0e5-8f9f-49c3-a2b2-ed2ce6ff4998
+
+	measure 'Tax Lines' = COUNTROWS(fact_sales_tax_reconciliation)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 6b979a6c-da11-4dee-a5b2-b12bc0a4388f
+
+	/// Taxable / Non-Taxable flag. PHYSICAL column materialised by the fact notebook from the
+	/// summed tax_amount — Direct Lake does not support DAX calculated columns.
+	column tax_status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tax_status
+		lineageTag: 2cc04f31-bb2d-489e-8c1b-16d896812537
+
+	column sales_tax_line_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: sales_tax_line_key
+		lineageTag: eb0c8428-d1ab-4ee7-b56e-213520a04906
+
+	column document_scope_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: document_scope_key
+		lineageTag: bf14d83e-4786-4811-9fe1-28c8801ccc52
+
+	column document_company
+		dataType: string
+		summarizeBy: none
+		sourceColumn: document_company
+		lineageTag: 4e70cca3-13dc-423e-99bf-adcd68bdd3aa
+
+	column invoice_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: invoice_number
+		lineageTag: 59b16177-73ac-4077-abcd-05f02f1b8d70
+
+	column document_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: document_type
+		lineageTag: c1f6e285-9a6d-4ccb-8436-f88bb8f02680
+
+	column order_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: order_number
+		lineageTag: ffb8562e-ad9c-45e4-b10b-74e078a30192
+
+	column order_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: order_type
+		lineageTag: cb705f89-bf3a-4249-b0d8-df5dd73dadce
+
+	column plant
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: plant
+		lineageTag: 4aaa4944-60c1-4486-877b-d740eddc3ad1
+
+	column ship_to
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ship_to
+		lineageTag: 000a3562-a795-428b-8a75-1a68ee9c22f7
+
+	column sold_to
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: sold_to
+		lineageTag: 9c6c15ce-8c9f-4a36-8325-1acf25842bae
+
+	column parent_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: parent_number
+		lineageTag: a6859a6f-de86-4dea-905c-a18650cd732f
+
+	column tax_explanation_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tax_explanation_code
+		lineageTag: 4ec09292-b9c2-4b41-b243-c652ec0de165
+
+	column tax_area
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tax_area
+		lineageTag: 150188b7-5283-4f57-8745-40563103cd6b
+
+	column avalara_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: avalara_code
+		lineageTag: 92974293-7a52-469c-9ec2-79e2cbd5b40b
+
+	column business_stream
+		dataType: string
+		summarizeBy: none
+		sourceColumn: business_stream
+		lineageTag: 33b9e02e-a684-42d5-8326-a0a8c77c6623
+
+	column sic_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sic_code
+		lineageTag: e56ca32b-6952-4ffe-94e1-62bec700d3e2
+
+	column jurisdiction
+		dataType: string
+		summarizeBy: none
+		sourceColumn: jurisdiction
+		lineageTag: 505c3aed-82d5-497a-9fcf-6c8062123fa2
+
+	column county
+		dataType: string
+		summarizeBy: none
+		sourceColumn: county
+		lineageTag: 0137808f-db01-4ac4-8ca5-e77135175b99
+
+	column gl_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: gl_date
+		lineageTag: bc9f76b4-b32b-49f1-977d-c84887df4fe7
+
+	column service_tax_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: service_tax_date
+		lineageTag: 78cb1fc6-7ee4-4d72-9333-3144902b4c24
+
+	column taxable_amount
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: taxable_amount
+		lineageTag: 029172a1-5cae-43db-9473-241fae9c8f6b
+
+	column non_taxable_amount
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: non_taxable_amount
+		lineageTag: ea19aea7-bcdc-4cc9-956e-6b5fee595970
+
+	column tax_amount
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: tax_amount
+		lineageTag: 5274bac8-1962-4826-90c7-81c0e55624cf
+
+	column gross_amount
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: gross_amount
+		lineageTag: ebd95a5c-b40b-46bd-bbff-6ec7aed54d53
+
+	column shift_factor_applied
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: shift_factor_applied
+		lineageTag: f6ee9ae4-5952-4053-8499-5c00604bc2ac
+
+	partition fact_sales_tax_reconciliation = entity
+		mode: directLake
+		source
+			entityName: fact_sales_tax_reconciliation
+			schemaName: rpt
+			expressionSource: DatabaseQuery

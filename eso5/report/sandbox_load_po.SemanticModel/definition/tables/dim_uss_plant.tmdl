@@ -1,0 +1,34 @@
+table dim_uss_plant
+	lineageTag: 3e5542d9-139c-065c-366c-935ef1e35b50
+
+	column vendor_number
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: vendor_number
+		lineageTag: 1fc9c9d3-ad7b-813c-8fe7-63f9ea120f0a
+
+	column uss_plant_sand
+		dataType: string
+		summarizeBy: none
+		sourceColumn: uss_plant_sand
+		lineageTag: 0f85a8b7-2e8c-9c5a-cffc-767e00134b27
+
+	column shipped_from
+		dataType: string
+		summarizeBy: none
+		sourceColumn: shipped_from
+		lineageTag: 70decf90-6334-5716-bb44-812bce5f10c6
+
+	column lofa_mcu
+		dataType: string
+		summarizeBy: none
+		sourceColumn: lofa_mcu
+		lineageTag: 4f1850a9-ce6a-8ff0-be92-5e1368cd1c08
+
+	partition dim_uss_plant = entity
+		mode: directLake
+		source
+			entityName: dim_uss_plant
+			schemaName: rpt
+			expressionSource: DatabaseQuery

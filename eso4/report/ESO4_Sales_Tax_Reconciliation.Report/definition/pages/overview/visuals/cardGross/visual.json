@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "cardGross",
+  "position": {
+    "x": 760,
+    "y": 96,
+    "z": 0,
+    "width": 240,
+    "height": 120,
+    "tabOrder": 6
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_tax_reconciliation"
+                    }
+                  },
+                  "Property": "Gross Amount"
+                }
+              },
+              "queryRef": "fact_sales_tax_reconciliation.Gross Amount",
+              "nativeQueryRef": "Gross Amount"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

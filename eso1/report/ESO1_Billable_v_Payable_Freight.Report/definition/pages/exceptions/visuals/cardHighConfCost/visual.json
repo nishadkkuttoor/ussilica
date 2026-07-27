@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.0.0/schema.json",
+  "name": "cardHighConfCost",
+  "position": {
+    "x": 272,
+    "y": 96,
+    "z": 0,
+    "width": 240,
+    "height": 120,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "Freight Shipments"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.Freight Shipments",
+              "nativeQueryRef": "Freight Shipments"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

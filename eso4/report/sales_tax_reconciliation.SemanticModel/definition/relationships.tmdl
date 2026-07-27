@@ -1,0 +1,23 @@
+relationship b375d8bc-303c-4622-bf08-46612c2f926b
+	fromColumn: fact_sales_tax_reconciliation.plant
+	toColumn: dim_plant.plant_code
+
+relationship 13ddc96f-9a9f-4cf5-9fb7-df75a4df8329
+	fromColumn: fact_sales_tax_reconciliation.ship_to
+	toColumn: dim_address_ship_to.address_number
+
+relationship a3f71410-a3ea-4482-a747-3d8b1268ca44
+	fromColumn: fact_sales_tax_reconciliation.sold_to
+	toColumn: dim_address_sold_to.address_number
+
+relationship 10a46484-ef0c-41fb-b4fb-e7497d826361
+	fromColumn: fact_sales_tax_reconciliation.parent_number
+	toColumn: dim_address_parent.address_number
+
+relationship 2e7c9b04-6a1d-4f38-9c52-8b0f3d7a1e65
+	fromColumn: fact_sales_tax_reconciliation.sic_code
+	toColumn: dim_sic.sic_code
+
+relationship 4a1f6d83-0c72-4e59-b6a4-9d3e5c8b2f70
+	fromColumn: fact_sales_tax_reconciliation.jurisdiction
+	toColumn: dim_state.state_code

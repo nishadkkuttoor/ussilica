@@ -1,0 +1,88 @@
+table dim_address_loading_facility
+	lineageTag: 042a5593-2e87-d515-26b1-ee95b398812b
+
+	column address_number
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: address_number
+		lineageTag: 8a408fca-84e3-6b40-621c-40fc027c5e1d
+
+	column name_alpha
+		dataType: string
+		summarizeBy: none
+		sourceColumn: name_alpha
+		lineageTag: e4460e55-e44a-8da5-4658-76135731e8e5
+
+	column address_type_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_type_01
+		lineageTag: b14e268c-cea9-0a16-be52-b99aa16edb6d
+
+	column standard_industry_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+		lineageTag: 1ddad779-0456-bb3f-e9dc-4ef125a22e43
+
+	column city
+		dataType: string
+		summarizeBy: none
+		sourceColumn: city
+		lineageTag: 445aff24-c1b1-5710-6103-84bee8358f89
+
+	column state
+		dataType: string
+		summarizeBy: none
+		sourceColumn: state
+		lineageTag: 4ae1a6e8-44a2-c0d5-b075-c17dce1a0ab1
+
+	column country
+		dataType: string
+		summarizeBy: none
+		sourceColumn: country
+		lineageTag: 4050ceec-f411-b76b-bba6-62f27c2f7930
+
+	column zip_code_postal
+		dataType: string
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+		lineageTag: a2d7085a-1aaa-ce8e-b38a-20f49ab646e6
+
+	column address_line_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_01
+		lineageTag: 0320055a-57b5-a267-a2b0-f60427363df2
+
+	column address_line_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_02
+		lineageTag: 29d5c225-cf23-750a-addf-298ad92cff7d
+
+	column address_line_03
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_03
+		lineageTag: 37d1ced7-e12e-90a7-00a9-c960574e6864
+
+	column address_line_04
+		dataType: string
+		summarizeBy: none
+		sourceColumn: address_line_04
+		lineageTag: 9554c790-eb5a-2642-e58b-2f76cd7d8d9a
+
+	column has_postal_address
+		dataType: string
+		summarizeBy: none
+		sourceColumn: has_postal_address
+		lineageTag: 092e4af3-7272-30b0-475d-0f7acc877896
+
+	partition dim_address_loading_facility = entity
+		mode: directLake
+		source
+			entityName: dim_address_loading_port
+			schemaName: rpt
+			expressionSource: DatabaseQuery

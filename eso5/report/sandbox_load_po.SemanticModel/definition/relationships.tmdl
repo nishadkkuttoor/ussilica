@@ -1,0 +1,23 @@
+relationship f3644b54-c4c7-bc7d-442b-0f0db5faa708
+	fromColumn: fact_extended_sales_order_5.sold_to
+	toColumn: dim_address_sold_to.address_number
+
+relationship 18c383e1-6f09-d731-2e01-05870c4408ba
+	fromColumn: fact_extended_sales_order_5.ship_to
+	toColumn: dim_address_ship_to.address_number
+
+relationship bea26321-70e2-8505-9f76-0e8fd5225b88
+	fromColumn: fact_extended_sales_order_5.carrier
+	toColumn: dim_address_carrier.address_number
+
+relationship 7abddbb0-1fdd-1204-21c1-2a48d91d9f5c
+	fromColumn: fact_extended_sales_order_5.loading_facility
+	toColumn: dim_address_loading_facility.address_number
+
+relationship 50db990b-a2a4-5d75-d8eb-6e037d01b9b5
+	fromColumn: fact_extended_sales_order_5.loading_facility
+	toColumn: dim_uss_plant.vendor_number
+
+relationship c9a4e81f-3b07-4d62-95ea-7f10d8c6b234
+	fromColumn: fact_extended_sales_order_5.district
+	toColumn: dim_plant.plant_code

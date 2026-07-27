@@ -1,0 +1,240 @@
+table fact_sales_order_line
+	lineageTag: 7aca2463-bcf2-504b-8d82-cf5e44c1b257
+
+	measure 'Total Tons' = CALCULATE(SUM(fact_sales_order_line[units_transaction_qty_tons]), fact_sales_order_line[is_deleted]=FALSE())
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: 63a685bd-df2d-58ae-9b6c-58e2a5bd563e
+
+	measure 'Quantity Shipped Tons' = CALCULATE(SUM(fact_sales_order_line[quantity_shipped_tons]), fact_sales_order_line[is_deleted]=FALSE())
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: 50ea0076-ca1e-5ce9-bbbc-649f6c76234e
+
+	measure 'Open Tons' = CALCULATE(SUM(fact_sales_order_line[units_open_tons]), fact_sales_order_line[is_deleted]=FALSE())
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: d4d5351a-32c0-53c5-92cb-512c6e8e216d
+
+	measure 'Revenue $' = CALCULATE(SUM(fact_sales_order_line[revenue_dollars]), fact_sales_order_line[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Margin
+		lineageTag: 903116d2-e855-553d-a658-ea5ebdef088d
+
+	measure 'Cost $' = CALCULATE(SUMX(fact_sales_order_line, fact_sales_order_line[item_unit_cost] * fact_sales_order_line[units_transaction_qty_tons]), fact_sales_order_line[is_deleted]=FALSE())
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Margin
+		lineageTag: 549f97b1-866e-5c8a-ba39-5aece85b851e
+
+	measure 'Margin $' = [Revenue $] - [Cost $]
+		formatString: \$#,0.00;-\$#,0.00
+		displayFolder: Margin
+		lineageTag: 25a896cd-50e6-5add-95d0-f097183e5725
+
+	measure 'Margin %' = DIVIDE([Margin $], [Revenue $])
+		formatString: 0.0%
+		displayFolder: Margin
+		lineageTag: 38150c39-197c-5cfa-849b-a86af37e171c
+
+	measure 'Order Lines' = CALCULATE(DISTINCTCOUNT(fact_sales_order_line[order_line_key]), fact_sales_order_line[is_deleted]=FALSE())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 4fbc02e5-336c-5f3f-aa64-4fe1f5898e4e
+
+	measure 'Lines Missing Conversion' = CALCULATE([Order Lines], fact_sales_order_line[missing_conversion_flag]="Y")
+		formatString: #,0
+		displayFolder: Quality
+		lineageTag: 7da9d008-7381-574f-bff4-1a7caffee131
+
+	measure '% High-Confidence Cost' = DIVIDE(CALCULATE([Order Lines], fact_sales_order_line[cost_confidence]="HIGH"), [Order Lines])
+		formatString: 0.0%
+		displayFolder: Quality
+		lineageTag: 89cb85dd-2cc2-539f-b0f0-1bdbcc8ca906
+
+	column order_line_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: order_line_key
+		lineageTag: 6b07dc82-5c7b-57f9-aa49-f9d6b5a75bcd
+
+	column order_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: order_number
+		lineageTag: a2cea993-fab0-550c-8744-1e4ea3f2e5bb
+
+	column line_number
+		dataType: double
+		summarizeBy: none
+		sourceColumn: line_number
+		lineageTag: 696d864b-1a51-553d-a628-16aed3b28795
+
+	column shipment_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: shipment_number
+		lineageTag: a9664f39-2974-5386-a8c3-2c511e25b30e
+
+	column branch_plant
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: branch_plant
+		lineageTag: 5d565ed7-e387-57ef-bf07-4ab21809319c
+
+	column bill_to
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: bill_to
+		lineageTag: 261b3950-d229-525e-ab68-196b93cecaaf
+
+	column ship_to
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ship_to
+		lineageTag: b3d8e445-a0f4-5fda-855f-bacc11f956bc
+
+	column carrier_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: carrier_number
+		lineageTag: 9d9d546d-b435-56f5-9877-95b26ce00273
+
+	column loading_port
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: loading_port
+		lineageTag: 2b0949b2-d860-5478-8e42-8f60ab1efb33
+
+	column ocean_carrier
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ocean_carrier
+		lineageTag: 9053e39d-1a7b-57e2-967d-ce4bad1f99a4
+
+	column port_of_destination
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: port_of_destination
+		lineageTag: 1aa60550-81c1-5b49-84a5-34df77a586ff
+
+	column second_item_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: second_item_number
+		lineageTag: 19e1ad37-114d-5e0d-a8e4-6c00d7005cda
+
+	column item_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: item_name
+		lineageTag: 603f000f-b0a4-5be9-98a2-f52e18d2f90a
+
+	column uom
+		dataType: string
+		summarizeBy: none
+		sourceColumn: uom
+		lineageTag: 03a54b97-067c-527b-90e3-39c4b78971f8
+
+	column units_transaction_qty_unconv
+		dataType: double
+		summarizeBy: none
+		sourceColumn: units_transaction_qty_unconv
+		lineageTag: a5ea834c-0a79-54be-bfb9-0ac1e650d829
+
+	column units_transaction_qty_tons
+		dataType: double
+		summarizeBy: none
+		sourceColumn: units_transaction_qty_tons
+		lineageTag: 78bfe480-468c-5185-8d96-36220e3d58f5
+
+	column quantity_shipped_tons
+		dataType: double
+		summarizeBy: none
+		sourceColumn: quantity_shipped_tons
+		lineageTag: 96f01a80-cf89-5599-b614-03975779e238
+
+	column units_open_tons
+		dataType: double
+		summarizeBy: none
+		sourceColumn: units_open_tons
+		lineageTag: 4604c626-ac1e-5126-a961-d437b6a8aed5
+
+	column revenue_dollars
+		dataType: double
+		summarizeBy: none
+		sourceColumn: revenue_dollars
+		lineageTag: 81c1f64a-1487-5c10-8853-63d33d17c135
+
+	column price_per_unit
+		dataType: double
+		summarizeBy: none
+		sourceColumn: price_per_unit
+		lineageTag: 7a13a253-3251-5fe1-8230-b630d3d34fa9
+
+	column item_unit_cost
+		dataType: double
+		summarizeBy: none
+		sourceColumn: item_unit_cost
+		lineageTag: 21affb83-dc28-5b16-a26e-a6ce078dc0c1
+
+	column major_prod_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: major_prod_code
+		lineageTag: eea9ee75-6e5d-539d-b05a-67fd822bfb8b
+
+	column minor_prod_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: minor_prod_code
+		lineageTag: f216cb4c-e9a3-5a86-a038-559caeb8c9c6
+
+	column status
+		dataType: string
+		summarizeBy: none
+		sourceColumn: status
+		sortByColumn: status_sort
+		lineageTag: 01030766-792a-56ba-b129-fbd48dd38310
+
+	column status_sort
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: status_sort
+		lineageTag: dc754fe7-05d9-5f10-a5b7-8e77e8629679
+
+	column missing_conversion_flag
+		dataType: string
+		summarizeBy: none
+		sourceColumn: missing_conversion_flag
+		lineageTag: d3574889-6e42-5bb5-a5ec-67671c9aee0c
+
+	column cost_confidence
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cost_confidence
+		lineageTag: 067364fd-25e3-524b-a3ef-d91798aee5e1
+
+	column is_deleted
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: is_deleted
+		lineageTag: 041d6610-046d-5edb-9d90-0789407f3875
+
+	partition fact_sales_order_line = entity
+		mode: directLake
+		source
+			entityName: fact_sales_order_line
+			schemaName: otc
+			expressionSource: DatabaseQuery
+

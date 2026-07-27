@@ -1,0 +1,1550 @@
+SELECT F4211.SDADDJ          F4211_SDADDJ,
+       F0101.ABALPH          F0101_ABALPH,
+       F4211.SDMCU           F4211_SDMCU,
+       F4211.SDLITM          F4211_SDLITM,
+       F4211.SDVR01          F4211_SDVR01,
+       F4211.SDURAB          F4211_SDURAB,
+       F4211.SDDOC           F4211_SDDOC,
+       F4211.SDPSIG          F4211_SDPSIG,
+       F4211.SDCNID          F4211_SDCNID,
+       CASE
+         WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                         OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                       OR ( 2 IS NULL ) )
+                     OR ( 2 <= 0 ) )
+                   OR ( 2 <= 0 ) )
+                 OR ( 2 IS NULL ) )
+               OR ( F4211.SDADDJ IS NULL ) THEN NULL
+         ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+       END                   ID_CUSTOM_872588d2f28149,
+       CASE
+         WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                         OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                       OR ( 2 IS NULL ) )
+                     OR ( 2 <= 0 ) )
+                   OR ( 2 <= 0 ) )
+                 OR ( 2 IS NULL ) )
+               OR ( F0010.CCARFJ IS NULL ) THEN NULL
+         ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+       END                   ID_CUSTOM_87266e39f72a6f6,
+       ( CASE
+           WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                           OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                         OR ( 2 IS NULL ) )
+                       OR ( 2 <= 0 ) )
+                     OR ( 2 <= 0 ) )
+                   OR ( 2 IS NULL ) )
+                 OR ( F4211.SDADDJ IS NULL ) THEN NULL
+           ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+         END - CASE
+                 WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                                 OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                               OR ( 2 IS NULL ) )
+                             OR ( 2 <= 0 ) )
+                           OR ( 2 <= 0 ) )
+                         OR ( 2 IS NULL ) )
+                       OR ( F0010.CCARFJ IS NULL ) THEN NULL
+                 ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+               END )         ID_CUSTOM_87269ed789377bd,
+       CASE
+         WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                         OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                       OR ( 4 IS NULL ) )
+                     OR ( 4 <= 0 ) )
+                   OR ( 3 <= 0 ) )
+                 OR ( 3 IS NULL ) )
+               OR ( F4211.SDADDJ IS NULL ) THEN NULL
+         ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+       END                   ID_CUSTOM_8725a08d205032e,
+       CASE
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'000' AND N'031' THEN 1
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'032' AND N'059' THEN 2
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'060' AND N'090' THEN 3
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'091' AND N'120' THEN 4
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'121' AND N'151' THEN 5
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'152' AND N'181' THEN 6
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'182' AND N'212' THEN 7
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'213' AND N'243' THEN 8
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'244' AND N'273' THEN 9
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'274' AND N'304' THEN 10
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'305' AND N'334' THEN 11
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'335' AND N'365' THEN 12
+       END                   ID_CUSTOM_8725ad7687793ec,
+       F0010.CCPNC           F0010_CCPNC,
+       ( F0010.CCPNC - CASE
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'000' AND N'031' THEN 1
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'032' AND N'059' THEN 2
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'060' AND N'090' THEN 3
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'091' AND N'120' THEN 4
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'121' AND N'151' THEN 5
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'152' AND N'181' THEN 6
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'182' AND N'212' THEN 7
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'213' AND N'243' THEN 8
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'244' AND N'273' THEN 9
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'274' AND N'304' THEN 10
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'305' AND N'334' THEN 11
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'335' AND N'365' THEN 12
+                       END ) ID_CUSTOM_87262ff93e50f8e,
+       F0010.CCARFJ          F0010_CCARFJ,
+       SUM(F4211.SDAEXP)     ReportColumn1,
+       SUM(F4211.SDUORG)     ReportColumn3,
+       SUM(F4211.SDPQOR)     ReportColumn4,
+       F0010.CCCRCD          DomesticCurrency
+FROM   PRODDTA.F4211 F4211
+       INNER JOIN (SELECT F0101.ABALPH,
+                          F0101.ABAN8
+                   FROM   PRODDTA.F0101 F0101
+                   WHERE  ( ( F0101.ABAT1 BETWEEN N'A  ' AND N'P  ' )
+                             OR ( F0101.ABAT1 BETWEEN N'R  ' AND N'ZZZ' ) )) F0101
+         ON F0101.ABAN8 = F4211.SDSHAN
+       INNER JOIN PRODDTA.F0010 F0010
+         ON F0010.CCCO = F4211.SDKCOO
+WHERE  ( ( (( (( (( F4211.SDDCTO IN ( N'SO' ) ))
+                 AND (( NOT ( F4211.SDLITM IN ( N'MISC BILLING             ' ) ) )) ))
+              AND (( F4211.SDPA8 IN ( 10065562 ) )) ))
+           AND ( ( CASE
+                     WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                                     OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                                   OR ( 2 IS NULL ) )
+                                 OR ( 2 <= 0 ) )
+                               OR ( 2 <= 0 ) )
+                             OR ( 2 IS NULL ) )
+                           OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                     ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+                   END - CASE
+                           WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                                           OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                                         OR ( 2 IS NULL ) )
+                                       OR ( 2 <= 0 ) )
+                                     OR ( 2 <= 0 ) )
+                                   OR ( 2 IS NULL ) )
+                                 OR ( F0010.CCARFJ IS NULL ) THEN NULL
+                           ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+                         END ) = 0 ) )
+         AND ( ( F0010.CCPNC - CASE
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'000' AND N'031' THEN 1
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'032' AND N'059' THEN 2
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'060' AND N'090' THEN 3
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'091' AND N'120' THEN 4
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'121' AND N'151' THEN 5
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'152' AND N'181' THEN 6
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'182' AND N'212' THEN 7
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'213' AND N'243' THEN 8
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'244' AND N'273' THEN 9
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'274' AND N'304' THEN 10
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'305' AND N'334' THEN 11
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'335' AND N'365' THEN 12
+                               END ) = 0 ) )
+GROUP  BY F4211.SDADDJ,
+          F0101.ABALPH,
+          F4211.SDMCU,
+          F4211.SDLITM,
+          F4211.SDVR01,
+          F4211.SDURAB,
+          F4211.SDDOC,
+          F4211.SDPSIG,
+          F4211.SDCNID,
+          CASE
+            WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                            OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                          OR ( 2 IS NULL ) )
+                        OR ( 2 <= 0 ) )
+                      OR ( 2 <= 0 ) )
+                    OR ( 2 IS NULL ) )
+                  OR ( F4211.SDADDJ IS NULL ) THEN NULL
+            ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+          END,
+          CASE
+            WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                            OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                          OR ( 2 IS NULL ) )
+                        OR ( 2 <= 0 ) )
+                      OR ( 2 <= 0 ) )
+                    OR ( 2 IS NULL ) )
+                  OR ( F0010.CCARFJ IS NULL ) THEN NULL
+            ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+          END,
+          ( CASE
+              WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                              OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                            OR ( 2 IS NULL ) )
+                          OR ( 2 <= 0 ) )
+                        OR ( 2 <= 0 ) )
+                      OR ( 2 IS NULL ) )
+                    OR ( F4211.SDADDJ IS NULL ) THEN NULL
+              ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+            END - CASE
+                    WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                                    OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                                  OR ( 2 IS NULL ) )
+                                OR ( 2 <= 0 ) )
+                              OR ( 2 <= 0 ) )
+                            OR ( 2 IS NULL ) )
+                          OR ( F0010.CCARFJ IS NULL ) THEN NULL
+                    ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+                  END ),
+          CASE
+            WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                            OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                          OR ( 4 IS NULL ) )
+                        OR ( 4 <= 0 ) )
+                      OR ( 3 <= 0 ) )
+                    OR ( 3 IS NULL ) )
+                  OR ( F4211.SDADDJ IS NULL ) THEN NULL
+            ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+          END,
+          CASE
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'000' AND N'031' THEN 1
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'032' AND N'059' THEN 2
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'060' AND N'090' THEN 3
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'091' AND N'120' THEN 4
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'121' AND N'151' THEN 5
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'152' AND N'181' THEN 6
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'182' AND N'212' THEN 7
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'213' AND N'243' THEN 8
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'244' AND N'273' THEN 9
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'274' AND N'304' THEN 10
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'305' AND N'334' THEN 11
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'335' AND N'365' THEN 12
+          END,
+          F0010.CCPNC,
+          ( F0010.CCPNC - CASE
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'000' AND N'031' THEN 1
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'032' AND N'059' THEN 2
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'060' AND N'090' THEN 3
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'091' AND N'120' THEN 4
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'121' AND N'151' THEN 5
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'152' AND N'181' THEN 6
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'182' AND N'212' THEN 7
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'213' AND N'243' THEN 8
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'244' AND N'273' THEN 9
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'274' AND N'304' THEN 10
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'305' AND N'334' THEN 11
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'335' AND N'365' THEN 12
+                          END ),
+          F0010.CCARFJ,
+          F0010.CCCRCD
+UNION ALL
+SELECT F4211.SDADDJ          F4211_SDADDJ,
+       F0101.ABALPH          F0101_ABALPH,
+       F4211.SDMCU           F4211_SDMCU,
+       F4211.SDLITM          F4211_SDLITM,
+       F4211.SDVR01          F4211_SDVR01,
+       F4211.SDURAB          F4211_SDURAB,
+       F4211.SDDOC           F4211_SDDOC,
+       F4211.SDPSIG          F4211_SDPSIG,
+       F4211.SDCNID          F4211_SDCNID,
+       CASE
+         WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                         OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                       OR ( 2 IS NULL ) )
+                     OR ( 2 <= 0 ) )
+                   OR ( 2 <= 0 ) )
+                 OR ( 2 IS NULL ) )
+               OR ( F4211.SDADDJ IS NULL ) THEN NULL
+         ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+       END                   ID_CUSTOM_872588d2f28149,
+       CASE
+         WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                         OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                       OR ( 2 IS NULL ) )
+                     OR ( 2 <= 0 ) )
+                   OR ( 2 <= 0 ) )
+                 OR ( 2 IS NULL ) )
+               OR ( F0010.CCARFJ IS NULL ) THEN NULL
+         ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+       END                   ID_CUSTOM_87266e39f72a6f6,
+       ( CASE
+           WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                           OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                         OR ( 2 IS NULL ) )
+                       OR ( 2 <= 0 ) )
+                     OR ( 2 <= 0 ) )
+                   OR ( 2 IS NULL ) )
+                 OR ( F4211.SDADDJ IS NULL ) THEN NULL
+           ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+         END - CASE
+                 WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                                 OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                               OR ( 2 IS NULL ) )
+                             OR ( 2 <= 0 ) )
+                           OR ( 2 <= 0 ) )
+                         OR ( 2 IS NULL ) )
+                       OR ( F0010.CCARFJ IS NULL ) THEN NULL
+                 ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+               END )         ID_CUSTOM_87269ed789377bd,
+       CASE
+         WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                         OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                       OR ( 4 IS NULL ) )
+                     OR ( 4 <= 0 ) )
+                   OR ( 3 <= 0 ) )
+                 OR ( 3 IS NULL ) )
+               OR ( F4211.SDADDJ IS NULL ) THEN NULL
+         ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+       END                   ID_CUSTOM_8725a08d205032e,
+       CASE
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'000' AND N'031' THEN 1
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'032' AND N'059' THEN 2
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'060' AND N'090' THEN 3
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'091' AND N'120' THEN 4
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'121' AND N'151' THEN 5
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'152' AND N'181' THEN 6
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'182' AND N'212' THEN 7
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'213' AND N'243' THEN 8
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'244' AND N'273' THEN 9
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'274' AND N'304' THEN 10
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'305' AND N'334' THEN 11
+         WHEN CASE
+                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                              OR ( 4 IS NULL ) )
+                            OR ( 4 <= 0 ) )
+                          OR ( 3 <= 0 ) )
+                        OR ( 3 IS NULL ) )
+                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+              END BETWEEN N'335' AND N'365' THEN 12
+       END                   ID_CUSTOM_8725ad7687793ec,
+       F0010.CCPNC           F0010_CCPNC,
+       ( F0010.CCPNC - CASE
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'000' AND N'031' THEN 1
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'032' AND N'059' THEN 2
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'060' AND N'090' THEN 3
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'091' AND N'120' THEN 4
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'121' AND N'151' THEN 5
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'152' AND N'181' THEN 6
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'182' AND N'212' THEN 7
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'213' AND N'243' THEN 8
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'244' AND N'273' THEN 9
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'274' AND N'304' THEN 10
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'305' AND N'334' THEN 11
+                         WHEN CASE
+                                WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                              OR ( 4 IS NULL ) )
+                                            OR ( 4 <= 0 ) )
+                                          OR ( 3 <= 0 ) )
+                                        OR ( 3 IS NULL ) )
+                                      OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                              END BETWEEN N'335' AND N'365' THEN 12
+                       END ) ID_CUSTOM_87262ff93e50f8e,
+       F0010.CCARFJ          F0010_CCARFJ,
+       SUM(F4211.SDAEXP)     ReportColumn1,
+       SUM(F4211.SDUORG)     ReportColumn3,
+       SUM(F4211.SDPQOR)     ReportColumn4,
+       F0010.CCCRCD          DomesticCurrency
+FROM   PRODDTA.F42119 F4211
+       INNER JOIN (SELECT F0101.ABALPH,
+                          F0101.ABAN8
+                   FROM   PRODDTA.F0101 F0101
+                   WHERE  ( ( F0101.ABAT1 BETWEEN N'A  ' AND N'P  ' )
+                             OR ( F0101.ABAT1 BETWEEN N'R  ' AND N'ZZZ' ) )) F0101
+         ON F0101.ABAN8 = F4211.SDSHAN
+       INNER JOIN PRODDTA.F0010 F0010
+         ON F0010.CCCO = F4211.SDKCOO
+WHERE  ( ( (( (( (( F4211.SDDCTO IN ( N'SO' ) ))
+                 AND (( NOT ( F4211.SDLITM IN ( N'MISC BILLING             ' ) ) )) ))
+              AND (( F4211.SDPA8 IN ( 10065562 ) )) ))
+           AND ( ( CASE
+                     WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                                     OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                                   OR ( 2 IS NULL ) )
+                                 OR ( 2 <= 0 ) )
+                               OR ( 2 <= 0 ) )
+                             OR ( 2 IS NULL ) )
+                           OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                     ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+                   END - CASE
+                           WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                                           OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                                         OR ( 2 IS NULL ) )
+                                       OR ( 2 <= 0 ) )
+                                     OR ( 2 <= 0 ) )
+                                   OR ( 2 IS NULL ) )
+                                 OR ( F0010.CCARFJ IS NULL ) THEN NULL
+                           ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+                         END ) = 0 ) )
+         AND ( ( F0010.CCPNC - CASE
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'000' AND N'031' THEN 1
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'032' AND N'059' THEN 2
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'060' AND N'090' THEN 3
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'091' AND N'120' THEN 4
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'121' AND N'151' THEN 5
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'152' AND N'181' THEN 6
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'182' AND N'212' THEN 7
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'213' AND N'243' THEN 8
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'244' AND N'273' THEN 9
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'274' AND N'304' THEN 10
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'305' AND N'334' THEN 11
+                                 WHEN CASE
+                                        WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                        OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                      OR ( 4 IS NULL ) )
+                                                    OR ( 4 <= 0 ) )
+                                                  OR ( 3 <= 0 ) )
+                                                OR ( 3 IS NULL ) )
+                                              OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                        ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                      END BETWEEN N'335' AND N'365' THEN 12
+                               END ) = 0 ) )
+GROUP  BY F4211.SDADDJ,
+          F0101.ABALPH,
+          F4211.SDMCU,
+          F4211.SDLITM,
+          F4211.SDVR01,
+          F4211.SDURAB,
+          F4211.SDDOC,
+          F4211.SDPSIG,
+          F4211.SDCNID,
+          CASE
+            WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                            OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                          OR ( 2 IS NULL ) )
+                        OR ( 2 <= 0 ) )
+                      OR ( 2 <= 0 ) )
+                    OR ( 2 IS NULL ) )
+                  OR ( F4211.SDADDJ IS NULL ) THEN NULL
+            ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+          END,
+          CASE
+            WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                            OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                          OR ( 2 IS NULL ) )
+                        OR ( 2 <= 0 ) )
+                      OR ( 2 <= 0 ) )
+                    OR ( 2 IS NULL ) )
+                  OR ( F0010.CCARFJ IS NULL ) THEN NULL
+            ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+          END,
+          ( CASE
+              WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 )
+                              OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 2 + 2 - 1 ) )
+                            OR ( 2 IS NULL ) )
+                          OR ( 2 <= 0 ) )
+                        OR ( 2 <= 0 ) )
+                      OR ( 2 IS NULL ) )
+                    OR ( F4211.SDADDJ IS NULL ) THEN NULL
+              ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 2, 2)
+            END - CASE
+                    WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 )
+                                    OR ( LENGTH(TO_CHAR(F0010.CCARFJ)) < 2 + 2 - 1 ) )
+                                  OR ( 2 IS NULL ) )
+                                OR ( 2 <= 0 ) )
+                              OR ( 2 <= 0 ) )
+                            OR ( 2 IS NULL ) )
+                          OR ( F0010.CCARFJ IS NULL ) THEN NULL
+                    ELSE SUBSTR(TO_NCHAR(F0010.CCARFJ), 2, 2)
+                  END ),
+          CASE
+            WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                            OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                          OR ( 4 IS NULL ) )
+                        OR ( 4 <= 0 ) )
+                      OR ( 3 <= 0 ) )
+                    OR ( 3 IS NULL ) )
+                  OR ( F4211.SDADDJ IS NULL ) THEN NULL
+            ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+          END,
+          CASE
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'000' AND N'031' THEN 1
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'032' AND N'059' THEN 2
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'060' AND N'090' THEN 3
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'091' AND N'120' THEN 4
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'121' AND N'151' THEN 5
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'152' AND N'181' THEN 6
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'182' AND N'212' THEN 7
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'213' AND N'243' THEN 8
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'244' AND N'273' THEN 9
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'274' AND N'304' THEN 10
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'305' AND N'334' THEN 11
+            WHEN CASE
+                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                 OR ( 4 IS NULL ) )
+                               OR ( 4 <= 0 ) )
+                             OR ( 3 <= 0 ) )
+                           OR ( 3 IS NULL ) )
+                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                 END BETWEEN N'335' AND N'365' THEN 12
+          END,
+          F0010.CCPNC,
+          ( F0010.CCPNC - CASE
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'000' AND N'031' THEN 1
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'032' AND N'059' THEN 2
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'060' AND N'090' THEN 3
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'091' AND N'120' THEN 4
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'121' AND N'151' THEN 5
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'152' AND N'181' THEN 6
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'182' AND N'212' THEN 7
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'213' AND N'243' THEN 8
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'244' AND N'273' THEN 9
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'274' AND N'304' THEN 10
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'305' AND N'334' THEN 11
+                            WHEN CASE
+                                   WHEN ( ( ( ( ( ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 )
+                                                   OR ( LENGTH(TO_CHAR(F4211.SDADDJ)) < 4 + 3 - 1 ) )
+                                                 OR ( 4 IS NULL ) )
+                                               OR ( 4 <= 0 ) )
+                                             OR ( 3 <= 0 ) )
+                                           OR ( 3 IS NULL ) )
+                                         OR ( F4211.SDADDJ IS NULL ) THEN NULL
+                                   ELSE SUBSTR(TO_NCHAR(F4211.SDADDJ), 4, 3)
+                                 END BETWEEN N'335' AND N'365' THEN 12
+                          END ),
+          F0010.CCARFJ,
+          F0010.CCCRCD
+ORDER  BY F4211_SDMCU ASC,
+          F4211_SDLITM ASC,
+          F0101_ABALPH ASC,
+          F4211_SDADDJ ASC,
+          F4211_SDVR01 ASC,
+          F4211_SDURAB ASC,
+          F4211_SDPSIG ASC,
+          F4211_SDCNID ASC,
+          F4211_SDDOC ASC,
+          F0010_CCPNC ASC,
+          F0010_CCARFJ ASC,
+          ID_CUSTOM_872588d2f28149 ASC,
+          ID_CUSTOM_87266e39f72a6f6 ASC,
+          ID_CUSTOM_87269ed789377bd ASC,
+          ID_CUSTOM_8725a08d205032e ASC,
+          ID_CUSTOM_8725ad7687793ec ASC,
+          ID_CUSTOM_87262ff93e50f8e ASC 

@@ -1,0 +1,56 @@
+relationship fffe792d-9e3d-5ca0-b129-1b9de76f940d
+	fromColumn: fact_sales_order_freight.ship_to
+	toColumn: dim_address_ship_to.address_number
+
+relationship 24e8b08b-428a-5b1f-81c8-6dd30ea3f0b6
+	fromColumn: fact_sales_order_freight.bill_to
+	toColumn: dim_address_sold_to.address_number
+
+relationship febd1f07-cd94-596f-870a-d69742c58bfc
+	fromColumn: fact_sales_order_freight.carrier_number
+	toColumn: dim_address_carrier.address_number
+
+relationship 0892a389-9a52-53a9-909e-b9a36687a95a
+	fromColumn: fact_sales_order_freight.item_number_short
+	toColumn: dim_item.item_number_short
+
+relationship 3e34d584-58e3-5f0b-abfc-898919288c18
+	fromColumn: fact_sales_order_freight.branch_plant
+	toColumn: dim_plant.plant_code
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f30
+	fromColumn: fact_sales_order_freight.address_number_parent
+	toColumn: dim_address_parent.address_number
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f31
+	fromColumn: fact_sales_order_freight.mode_of_transport
+	toColumn: dim_mode_of_transport.mot_code
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f32
+	fromColumn: fact_sales_order_freight.destination_port
+	toColumn: dim_address_book_destination.address_number
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f33
+	fromColumn: fact_sales_commission.salesperson
+	toColumn: dim_address_salesperson.address_number
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f34
+	fromColumn: fact_sales_commission.ship_to
+	toColumn: dim_address_ship_to.address_number
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f35
+	fromColumn: fact_sales_commission.sold_to
+	toColumn: dim_address_sold_to.address_number
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f36
+	fromColumn: fact_sales_commission.branch_plant
+	toColumn: dim_plant.plant_code
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f37
+	fromColumn: fact_sales_commission.item_number_short
+	toColumn: dim_item.item_number_short
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f38
+	fromColumn: fact_sales_commission.category_code_10
+	toColumn: dim_category_code_10.category_code_10
+

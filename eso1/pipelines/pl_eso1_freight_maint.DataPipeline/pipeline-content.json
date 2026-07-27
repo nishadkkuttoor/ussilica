@@ -1,0 +1,25 @@
+{
+  "properties": {
+    "description": "ESO1 Billable v Payable Freight — nightly maintenance. Runs nb_maintenance_eso1 (OPTIMIZE + VACUUM on the two NRT fact tables). Kept separate from the 5-min load so compaction never runs in the hot path.",
+    "activities": [
+      {
+        "name": "run_maintenance_eso1",
+        "type": "TridentNotebook",
+        "dependsOn": [],
+        "policy": {
+          "timeout": "0.01:00:00",
+          "retry": 1,
+          "retryIntervalInSeconds": 120,
+          "secureOutput": false,
+          "secureInput": false
+        },
+        "typeProperties": {
+          "notebookId": "<NB_MAINTENANCE_ESO1_GUID>",
+          "workspaceId": "<WORKSPACE_GUID>"
+        }
+      }
+    ],
+    "concurrency": 1,
+    "annotations": ["eso1", "maintenance"]
+  }
+}
