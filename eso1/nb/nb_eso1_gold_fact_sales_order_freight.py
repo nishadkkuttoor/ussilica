@@ -260,6 +260,8 @@ FACT_BUSINESS_COLS = [
     "adj_gl_class", "adj_based_on_value", "adj_uom", "adj_factor_value",                    # F4074 ALGLC/ALBSDVAL/ALUOM/ALFVTR
     "voyage_number", "loading_port", "ocean_carrier",                                       # F5642B01 ocean-booking
     "booking_reference_1", "booking_reference_2", "booking_reference_3", "date_latest_pickup",
+    # ── ADDED 2026-07-29: header-level (F4201) display columns for SBX Unbilled AR ──
+    "header_sold_to", "header_order_date", "header_carrier_number", "header_payment_terms",  # SHAN8/SHTRDJ/SHCARS/SHPTC
 ]
 # NOTE: gl_class, delivery_instruct_line_01/02 were ALREADY present; user_reserved_number (SDURAB) is
 # already surfaced as `bol_number`. SDUORG/SDPQOR/SDSOQS = transaction_quantity/primary_quantity_ordered/
@@ -624,6 +626,13 @@ def build_fact():
         F.col("b01.booking_reference_2").alias("booking_reference_2"),       # F5642B01 BA55REF2
         F.col("b01.booking_reference_3").alias("booking_reference_3"),       # F5642B01 BA55REF3 (Orders on Hold)
         F.col("b01.date_latest_pickup").alias("date_latest_pickup"),         # F5642B01 BADLPU
+        # ── ADDED 2026-07-29: header-level (F4201) display columns for SBX Unbilled AR — the report shows
+        #    header AND line carrier/payment-terms side by side, so the header values can't be substituted by
+        #    the line columns. All from the already-inner-joined `sh` (1:1 with the order) — purely additive. ──
+        F.col("sh.address_number").alias("header_sold_to"),                  # SHAN8  (header sold-to; ≠ line bill_to SDAN8)
+        F.col("sh.date_transaction_julian").alias("header_order_date"),      # SHTRDJ (header order date; ≠ line order_date SDTRDJ)
+        F.col("sh.carrier").alias("header_carrier_number"),                  # SHCARS (header carrier; ≠ line carrier_number SDCARS)
+        F.col("sh.payment_terms_code_01").alias("header_payment_terms"),     # SHPTC  (header pay-terms; ≠ line payment_terms SDPTC)
     ).distinct()
 
     # clean sentinel/junk dates on the raw date columns BEFORE deriving buckets/keys,

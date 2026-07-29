@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # Generates report/billable_payable_freight.SemanticModel (Direct Lake TMDL) for the
 # TWO-FACT ESO1 model (Billable v Payable Freight + Sales Commission) — reconciled to
-# the hand-maintained twin on 2026-07-26: 12 tables / 14 relationships / 28 measures,
-# mixed schema (freight fact + dim_item in otc; everything else rpt), NO is_deleted.
+# the hand-maintained twin: 14 tables / 16 relationships / 28 measures, mixed schema
+# (freight fact + dim_item in otc; everything else rpt), NO is_deleted.
+#   • 2026-07-26 base reconcile = 12 tables / 14 rels.
+#   • 2026-07-29 caught up dim_category_code_05 (UDC 01/05, added to the twin 2026-07-27) AND added
+#     dim_freight_handling_code (UDC 42/FR) + their fact FK cols/relationships → 14 tables / 16 rels.
 # Data below is transcribed from the twin; regenerating reproduces it (deterministic
 # uuid5 lineageTags). Run:  python report/generate_tmdl_semantic_model.py
 import os, uuid, json
@@ -50,6 +53,7 @@ TABLES = {
         ('carrier_number', 'int64', True, None),
         ('item_number_short', 'int64', True, None),
         ('branch_plant', 'string', True, None),
+        ('category_code_05', 'string', True, None),
         ('ship_date_key', 'int64', True, None),
         ('gl_date_key', 'int64', True, None),
         ('invoice_date_key', 'int64', True, None),
@@ -315,6 +319,24 @@ TABLES = {
 
       ],
     },
+    'dim_category_code_05': {
+      "cols": [
+        ('category_code_05', 'string', True, None),
+        ('category_code_05_desc', 'string', False, None),
+      ],
+      "measures": [
+
+      ],
+    },
+    'dim_freight_handling_code': {
+      "cols": [
+        ('freight_handling_code', 'string', True, None),
+        ('freight_handling_code_desc', 'string', False, None),
+      ],
+      "measures": [
+
+      ],
+    },
 }
 
 # (from_table[MANY], from_col, to_table[ONE], to_col, is_active)
@@ -333,6 +355,8 @@ REL = [
     ('fact_sales_commission', 'branch_plant', 'dim_plant', 'plant_code', True),
     ('fact_sales_commission', 'item_number_short', 'dim_item', 'item_number_short', True),
     ('fact_sales_commission', 'category_code_10', 'dim_category_code_10', 'category_code_10', True),
+    ('fact_sales_order_freight', 'category_code_05', 'dim_category_code_05', 'category_code_05', True),
+    ('fact_sales_order_freight', 'freight_handling_code', 'dim_freight_handling_code', 'freight_handling_code', True),
 ]
 
 # ── WIRING CHECK ─────────────────────────────────────────────────────────────
