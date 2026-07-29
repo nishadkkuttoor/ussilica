@@ -1,0 +1,22 @@
+table dim_freight_handling_code
+	lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd0
+
+	column freight_handling_code
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: freight_handling_code
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd1
+
+	column freight_handling_code_desc
+		dataType: string
+		summarizeBy: none
+		sourceColumn: freight_handling_code_desc
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd2
+
+	partition dim_freight_handling_code = entity
+		mode: directLake
+		source
+			entityName: dim_freight_handling_code
+			schemaName: rpt
+			expressionSource: DatabaseQuery
