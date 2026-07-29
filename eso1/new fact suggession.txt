@@ -1,0 +1,19 @@
+The idea was to fix #1 properly. The freight fact currently collapses F4074 (the price-adjustment ledger) to one row per order line, but each report needs a different set of adjustment types (ALAST) and Hubble fans out (one row per adjustment). One collapsed row can't faithfully serve them all. A separate fact_sales_order_price_adjustment at (order-line × adjustment) grain — carrying ALAST/ALUPRC/ALGLC/ALBSDVAL/ALUOM/ALFVTR, related to the freight fact by the line key — would let each report apply its own ALAST page filter and fan out exactly like Hubble, without breaking the freight fact's line grain.
+
+Reports it would serve (the ones that read F4074 adjustment columns)
+
+From my earlier investigation of the SQLs, these are the reports whose adjustment data comes from F4074 and would use such a table:
+
+┌───────────────────────────────────────────┬───────────────────────────────────┬────────────────────────────────────────────────────────────┐
+│                  Report                   │      F4074 columns it reads       │                       Its ALAST set                        │
+├───────────────────────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ Master BvP (ESO1 Hubble Query.sql)        │ ALUPRC (as ReportColumn14, a SUM) │ A03, FRTHIDE, FRTTAXN, FRTTAXY                             │
+├───────────────────────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ SOP0006 (Shipped NOT Invoiced)            │ ALAST, ALUPRC, ALUOM, ALBSDVAL    │ 23 values (freight + CASLB/PP06…PP99/PPSLB/COLPALN/T/ALST) │
+├───────────────────────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ SOP0007 (Invoiced Orders)                 │ + ALGLC                           │ 24 values (SOP0006 set + ENERGY)                           │
+├───────────────────────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ SOP0008 (Pioneer Natural Resources Sales) │ ALAST, ALUPRC, ALUOM, ALBSDVAL    │ same 23 as SOP0006                                         │
+├───────────────────────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│ BP Freight and Fuel (Combined)            │ ALFVTR                            │ FRTHIDE, FRTTAXY, FRTTAXN, EPDELFRT, FRTNBP, POOLFSC       │
+└───────────────────────────────────────────┴───────────────────────────────────┴────────────────────────────────────────────────────────────┘
