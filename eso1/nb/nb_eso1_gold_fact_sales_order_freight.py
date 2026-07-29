@@ -12,9 +12,8 @@
 # nb_eso1_gold_dim_item) — those are NOT touched here.
 #
 # ── BUILD (BATCH, architecture like ESO4 / ESO5 fact notebooks) ─────────────────────────
-#   • read the full Silver snapshot of every source, run build_fact() ONCE, write the fact.
-#   • MANUAL_OVERWRITE = True → drop + rebuild (overwrite); False → incremental UPSERT (MERGE on the
-#     grain key: update changed rows + insert missing rows, no deletes). First run does a full build.
+#   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
+#   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the fact is missing (re-run to refresh).
 #
 # Sections:  1) CONFIG   2) FACT BUILDER   3) FACT SOURCES   4) RUN
 # Design: docs/ESO1_gold_layer_design.md
@@ -37,9 +36,7 @@ GOLD_SCHEMA   = "rpt"
 
 # ── refresh / runtime config (BATCH build, like ESO4 / nb_silver_to_gold_eso7_v2_fact) ──
 #   MANUAL_OVERWRITE = True  -> full load: drop + rebuild the fact from the full Silver snapshot.
-#   MANUAL_OVERWRITE = False -> incremental UPSERT: rebuild the current fact from Silver, then
-#                               MERGE into Gold on the grain key — update changed rows + insert
-#                               missing rows (no deletes). First run (table missing) does a full build.
+#   MANUAL_OVERWRITE = False -> build only if the fact is missing (re-run to refresh).
 MANUAL_OVERWRITE = True    # ⚠ set back to False after the first successful run
 
 def sname(t): return "{}.{}.{}".format(SILVER_LH, SILVER_SCHEMA, t)
@@ -77,7 +74,6 @@ F42119   = "f42119_sales_order_history_file"      # Sales Order History — CONF
 
 # ── Gold target BUILT here (new, rpt) ──────────────────────────────────────────
 FACT         = "fact_sales_order_freight"
-FACT_KEY     = "sales_order_line_key"   # grain key — MERGE upsert key when MANUAL_OVERWRITE=False
 
 # ── report scaling (business WHERE filters removed — fact now carries ALL rows) ──
 # (former Hubble hard filters COMPANIES / ALAST_WHITELIST / ship-to address-type gate /
@@ -728,13 +724,11 @@ for _s in FACT_SOURCES:
     _tag = "OK" if _ok else ("OPTIONAL-missing (skipped)" if _s.get("optional") else "MISSING")
     print("  source {:<44s} {}".format(_s["silver"], _tag))
 
-# ── BATCH BUILD — read the full Silver snapshot, run build_fact() ONCE.
-#   MANUAL_OVERWRITE = True  -> drop + rebuild (overwrite) from the full Silver snapshot.
-#   MANUAL_OVERWRITE = False -> incremental UPSERT: MERGE the freshly-built fact into Gold on the
-#                               grain key — updates changed rows, inserts missing rows, no deletes.
-#                               (Table missing on the first run -> full overwrite instead.)
-#   Address dims are REUSED (rpt.dim_address_book role views) + rpt.dim_plant; dim_item is built by
-#   nb_eso1_gold_dim_item. build_fact() (joins/filters/transforms) is identical in both paths.
+# ── BATCH BUILD — read the full Silver snapshot, run build_fact() ONCE, overwrite the fact.
+#   MANUAL_OVERWRITE = True  -> drop + rebuild from the full Silver snapshot.
+#   MANUAL_OVERWRITE = False -> build only if the fact is missing (re-run to refresh).
+#   Plain overwrite (no Gold CDF) — same execution pattern as ESO4 / ESO5. Address dims are REUSED
+#   (rpt.dim_address_book role views) + rpt.dim_plant; dim_item is built by nb_eso1_gold_dim_item.
 _run_start = time.time()
 if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(FACT)):
     print("== FULL LOAD ==")
@@ -745,22 +739,8 @@ if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(FACT)):
     _status = "built"
     print("  {} rows={:,}".format(gname(FACT), _rows))
 else:
-    # MANUAL_OVERWRITE = False and the fact already exists -> INCREMENTAL UPSERT.
-    # Rebuild the full current fact from Silver (build_fact() unchanged), then MERGE into Gold on the
-    # grain key: whenMatched -> update all columns (changed rows refresh); whenNotMatched -> insert
-    # (missing rows added). No delete clause -> rows no longer in the source stay in place.
-    # Source keys are unique (build_fact() dropDuplicates on the grain key) -> no MERGE key ambiguity.
-    print("== INCREMENTAL UPSERT (MERGE on {}) ==".format(FACT_KEY))
-    from delta.tables import DeltaTable
-    new = build_fact()
-    (DeltaTable.forName(spark, gname(FACT)).alias("t")
-        .merge(new.alias("s"), "t.{k} = s.{k}".format(k=FACT_KEY))
-        .whenMatchedUpdateAll()
-        .whenNotMatchedInsertAll()
-        .execute())
-    _rows   = spark.table(gname(FACT)).count()
-    _status = "upserted"
-    print("  {} rows={:,}".format(gname(FACT), _rows))
+    print("== skip — {} exists and MANUAL_OVERWRITE=False ==".format(gname(FACT)))
+    _rows, _status = None, "skipped"
 
 _elapsed = round(time.time() - _run_start, 1)
 _exit_payload = {

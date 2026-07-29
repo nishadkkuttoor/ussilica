@@ -23,9 +23,8 @@
 # in A–P / R–ZZZ).
 #
 # ── BUILD (BATCH, architecture like ESO4 / ESO5 / the ESO1 freight fact) ─────────────────
-#   • read the full Silver snapshot of every source, run build_fact() ONCE, write the fact.
-#   • MANUAL_OVERWRITE = True → drop + rebuild (overwrite); False → incremental UPSERT (MERGE on the
-#     grain key: update changed rows + insert missing rows, no deletes). First run does a full build.
+#   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
+#   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the fact is missing (re-run to refresh).
 #
 # Sections:  1) CONFIG   2) FACT BUILDER   3) FACT SOURCES   4) RUN
 # Design: docs/ESO1_gold_layer_design.md · Query: eso1/Filter Capture/SOP0027 - Commission.sql
@@ -48,9 +47,7 @@ GOLD_SCHEMA   = "rpt"
 
 # ── refresh / runtime config (BATCH build, like ESO4 / ESO5 / the ESO1 freight fact) ──
 #   MANUAL_OVERWRITE = True  -> full load: drop + rebuild from the full Silver snapshot.
-#   MANUAL_OVERWRITE = False -> incremental UPSERT: rebuild the current fact from Silver, then MERGE
-#                               into Gold on the grain key — update changed rows + insert missing rows
-#                               (no deletes). First run (table missing) does a full build.
+#   MANUAL_OVERWRITE = False -> build only if the fact is missing (re-run to refresh).
 MANUAL_OVERWRITE = True    # ⚠ set back to False after the first successful run
 
 def sname(t): return "{}.{}.{}".format(SILVER_LH, SILVER_SCHEMA, t)
@@ -70,7 +67,6 @@ F42119 = "f42119_sales_order_history_file"
 
 # ── Gold target BUILT here ─────────────────────────────────────────────────────
 FACT = "fact_sales_commission"
-FACT_KEY = "sales_commission_key"   # grain key — MERGE upsert key when MANUAL_OVERWRITE=False
 
 # REUSED rpt address/plant dims are read-only (owned by old_nb jobs); salesperson (SCSLSP) is an
 # address-book number related to dim_address_book in the model. No reused dim is built or checked here.
@@ -357,11 +353,8 @@ for _s in FACT_SOURCES:
     _tag = "OK" if _ok else ("OPTIONAL-missing (skipped)" if _s.get("optional") else "MISSING")
     print("  source {:<40s} {}".format(_s["silver"], _tag))
 
-# ── BATCH BUILD — read the full Silver snapshot, run build_fact() ONCE.
-#   MANUAL_OVERWRITE = True  -> drop + rebuild (overwrite) from the full Silver snapshot.
-#   MANUAL_OVERWRITE = False -> incremental UPSERT: MERGE the freshly-built fact into Gold on the
-#                               grain key — updates changed rows, inserts missing rows, no deletes.
-#                               (Table missing on the first run -> full overwrite instead.)
+# ── BATCH BUILD — read the full Silver snapshot, run build_fact() ONCE, overwrite the fact.
+#   Plain overwrite (no Gold CDF) — same execution pattern as ESO4 / ESO5 / the ESO1 freight fact.
 #   Address dims are REUSED (rpt.dim_address_book role views) + rpt.dim_plant; the ABAC10 description
 #   resolves via dim_category_code_10 (built by nb_eso1_gold_dim_category_code_10). None are touched here.
 _run_start = time.time()
@@ -374,22 +367,8 @@ if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(FACT)):
     _status = "built"
     print("  {} rows={:,}".format(gname(FACT), _rows))
 else:
-    # MANUAL_OVERWRITE = False and the fact already exists -> INCREMENTAL UPSERT.
-    # Rebuild the full current fact from Silver (build_fact() unchanged), then MERGE into Gold on the
-    # grain key: whenMatched -> update all columns (changed rows refresh); whenNotMatched -> insert
-    # (missing rows added). No delete clause -> rows no longer in the source stay in place.
-    # Source keys are unique (build_fact() dropDuplicates on the grain key) -> no MERGE key ambiguity.
-    print("== INCREMENTAL UPSERT (MERGE on {}) ==".format(FACT_KEY))
-    from delta.tables import DeltaTable
-    new = build_fact()
-    (DeltaTable.forName(spark, gname(FACT)).alias("t")
-        .merge(new.alias("s"), "t.{k} = s.{k}".format(k=FACT_KEY))
-        .whenMatchedUpdateAll()
-        .whenNotMatchedInsertAll()
-        .execute())
-    _rows   = spark.table(gname(FACT)).count()
-    _status = "upserted"
-    print("  {} rows={:,}".format(gname(FACT), _rows))
+    print("== skip — {} exists and MANUAL_OVERWRITE=False ==".format(gname(FACT)))
+    _rows, _status = None, "skipped"
 
 _elapsed = round(time.time() - _run_start, 1)
 _exit_payload = {
