@@ -4,7 +4,7 @@
 # Fabric notebook · nb_eso4_gold_fact_sales_tax_reconciliation
 # ============================================================================
 # ESO4 Gold fact table — Sales Tax with Business Stream Summary (Avalara
-# reconciliation; mirrors Hubble TX002). Dims are built by separate notebooks.
+# reconciliation). Dims are built by separate notebooks.
 # Gold schema: `rpt`, lakehouse: `lh_jde_gold`.
 #
 # ARCHITECTURE
@@ -12,7 +12,7 @@
 # Batch build. Reads the full Silver snapshot of each source, runs build_fact()
 # once, and overwrite-writes the Gold fact. No streaming / CDF.
 #
-# JOINS  (Extended Sales Order 4.docx §4; NO fact-row filters)
+# JOINS  (NO fact-row filters)
 # ─────────────────────────────────────────────────────────────────────────────
 #   Source        Role             Join
 #   F4211         Spine            (spine)
@@ -27,14 +27,13 @@
 #
 # GRAIN
 # ─────────────────────────────────────────────────────────────────────────────
-# One row per Hubble outer GROUP BY tuple: the inner SELECT DISTINCT (incl. the F03B11 PK)
+# One row per outer GROUP BY tuple: the inner SELECT DISTINCT (incl. the F03B11 PK)
 # → groupBy(FACT_GROUP_BY_COLS).sum(4 amounts). tax_status is derived post-aggregate.
 #
 # FIRST RUN / OVERWRITE
 # ─────────────────────────────────────────────────────────────────────────────
 # MANUAL_OVERWRITE = True  → drop + rebuild from the full Silver snapshot.
 # MANUAL_OVERWRITE = False → build only if the table is missing; else leave it untouched.
-# Design: eso4/docs/ESO4_gold_layer_design.md
 # ============================================================================
 
 from pyspark.sql import functions as F, Window
@@ -62,8 +61,8 @@ F0116  = "f0116_address_by_date"
 
 FACT = "fact_sales_tax_reconciliation"
 
-# Hubble multiplied the four amounts by NVL(company.ShiftFactor, 0.01) to de-scale RAW JDE
-# integer amounts; Silver is already decoded, so the placeholder is 1.0 (carried for lineage).
+# Silver is already decoded (the RAW JDE integer amounts carried an implied 0.01 scale),
+# so this scaling placeholder is 1.0 (carried for lineage).
 SHIFT_FACTOR = 1.0
 
 _SOFT_DELETE_COLS = ["is_delete", "deleted_date_time"]
@@ -82,17 +81,13 @@ def sk(*cols):
 # ----------------------------------------------------------------------------
 # 2) FACT BUILDER
 # ----------------------------------------------------------------------------
-# NOTE — why this differs structurally from nb_silver_to_gold_eso7_v2_fact.py:
-# ESO4 is PRE-AGGREGATED to the Hubble outer GROUP BY grain (one row per display tuple, the four
+# ESO4 is PRE-AGGREGATED to the outer GROUP BY grain (one row per display tuple, the four
 # amounts SUMmed across F03B11 pay items) — so build_fact() ends in groupBy(*FACT_GROUP_BY_COLS)
 # .agg(sum(...)). That GROUP BY needs an explicit key/measure/carry/projection column set, which is
 # what the FACT_* lists below declare (FACT_GROUP_BY_COLS also seeds the sales_tax_line_key hash;
-# FACT_BUSINESS_COLS drives the final .select). ESO7's fact is ATOMIC (order-line grain): build_fact()
-# returns proj.distinct() with NO GROUP BY / SUM — measures aggregate in DAX at report time — so it
-# has only a 4-column LINE_KEYS identity and no group/measure/business column lists. (This
-# report-shaped grain is gate-review Finding 1 — see eso4/docs/ESO4_Gate_Review.docx.)
+# FACT_BUSINESS_COLS drives the final .select).
 #
-# The GROUP BY key set (== Hubble `GROUP BY`, de-duplicated: RPOKCO=SDKCO, RPODOC=SDDOC,
+# The GROUP BY key set (de-duplicated: RPOKCO=SDKCO, RPODOC=SDDOC,
 # RPODCT=SDDCT and the C_/duplicate copies are redundant; XID_CUSTOM_8501fca6bf83d39 =
 # concat(SDDOC,SDDCT) is functionally dependent on invoice_number+document_type already here).
 FACT_GROUP_BY_COLS = [
@@ -148,7 +143,7 @@ def build_fact():
     ab  = load_silver_table(F0101)       # address book master  (sic_code)
     adr = load_silver_table(F0116)       # address by date      (jurisdiction/county)
 
-    # F0101 INNER F0116 (docx §4: ABAN8 = ALAN8) collapsed to one row per address so the LEFT join
+    # F0101 INNER F0116 (ABAN8 = ALAN8) collapsed to one row per address so the LEFT join
     # to F4211 can't fan the grain out. sic_code + jurisdiction stay RAW FK CODES here — their
     # descriptions are resolved in the model via dim_sic (F0005 01/SC) and dim_state (F0005 00/S),
     # built by nb_eso4_gold_dim_udc.py. (Full star schema — F0005 is no longer read on the fact.)
@@ -156,27 +151,24 @@ def build_fact():
     # LATEST-EFFECTIVE pick (NOT groupBy/first): F0116 is effective-dated (ALEFTB), so an address that
     # has moved has >1 row. An unordered first() would pick a row non-deterministically — two runs could
     # assign the same invoice a different jurisdiction/county, and (via ABSIC) flip its business_stream.
-    # row_number() over date_beginning_effective DESC makes the pick STABLE and matches the convention
-    # the reused rpt.dim_address_book already implements ("F0101 ⋈ F0116 latest-effective", design §3)
-    # and ESO1's F0116 join. date_updated (ALUPMJ) breaks ties on equal effective dates.
+    # row_number() over date_beginning_effective DESC makes the pick STABLE.
+    # date_updated (ALUPMJ) breaks ties on equal effective dates.
     _adr_w = Window.partitionBy(F.col("ad.address_number")).orderBy(
         F.col("ad.date_beginning_effective").desc_nulls_last(),
         F.col("ad.date_updated").desc_nulls_last())
-    # Hubble gates the F0101 address subquery to the ABAT1 search-type band
+    # The F0101 address subquery is gated to the ABAT1 search-type band
     #   WHERE (ABAT1 BETWEEN 'A  ' AND 'P  ') OR (ABAT1 BETWEEN 'R  ' AND 'ZZZ')   (excludes the 'Q' band).
-    # Reproduced the SAME WAY as ESO5 (nb_eso5_gold_fact_extended_sales_order_5, §3a-bis): a VALUE
-    # QUALIFICATION, not a fact-row filter. It gates ONLY the F0101 ⋈ F0116 address lookup, which is
-    # LEFT-joined to F4211 — so an out-of-band ship-to KEEPS its fact row and simply gets NULL
-    # sic_code / jurisdiction / county, EXACTLY as Hubble's LEFT-JOIN-of-a-WHERE-filtered-subquery does.
-    # NO F4211 line is dropped, so the Gold "no business filters" rule is preserved. This CLOSES the
-    # gate-review Finding 5 variance (ESO4 now matches Hubble on business_stream/jurisdiction/county).
+    # Implemented as a VALUE QUALIFICATION, not a fact-row filter. It gates ONLY the F0101 ⋈ F0116
+    # address lookup, which is LEFT-joined to F4211 — so an out-of-band ship-to KEEPS its fact row and
+    # simply gets NULL sic_code / jurisdiction / county. NO F4211 line is dropped, so the Gold
+    # "no business filters" rule is preserved.
     # ABAT1 = address_type_01; rpad to 3 mirrors the space-padded 'A  '/'P  '/'ZZZ' bounds.
     _abat1 = F.rpad(F.rtrim(F.col("ab.address_type_01")), 3, " ")
     _abat1_band = (((_abat1 >= F.lit("A  ")) & (_abat1 <= F.lit("P  "))) |
                    ((_abat1 >= F.lit("R  ")) & (_abat1 <= F.lit("ZZZ"))))
     address = (ab.alias("ab")
                .join(adr.alias("ad"), F.col("ab.address_number") == F.col("ad.address_number"), "inner")
-               .where(_abat1_band)                                                        # Hubble F0101 ABAT1 band (address lookup only)
+               .where(_abat1_band)                                                        # F0101 ABAT1 band (address lookup only)
                .withColumn("_arn", F.row_number().over(_adr_w))
                .where(F.col("_arn") == 1)
                .select(F.col("ab.address_number").alias("addr_key"),
@@ -189,7 +181,7 @@ def build_fact():
     bunit = (bu.groupBy(F.col("cost_center").alias("bu_key"))
              .agg(F.first(F.trim(F.col("category_code_cost_ct_020")), ignorenulls=True).alias("business_stream_code")))  # MCRP20
 
-    # ── joins (docx §4, every join used; NO fact-row filters — the only predicate is the F0101
+    # ── joins (every join used; NO fact-row filters — the only predicate is the F0101
     #    ABAT1 address-band above, which qualifies the LEFT-joined address lookup, not the fact) ──
     j = (sd.alias("sd")
          .join(ar.alias("ar"),                                                     # INNER
@@ -200,7 +192,7 @@ def build_fact():
          .join(bunit.alias("bu"), F.col("sd.cost_center") == F.col("bu.bu_key"), "left")   # SDMCU = MCMCU
          .join(address.alias("ad"), F.col("sd.address_number_ship_to") == F.col("ad.addr_key"), "left"))  # SDSHAN = ABAN8
 
-    # ── Business Stream (docx §7 calculation) — ABSIC (F0101) × MCRP20 (F0006) ──────
+    # ── Business Stream (calculation) — ABSIC (F0101) × MCRP20 (F0006) ──────
     _absic  = F.trim(F.col("ad.sic_code"))
     _mcrp20 = F.trim(F.col("bu.business_stream_code"))
     business_stream = (F.when((_absic == "F") & (_mcrp20 == "ENG"), F.lit("O&G"))
@@ -209,9 +201,9 @@ def build_fact():
                         .when((_absic == "F") & (_mcrp20 == "SHR"), F.lit("O&G"))
                         .when(~_mcrp20.isin("ENG", "SHR"), F.lit("ISP")))
 
-    # ── Avalara Code (docx §6 col 16 "Calculation — See Below"; §7 does not define it) ──
-    # INFERRED from Hubble XID_CUSTOM_8501fecff7aa51 = RTRIM(LTRIM(NVL(SDDOC,-999999999)))
-    #          || RTRIM(LTRIM(NVL(SDDCT,''))) || RTRIM(LTRIM(NVL(SDKCO,''))). Flagged in design.
+    # ── Avalara Code (calculation) ──
+    # Concat formula: RTRIM(LTRIM(NVL(SDDOC,-999999999)))
+    #          || RTRIM(LTRIM(NVL(SDDCT,''))) || RTRIM(LTRIM(NVL(SDKCO,''))).
     # SDDOC (doc_voucher_invoice_e) is int64 in Silver; cast to string for the concat (the long cast is a
     # harmless normalization — matches Oracle's integer NUMBER concat, "11843107"). SDKCO stays a string so
     # leading zeros ("00400") are preserved.
@@ -223,11 +215,10 @@ def build_fact():
     sel = j.select(
         # ── degenerate / document identifiers ──
         F.col("sd.company_key").alias("document_company"),               # SDKCO ("Document Company")
-        # NOTE (2026-07-26): the JDE numeric identifiers below are NOT cast — Silver already stores them as
-        # int64 (data-owner confirmed), so an explicit .cast("long") is unnecessary and the columns match the
-        # TMDL int64 (and the int64 dim_address_* PKs) natively. This also matches the old fab_25-07-2026
-        # notebook. (avalara_code still casts internally; document_company / document_type stay STRING so
-        # JDE leading zeros survive.)
+        # the JDE numeric identifiers below are NOT cast — Silver already stores them as int64, so an
+        # explicit .cast("long") is unnecessary and the columns match the TMDL int64 (and the int64
+        # dim_address_* PKs) natively. (avalara_code still casts internally; document_company /
+        # document_type stay STRING so JDE leading zeros survive.)
         F.col("sd.doc_voucher_invoice_e").alias("invoice_number"),       # SDDOC
         F.col("sd.document_type").alias("document_type"),                # SDDCT
         F.col("sd.document_order_invoice_e").alias("order_number"),      # SDDOCO
@@ -238,8 +229,8 @@ def build_fact():
         F.col("ar.document_pay_item").alias("ar_pay_item"),              # RPSFX  (F03B11 PK)
         # ── dimension FKs ──
         F.trim(F.col("sd.cost_center")).alias("plant"),                  # SDMCU -> dim_plant.plant_code
-        F.col("sd.address_number").alias("sold_to"),                # SDAN8  (docx col 19 "Sold To")
-        F.col("sd.address_number_ship_to").alias("ship_to"),        # SDSHAN (docx col 20 "Ship To")
+        F.col("sd.address_number").alias("sold_to"),                # SDAN8
+        F.col("sd.address_number_ship_to").alias("ship_to"),        # SDSHAN
         F.col("sd.address_number_parent").alias("parent_number"),   # SDPA8
         # ── tax attributes ──
         F.col("sd.tax_explanation_code_01").alias("tax_explanation_code"),  # SDEXR1
@@ -260,16 +251,16 @@ def build_fact():
         (F.col("ar.amt_tax_02")        * F.lit(SHIFT_FACTOR)).alias("tax_amount"),          # RPSTAM
         (F.col("ar.amount_gross")      * F.lit(SHIFT_FACTOR)).alias("gross_amount"),        # RPAG
         F.lit(SHIFT_FACTOR).cast("double").alias("shift_factor_applied"),
-    ).distinct()                                            # == Hubble inner SELECT DISTINCT (incl F03B11 PK)
+    ).distinct()                                            # SELECT DISTINCT (incl F03B11 PK)
 
-    # ── Hubble GROUP BY (outer query): collapse pay items sharing a display tuple, SUM the
+    # ── GROUP BY (outer query): collapse pay items sharing a display tuple, SUM the
     #    four amounts. The F03B11 PK columns (ar_*) were kept in `sel` only to make the inner
     #    DISTINCT count each pay item once; they are dropped here (not in the GROUP BY). ──
     agg = (sel.groupBy(*FACT_GROUP_BY_COLS)
-           .agg(F.sum("taxable_amount").alias("taxable_amount"),           # SUM ReportColumn1
-                F.sum("non_taxable_amount").alias("non_taxable_amount"),   # SUM ReportColumn2
-                F.sum("tax_amount").alias("tax_amount"),                   # SUM ReportColumn3
-                F.sum("gross_amount").alias("gross_amount"),               # SUM ReportColumn4
+           .agg(F.sum("taxable_amount").alias("taxable_amount"),
+                F.sum("non_taxable_amount").alias("non_taxable_amount"),
+                F.sum("tax_amount").alias("tax_amount"),
+                F.sum("gross_amount").alias("gross_amount"),
                 F.first("shift_factor_applied").alias("shift_factor_applied")))         # constant
 
     df = (agg
@@ -292,10 +283,9 @@ def build_fact():
 # ----------------------------------------------------------------------------
 # 3) FACT SOURCES
 # ----------------------------------------------------------------------------
-# Declares each Silver source and how it joins to the F4211 spine (mirrors the ESO7
-# FACT_SOURCES structure). build_fact() applies these joins directly — there is no CDF
-# affected-lines machinery here (batch build); the RUN preflight below uses this list to
-# confirm every source exists before the build. join_pairs: (source_col, f4211_col) tuples.
+# Declares each Silver source and how it joins to the F4211 spine. build_fact() applies these
+# joins directly — there is no CDF affected-lines machinery here (batch build); the RUN preflight
+# below uses this list to confirm every source exists before the build. join_pairs: (source_col, f4211_col) tuples.
 FACT_SOURCES = [
     {"silver": F4211,  "join": "spine", "join_pairs": []},
     {"silver": F03B11, "join": "inner", "join_pairs": [("original_document_no",   "doc_voucher_invoice_e"),

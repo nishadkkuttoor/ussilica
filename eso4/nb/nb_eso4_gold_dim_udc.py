@@ -5,7 +5,7 @@
 # ============================================================================
 # ESO4 Gold UDC dimensions (Sales Tax reconciliation). Built from ONE Silver
 # source — the user-defined-code values (F0005):
-#   • dim_sic   — UDC 01/SC : sic_code   -> sic_description   (docx §6 col 24/25)
+#   • dim_sic   — UDC 01/SC : sic_code   -> sic_description
 #   • dim_state — UDC 00/S  : state_code -> state_name        (jurisdiction name)
 # The fact stores the raw FK codes (sic_code, jurisdiction); these dims resolve the
 # descriptions in the model (fact.sic_code -> dim_sic, fact.jurisdiction -> dim_state).
@@ -24,7 +24,6 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # MANUAL_OVERWRITE = True  → drop + rebuild both dims from the full Silver snapshot.
 # MANUAL_OVERWRITE = False → build only if a dim is missing; else leave them untouched.
-# Design: eso4/docs/ESO4_gold_layer_design.md
 # ============================================================================
 
 from pyspark.sql import functions as F
@@ -46,7 +45,7 @@ def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 
 F0005 = "f0005_user_defined_code_values"
 
-# UDC selectors (INFERRED system/type — confirm; flagged in design §5, like ESO7 dim_status 40/AT).
+# UDC selectors (INFERRED system/type — confirm).
 SIC_SYS,   SIC_TYPE   = "01", "SC"   # SIC codes  -> dim_sic
 STATE_SYS, STATE_TYPE = "00", "S"    # State/Province codes -> dim_state
 

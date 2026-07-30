@@ -8,44 +8,43 @@
 # (`fact_sales_order_freight`) cannot serve: its commission measures come from the JDE
 # Sales Commission ledger **F42005**.
 #
-# JOIN MODEL matches SOP0027 - Commission.sql exactly (2026-07-24): **F4211 is the DRIVER**,
+# JOIN MODEL: **F4211 is the DRIVER**,
 # F42005 is **LEFT-joined**. So the grain is one row per **sales line × commission record** —
-# a line with no commission appears once with NULL commission columns (like Hubble); a line
+# a line with no commission appears once with NULL commission columns; a line
 # with N commission records fans to N rows (the F4211 line metrics dedup in DAX via
 # is_primary_commission_line). This replaced an earlier F42005-driven build, which silently
-# dropped non-commissioned sales lines that Hubble shows.
+# dropped non-commissioned sales lines.
 #
 # Builds ONE table — `lh_jde_gold.rpt.fact_sales_commission` — from the Silver
-# sales-order-detail (F4211, ∪ F42119 history) and commission (F42005) sources. Same
-# conventions as nb_eso1_gold_fact_sales_order_freight (own table, own OVERWRITE switch,
-# **no report filters — all filtering is Power BI page-level**; the query's INNER
+# sales-order-detail (F4211, ∪ F42119 history) and commission (F42005) sources.
+# Own table, own OVERWRITE switch, and
+# **no report filters — all filtering is Power BI page-level** (the query's INNER
 # F4201/F0101 + ABAT1 band become page filters: sold_to IS NOT NULL, sold_to_search_type
 # in A–P / R–ZZZ).
 #
-# ── BUILD (BATCH, architecture like ESO4 / ESO5 / the ESO1 freight fact) ─────────────────
+# ── BUILD (BATCH) ────────────────────────────────────────────────────────────────────────
 #   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the fact is missing (re-run to refresh).
 #
 # Sections:  1) CONFIG   2) FACT BUILDER   3) FACT SOURCES   4) RUN
-# Design: docs/ESO1_gold_layer_design.md · Query: eso1/Filter Capture/SOP0027 - Commission.sql
 
 
 # ----------------------------------------------------------------------------
 # 1) CONFIG
 # ----------------------------------------------------------------------------
 
-# CONFIG + CONSTANTS  (names per Fabric_Naming_Convention_Guidelines.pdf)
+# CONFIG + CONSTANTS
 import json, time
 from datetime import datetime, timezone
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
-# ── refresh / runtime config (BATCH build, like ESO4 / ESO5 / the ESO1 freight fact) ──
+# ── refresh / runtime config (BATCH build) ──
 #   MANUAL_OVERWRITE = True  -> full load: drop + rebuild from the full Silver snapshot.
 #   MANUAL_OVERWRITE = False -> build only if the fact is missing (re-run to refresh).
 MANUAL_OVERWRITE = True    # ⚠ set back to False after the first successful run
@@ -54,7 +53,7 @@ def sname(t): return "{}.{}.{}".format(SILVER_LH, SILVER_SCHEMA, t)
 def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 
 # ── Silver sources ────────────────────────────────────────────────────────────
-F42005 = "f42005_sales_commission_file"       # DRIVER — commission ledger (confirmed in full_metadata.json)
+F42005 = "f42005_sales_commission_file"       # DRIVER — commission ledger
 F4211  = "f4211_sales_order_detail_file"      # sales-line context (amounts, item, dates, plant, ship-to)
 F4201  = "f4201_sales_order_header_file"      # header — sold-to (SHAN8)
 F0101  = "f0101_address_book_master"          # sold-to category (ABAC10)
@@ -72,14 +71,14 @@ FACT = "fact_sales_commission"
 # address-book number related to dim_address_book in the model. No reused dim is built or checked here.
 
 # ── report scaling (business WHERE filters removed — fact carries ALL commission rows) ──
-# Hubble scaled SDAEXP/SDECST by NVL(company.ShiftFactor, 0.01) and the commission amounts (SCTOTL/SCLRCS/SCCOMA)
-# by 0.01 and SCCPCT by /1000 — all implied-decimal decoding that Silver has ALREADY applied. So NO scaling here.
-SHIFT_FACTOR = 1.0   # lineage placeholder on the line amounts — see design §11 (ShiftFactor open item / H1)
+# The line amounts (SDAEXP/SDECST), the commission amounts (SCTOTL/SCLRCS/SCCOMA) and SCCPCT carry
+# implied-decimal scales that Silver has ALREADY applied. So NO scaling here.
+SHIFT_FACTOR = 1.0   # lineage placeholder on the line amounts — ShiftFactor open item
 
 print(f"ESO1 Gold commission-fact processor (batch build) — target {gname(FACT)}")
 
 
-# HELPERS  (== ESO1 freight fact)
+# HELPERS
 _SOFT_DELETE_COLS = ["is_delete", "deleted_date_time"]
 
 def load_silver_table(table_name):
@@ -137,8 +136,8 @@ def _exists(fqn):
 
 
 # FACT  fact_sales_commission  (F4211-DRIVEN: one row per sales line × commission record; commission
-#   columns LEFT-joined and NULL when a line earns no commission. Matches SOP0027 - Commission.sql,
-#   which drives F4211 and LEFT-joins F42005 — so non-commissioned lines appear, like Hubble.)
+#   columns LEFT-joined and NULL when a line earns no commission. F4211 drives, F42005 is
+#   LEFT-joined — so non-commissioned lines appear.)
 FACT_BUSINESS_COLS = [
     # ── grain / degenerate (grain = sales line × commission record; commission_* NULL when none) ──
     "company", "company_key_order_no", "order_type", "order_number", "line_number",
@@ -189,13 +188,13 @@ def _line_context():
     return ln.dropDuplicates(["company_key_order_no", "order_type", "document_order_invoice_e", "line_number"])
 
 def build_fact():
-    ln  = _line_context()                    # DRIVER — F4211 (∪ F42119): ALL sales lines (matches the query's F4211 driver)
+    ln  = _line_context()                    # DRIVER — F4211 (∪ F42119): ALL sales lines
     sc  = load_silver_table(F42005)      # commission ledger — LEFT-joined (a sales line has 0..N commission records)
     sh  = load_silver_table(F4201)       # header — sold-to (SHAN8)
     cc  = load_silver_table(F0101)       # sold-to category (ABAC10) — ABAT1 gate RELAXED (no filter)
 
-    # JOIN MODEL matches SOP0027 - Commission.sql: F4211 is the DRIVER, F42005 is LEFT-joined.
-    #   • a sales line with NO commission → one row, commission_* columns NULL (Hubble shows these too);
+    # JOIN MODEL: F4211 is the DRIVER, F42005 is LEFT-joined.
+    #   • a sales line with NO commission → one row, commission_* columns NULL;
     #   • a sales line with N commission records → N rows (fan-out; the F4211 line metrics dedup in DAX
     #     via is_primary_commission_line). All joins are LEFT so Gold stays filter-free (the query's INNER
     #     F4201/F0101 + ABAT1 band are reproduced as Power BI page filters: sold_to IS NOT NULL, and
@@ -240,35 +239,35 @@ def build_fact():
         F.col("ln.actual_ship_date").alias("actual_ship_date"),                      # SDADDJ
         # ── commission measures (F42005 — Silver pre-decoded) ──
         F.col("sc.percent_commission").alias("percent_commission"),                  # SCCPCT
-        F.col("sc.amount_commission").alias("amount_commission"),                    # SCCOMA (ReportColumn3)
+        F.col("sc.amount_commission").alias("amount_commission"),                    # SCCOMA
         F.col("sc.amt_related_commission").alias("amount_related_commission"),       # SCCOMR (Silver: amt_related_commission)
         F.col("sc.percent_related_commiss").alias("percent_related_commission"),     # SCCPCR (Silver: percent_related_commiss, 22-char trunc)
         F.col("sc.flat_commission_amount").alias("flat_commission_amount"),          # SCFCA
         F.col("sc.amount_per_unit").alias("amount_per_unit"),                        # SCAPUN
-        F.col("sc.amount_sales_total_line").alias("amount_sales_total_line"),        # SCTOTL (ReportColumn1)
-        F.col("sc.amount_total_line_cost").alias("amount_sales_line_total_cost"),  # SCLRCS (Silver: amount_total_line_cost) (ReportColumn2)
+        F.col("sc.amount_sales_total_line").alias("amount_sales_total_line"),        # SCTOTL
+        F.col("sc.amount_total_line_cost").alias("amount_sales_line_total_cost"),  # SCLRCS (Silver: amount_total_line_cost)
         F.col("sc.amount_line_gross_margin").alias("amount_line_gross_margin"),      # SCMRGL
         F.col("sc.amt_line_eligible_margin").alias("amount_line_eligible_margin"),# SCELIL (Silver: amt_line_eligible_margin)
         # ── sales-line context (F4211 — repeated per commission record; DAX-dedup by sales line) ──
-        F.col("ln.amount_extended_price").alias("extended_price"),                   # SDAEXP (ReportColumn5, ×ShiftFactor→1.0)
-        F.col("ln.amount_extended_cost").alias("extended_cost"),                     # SDECST (ReportColumn6)
-        F.col("ln.units_quantity_shipped").alias("quantity_shipped"),               # SDSOQS (ReportColumn4)
-        F.col("ln.units_primary_qty_order").alias("primary_quantity_ordered"),      # SDPQOR (ReportColumn7)
+        F.col("ln.amount_extended_price").alias("extended_price"),                   # SDAEXP (×ShiftFactor→1.0)
+        F.col("ln.amount_extended_cost").alias("extended_cost"),                     # SDECST
+        F.col("ln.units_quantity_shipped").alias("quantity_shipped"),               # SDSOQS
+        F.col("ln.units_primary_qty_order").alias("primary_quantity_ordered"),      # SDPQOR
         F.col("ln.doc_voucher_invoice_e").alias("invoice_number"),                  # SDDOC
         F.col("ln.identifier_second_item").alias("second_item_number"),             # SDLITM
         F.col("ln.line_type").alias("line_type"),                                   # SDLNTY
         F.col("ln.uom_primary").alias("uom_primary"),                               # SDUOM1
         F.col("ln.uom_pricing").alias("uom_pricing"),                               # SDUOM4
         F.col("ln.sales_reporting_code_05").alias("sales_reporting_code_05"),       # SDSRP5
-        # ── status filter attributes (page-level; SOP0027 WHERE — carried so PBI reproduces the scope) ──
+        # ── status filter attributes (page-level; carried so PBI reproduces the scope) ──
         F.col("ln.status_code_next").alias("status_code_next"),                     # SDNXTR (page filter: completed order = '999')
         F.col("ln.status_code_last").alias("status_code_last"),                     # SDLTTR (page filter: exclude cancelled '980')
         # ── filter / display attributes ──
         F.col("cc.report_code_add_book_010").alias("category_code_10"),             # ABAC10 (sold-to F0101) → FK dim_category_code_10
-        F.col("cc.address_type_01").alias("sold_to_search_type"),                   # ABAT1 (sold-to) — Hubble INNER-gates
-                                                                                    #   the sold-to F0101 on this band; relaxed
-                                                                                    #   to LEFT here + carried so PBI can reproduce
-                                                                                    #   the exclusion at page level (D3 fidelity)
+        F.col("cc.address_type_01").alias("sold_to_search_type"),                   # ABAT1 (sold-to) — the sold-to
+                                                                                    #   F0101 band is INNER-gated in the source;
+                                                                                    #   relaxed to LEFT here + carried so PBI can
+                                                                                    #   reproduce the exclusion at page level
         # ── lineage ──
         F.lit(SHIFT_FACTOR).cast("double").alias("shift_factor_applied"),
     ).distinct()
@@ -309,8 +308,8 @@ def build_fact():
 # 3) FACT SOURCES
 # ----------------------------------------------------------------------------
 
-# Declares each Silver source and how it relates to the F4211 driver (mirrors the ESO4 / ESO5 / freight-fact
-# FACT_SOURCES structure). The joins are applied inside build_fact() / _line_context(), so join_pairs are []
+# Declares each Silver source and how it relates to the F4211 driver.
+# The joins are applied inside build_fact() / _line_context(), so join_pairs are []
 # here; the list documents the source inventory and drives the RUN source preflight.  join: spine=F4211 driver
 # (grain), left=F42005 commission ledger (0..N per line), union=F42119 history (optional line-context),
 # static=lookup. The REUSED rpt address/plant dims are read-only (owned by old_nb jobs) and
@@ -354,7 +353,7 @@ for _s in FACT_SOURCES:
     print("  source {:<40s} {}".format(_s["silver"], _tag))
 
 # ── BATCH BUILD — read the full Silver snapshot, run build_fact() ONCE, overwrite the fact.
-#   Plain overwrite (no Gold CDF) — same execution pattern as ESO4 / ESO5 / the ESO1 freight fact.
+#   Plain overwrite (no Gold CDF).
 #   Address dims are REUSED (rpt.dim_address_book role views) + rpt.dim_plant; the ABAC10 description
 #   resolves via dim_category_code_10 (built by nb_eso1_gold_dim_category_code_10). None are touched here.
 _run_start = time.time()

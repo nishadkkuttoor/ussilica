@@ -7,25 +7,24 @@
 # Builds ONE table — `lh_jde_gold.rpt.dim_item` — from the Silver item master (F4101).
 # Runs as an independent job (own table, own overwrite switch), separate from the fact.
 #
-# ── BUILD (BATCH, structure like ESO4 / ESO5 dim notebooks) ─────────────────────────────
+# ── BUILD (BATCH) ─────────────────────────────
 #   • read the full F4101 snapshot, run build_dim_item() ONCE, overwrite the dim.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the dim is missing (re-run to refresh).
 #
 # Sections:  1) CONFIG   2) DIM BUILDER   3) RUN
-# Design: docs/ESO1_gold_layer_design.md
 
 
 # ----------------------------------------------------------------------------
 # 1) CONFIG
 # ----------------------------------------------------------------------------
 
-# CONFIG + CONSTANTS  (names per Fabric_Naming_Convention_Guidelines.pdf)
+# CONFIG + CONSTANTS
 import json, time
 from datetime import datetime, timezone
 from pyspark.sql import functions as F
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
