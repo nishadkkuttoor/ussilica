@@ -12,28 +12,25 @@
 # type 'FR' (standard JDE Sales Order Management). `fact_sales_order_freight` stores the raw
 # FK code (`freight_handling_code`); this dim resolves the description in the Direct Lake model
 # (fact.freight_handling_code -> dim_freight_handling_code.freight_handling_code).
-# Same F0005 lookup shape as dim_category_code_10 (01/10) / dim_mode_of_transport, and ESO4's
-# dim_sic (01/SC) / dim_state (00/S) / ESO7's dim_status (40/AT).
 #
-# ── BUILD (BATCH, structure identical to nb_eso1_gold_dim_category_code_10.py) ──
+# ── BUILD (BATCH) ──
 #   • read the full F0005 snapshot, run build_dim() ONCE (UDC-filtered Type-1 dim), overwrite the dim.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the dim is missing (re-run to refresh).
 #
 # Sections:  1) CONFIG   2) DIM BUILDER   3) RUN
-# Design: eso1/docs/ESO1_gold_layer_design.md §4.6
 
 
 # ----------------------------------------------------------------------------
 # 1) CONFIG
 # ----------------------------------------------------------------------------
 
-# CONFIG + CONSTANTS  (names per Fabric_Naming_Convention_Guidelines.pdf)
+# CONFIG + CONSTANTS
 import json, time
 from datetime import datetime, timezone
 from pyspark.sql import functions as F
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
@@ -45,7 +42,7 @@ def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 F0005     = "f0005_user_defined_code_values"
 
 # UDC selector — freight handling code (SDFRTH) = UDC 42/FR (standard JDE Sales Order Management).
-# Confirm if US Silica remapped SDFRTH's edit UDC; flagged like dim_category_code_10 / ESO4's inferred UDCs.
+# Confirm if US Silica remapped SDFRTH's edit UDC.
 FHC_SYS, FHC_TYPE = "42", "FR"
 
 DIM = "dim_freight_handling_code"

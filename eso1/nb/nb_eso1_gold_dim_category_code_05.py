@@ -12,30 +12,26 @@
 # (standard JDE), so ABAC05 (`category_code_05`, the sales-rep code on the ship-to/sold-to
 # F0101) resolves against 01/05. `fact_sales_order_freight` stores the raw FK code
 # (`category_code_05`); this dim resolves the description in the Direct Lake model
-# (fact.category_code_05 -> dim_category_code_05.category_code_05). Reports that need the
-# salesperson NAME rather than the code (Orders on Hold for Pricing, Orders with Zero Unit
-# Price) join `F0005 drsy='01' AND drrt='05'` in Hubble — this dim reproduces that lookup.
-# Same F0005 lookup shape as dim_category_code_10 (01/10) and ESO4's dim_sic (01/SC).
+# (fact.category_code_05 -> dim_category_code_05.category_code_05).
 #
-# ── BUILD (BATCH, structure identical to nb_eso1_gold_dim_category_code_10.py) ──
+# ── BUILD (BATCH) ──
 #   • read the full F0005 snapshot, run build_dim() ONCE (UDC-filtered Type-1 dim), overwrite the dim.
 #   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the dim is missing (re-run to refresh).
 #
 # Sections:  1) CONFIG   2) DIM BUILDER   3) RUN
-# Design: eso1/docs/ESO1_gold_layer_design.md §4.6
 
 
 # ----------------------------------------------------------------------------
 # 1) CONFIG
 # ----------------------------------------------------------------------------
 
-# CONFIG + CONSTANTS  (names per Fabric_Naming_Convention_Guidelines.pdf)
+# CONFIG + CONSTANTS
 import json, time
 from datetime import datetime, timezone
 from pyspark.sql import functions as F
 
 SILVER_LH     = "lh_jde_silver"
-SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots, same as ESO4/ESO5
+SILVER_SCHEMA = "jde"          # Silver schema — static batch snapshots
 GOLD_LH       = "lh_jde_gold"
 GOLD_SCHEMA   = "rpt"
 
@@ -47,7 +43,6 @@ def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 F0005     = "f0005_user_defined_code_values"
 
 # UDC selector — address-book category code 05 = UDC 01/05 (standard JDE: AC01–AC30 -> 01/01–01/30).
-# Confirmed in-repo: the pricing SQLs resolve ABAC05 with `F0005.drsy='01' AND F0005.drrt='05'`.
 CAT05_SYS, CAT05_TYPE = "01", "05"
 
 DIM = "dim_category_code_05"
