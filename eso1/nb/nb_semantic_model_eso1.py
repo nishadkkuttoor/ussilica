@@ -182,17 +182,18 @@ RELATIONSHIPS = [
 # ── ORDER-LINE VOLUME (line grain) ───────────────────────────────────────────
 # 13 Order Lines                #,0       COUNTROWS(FACT)                                                                                Count of order lines
 # 14 Quantity Shipped Tons      #,0.00    SUM(FACT[quantity_shipped_tons])                                                               Shipped quantity converted to tons
-# 15 Price Quantity Shipped     $#,0      SUM(FACT[price_quantity_shipped])                                                              Extended value = price x quantity shipped
+# 15 Ordered Tons               #,0.00    SUMX(FACT, FACT[transaction_quantity] * COALESCE(FACT[conversion_to_tons_rate], 0))             Ordered quantity (SDUORG) converted to tons; NULL rate -> 0 (SOP0025/SOP000x-620 RC19)
+# 16 Price Quantity Shipped     $#,0      SUM(FACT[price_quantity_shipped])                                                              Extended value = price x quantity shipped
 # ── BOL WEIGH-TICKET WEIGHTS (F5549002, line grain) ──────────────────────────
-# 16 Gross Weight               #,0       SUM(FACT[gross_weight])                                                                        Sum of BOL gross weight across a load's lines
-# 17 Catch Weight               #,0       SUM(FACT[catch_weight])                                                                        Sum of BOL catch (scaled) weight
+# 17 Gross Weight               #,0       SUM(FACT[gross_weight])                                                                        Sum of BOL gross weight across a load's lines
+# 18 Catch Weight               #,0       SUM(FACT[catch_weight])                                                                        Sum of BOL catch (scaled) weight
 # ── DATA QUALITY ─────────────────────────────────────────────────────────────
-# 18 Lines Missing Conversion   #,0       CALCULATE(COUNTROWS(FACT), FACT[missing_conversion_flag] = "Y")                                Lines with no tons-conversion rate
+# 19 Lines Missing Conversion   #,0       CALCULATE(COUNTROWS(FACT), FACT[missing_conversion_flag] = "Y")                                Lines with no tons-conversion rate
 # ── ADDRESS DISPLAY (reused role views) ──────────────────────────────────────
-# 19 Carrier Name               (text)    SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])   Carrier as "20000049 - FUNDIS COMPANY INC"
-# 20 Parent Name                (text)    SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])     Parent customer, same format
+# 20 Carrier Name               (text)    SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])   Carrier as "20000049 - FUNDIS COMPANY INC"
+# 21 Parent Name                (text)    SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])     Parent customer, same format
 # ── AGING ────────────────────────────────────────────────────────────────────
-# 21 Days Past Due              #,0       DATEDIFF(MAX(FACT[requested_date]), TODAY(), DAY)                                              Days a line is past its requested date (SM Trucking-Past Due; as-of = TODAY())
+# 22 Days Past Due              #,0       DATEDIFF(MAX(FACT[requested_date]), TODAY(), DAY)                                              Days a line is past its requested date (SM Trucking-Past Due; as-of = TODAY())
 #
 # NOTE — no date-role measures: there is no date dimension. To view $ by GL/invoice
 #   date, slice the fact's raw gl_date / invoice_date column on the visual.
@@ -224,6 +225,9 @@ MEASURES = {
     # order-line measures (line grain — plain SUM is correct)
     "Order Lines":            (f"COUNTROWS('{FACT}')", "#,0", False),
     "Quantity Shipped Tons":  (f"SUM('{FACT}'[quantity_shipped_tons])", "#,0.00", False),
+    # ordered quantity (SDUORG) converted to tons; conversion_to_tons_rate = TN passthrough + F41002 factor,
+    # NULL -> 0 tons (matches Hubble's THEN 0). Same rate the fact uses for quantity_shipped_tons.
+    "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
     "Price Quantity Shipped": (f"SUM('{FACT}'[price_quantity_shipped])", "\\$#,0", False),
     # BOL weigh-ticket weights (M5, F5549002) — line grain, additive across a load's lines (max_weight is a
     # per-line capacity, not summable, so it stays a column not a measure)

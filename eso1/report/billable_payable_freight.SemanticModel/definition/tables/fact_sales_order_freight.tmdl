@@ -104,6 +104,11 @@ table fact_sales_order_freight
 		displayFolder: Aging
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f06
 
+	measure 'Ordered Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f07
+
 	column sales_order_line_key
 		dataType: string
 		isHidden
