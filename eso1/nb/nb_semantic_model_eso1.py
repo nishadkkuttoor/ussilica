@@ -38,7 +38,9 @@ LAKEHOUSE = "lh_jde_gold"
 # NOTE (2026-07-23): NO date dimension. Dates are the fact's raw date columns, sliced
 #   directly (date-range + relative-date slicers). No time-intelligence / marked date table.
 NEW_TABLES = ["fact_sales_order_freight", "fact_sales_commission", "dim_item",
-              "dim_category_code_10"]        # UDC 01/10 → category_code_10 description (built by nb_eso1_gold_dim_category_code_10)
+              "dim_category_code_10",        # UDC 01/10 → category_code_10 description (built by nb_eso1_gold_dim_category_code_10)
+              "dim_category_code_05",        # UDC 01/05 → category_code_05 description (built by nb_eso1_gold_dim_category_code_05)
+              "dim_freight_handling_code"]   # UDC 42/FR → freight_handling_code description (built by nb_eso1_gold_dim_freight_handling_code)
 RPT_TABLES = ["dim_address_ship_to", "dim_address_sold_to", "dim_address_carrier",
               "dim_address_parent", "dim_address_book_destination", "dim_address_salesperson",
               "dim_plant", "dim_mode_of_transport"]
@@ -58,7 +60,9 @@ print(f"Semantic model : {MODEL}  (Direct Lake, single schema rpt on {LAKEHOUSE}
 NEW_REQUIRED    = [f"{LAKEHOUSE}.rpt.fact_sales_order_freight",
                    f"{LAKEHOUSE}.rpt.fact_sales_commission",
                    f"{LAKEHOUSE}.rpt.dim_item",
-                   f"{LAKEHOUSE}.rpt.dim_category_code_10"]
+                   f"{LAKEHOUSE}.rpt.dim_category_code_10",
+                   f"{LAKEHOUSE}.rpt.dim_category_code_05",
+                   f"{LAKEHOUSE}.rpt.dim_freight_handling_code"]
 REUSED_REQUIRED = [f"{LAKEHOUSE}.rpt.dim_address_book", f"{LAKEHOUSE}.rpt.dim_plant",
                    f"{LAKEHOUSE}.rpt.dim_mode_of_transport"]
 REUSED_VIEWS    = [f"{LAKEHOUSE}.rpt.dim_address_ship_to",
@@ -138,6 +142,8 @@ RELATIONSHIPS = [
     ("dim_item",            "item_number_short", FACT, "item_number_short", True),
     ("dim_plant",           "plant_code",        FACT, "branch_plant",     True),
     ("dim_mode_of_transport", "mot_code",        FACT, "mode_of_transport", True),  # UDC 00/TM code -> description
+    ("dim_category_code_05",  "category_code_05", FACT, "category_code_05",  True),  # ABAC05 (UDC 01/05) -> description
+    ("dim_freight_handling_code", "freight_handling_code", FACT, "freight_handling_code", True),  # SDFRTH (UDC 42/FR) -> description
     # ── fact_sales_commission (SOP0027) — conformed dims shared with the freight fact + a salesperson role view.
     #    A dim role view relating to BOTH facts is valid (star with two facts); each rel is dim→fact, single-direction.
     ("dim_address_salesperson", "address_number",    COMM_FACT, "salesperson",       True),  # SCSLSP (address-book number)
@@ -185,6 +191,8 @@ RELATIONSHIPS = [
 # ── ADDRESS DISPLAY (reused role views) ──────────────────────────────────────
 # 19 Carrier Name               (text)    SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])   Carrier as "20000049 - FUNDIS COMPANY INC"
 # 20 Parent Name                (text)    SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])     Parent customer, same format
+# ── AGING ────────────────────────────────────────────────────────────────────
+# 21 Days Past Due              #,0       DATEDIFF(MAX(FACT[requested_date]), TODAY(), DAY)                                              Days a line is past its requested date (SM Trucking-Past Due; as-of = TODAY())
 #
 # NOTE — no date-role measures: there is no date dimension. To view $ by GL/invoice
 #   date, slice the fact's raw gl_date / invoice_date column on the visual.
@@ -229,6 +237,8 @@ MEASURES = {
     # related row under a fact-line filter context.
     "Carrier Name": ("SELECTEDVALUE(dim_address_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_carrier[name_alpha])", None, False),
     "Parent Name":  ("SELECTEDVALUE(dim_address_parent[address_number]) & \" - \" & SELECTEDVALUE(dim_address_parent[name_alpha])",   None, False),
+    # days a line is past its requested date; report-level as-of = TODAY() (positive = past due)
+    "Days Past Due": (f"DATEDIFF(MAX('{FACT}'[requested_date]), TODAY(), DAY)", "#,0", False),
 }
 
 # =============================================================================

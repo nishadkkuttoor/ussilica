@@ -193,7 +193,7 @@ FACT_BUSINESS_COLS = [
     "original_document_type", "original_po_so_number", "original_document_no",
     "reference_01", "user_reserved_reference",
     # ── status / handling / transport ──
-    "hold_orders_code", "status_code_last", "status_code_next", "next_status_num",
+    "hold_orders_code", "status_code_last", "status_code_next", "next_status_num", "last_status_num",
     "freight_handling_code", "freight_handling_code_audit",
     "mode_of_transport", "route_number", "container_id", "transaction_originator",
     "delivery_instruct_line_01", "delivery_instruct_line_02", "gl_class",
@@ -258,6 +258,7 @@ FACT_BUSINESS_COLS = [
     "booking_reference_1", "booking_reference_2", "booking_reference_3", "date_latest_pickup",
     # ── header-level (F4201) display columns ──
     "header_sold_to", "header_order_date", "header_carrier_number", "header_payment_terms",  # SHAN8/SHTRDJ/SHCARS/SHPTC
+    "header_parent",                                                # SHPA8 (header parent)
 ]
 # NOTE: gl_class, delivery_instruct_line_01/02 were ALREADY present; user_reserved_number (SDURAB) is
 # already surfaced as `bol_number`. SDUORG/SDPQOR/SDSOQS = transaction_quantity/primary_quantity_ordered/
@@ -483,6 +484,9 @@ def build_fact():
         # blank/non-numeric status casts to NULL and is excluded.
         # Filter next_status_num in Power BI; keep displaying the string status_code_next.
         F.trim(F.col("sd.status_code_next")).cast("int").alias("next_status_num"),
+        # last_status_num: physical INT copy of status_code_last (SDLTTR) — same purpose as
+        # next_status_num, for range-filtering the last status in Power BI. Blank/non-numeric -> NULL.
+        F.trim(F.col("sd.status_code_last")).cast("int").alias("last_status_num"),
         F.col("sd.freight_handling_code").alias("freight_handling_code"),
         F.col("sd.freight_handling_code").alias("freight_handling_code_audit"),
         F.col("sd.mode_of_transport").alias("mode_of_transport"),
@@ -628,6 +632,7 @@ def build_fact():
         F.col("sh.date_transaction_julian").alias("header_order_date"),      # SHTRDJ (header order date; ≠ line order_date SDTRDJ)
         F.col("sh.carrier").alias("header_carrier_number"),                  # SHCARS (header carrier; ≠ line carrier_number SDCARS)
         F.col("sh.payment_terms_code_01").alias("header_payment_terms"),     # SHPTC  (header pay-terms; ≠ line payment_terms SDPTC)
+        F.col("sh.address_number_parent").alias("header_parent"),            # SHPA8  (header parent; ≠ line address_number_parent SDPA8)
     ).distinct()
 
     # clean sentinel/junk dates on the raw date columns BEFORE deriving buckets/keys,

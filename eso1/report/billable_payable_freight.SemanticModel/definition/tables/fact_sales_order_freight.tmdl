@@ -99,6 +99,11 @@ table fact_sales_order_freight
 		displayFolder: Names
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f05
 
+	measure 'Days Past Due' = DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)
+		formatString: #,0
+		displayFolder: Aging
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f06
+
 	column sales_order_line_key
 		dataType: string
 		isHidden
@@ -273,6 +278,12 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: invoice_date
 		lineageTag: 956ccdec-b539-5f96-80af-4e3c082f1cff
+
+	column requested_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: requested_date
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f16
 
 	column second_item_number
 		dataType: string
