@@ -48,13 +48,13 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "fact_sales_order_freight"
+                      "Entity": "dim_item"
                     }
                   },
                   "Property": "item_name"
                 }
               },
-              "queryRef": "fact_sales_order_freight.item_name",
+              "queryRef": "dim_item.item_name",
               "nativeQueryRef": "Item Name"
             },
             {

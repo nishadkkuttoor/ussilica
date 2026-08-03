@@ -296,18 +296,18 @@ table fact_sales_order_freight
 		sourceColumn: second_item_number
 		lineageTag: 7fbe9ec4-7ae8-5a4c-8141-56fca10f6546
 
+	column third_item_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: third_item_number
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f17
+
 	column line_type
 		dataType: string
 		isHidden
 		summarizeBy: none
 		sourceColumn: line_type
 		lineageTag: 5da24c99-b0a4-5455-883e-9563d730e893
-
-	column item_name
-		dataType: string
-		summarizeBy: none
-		sourceColumn: item_name
-		lineageTag: 7a70cda2-9706-5aad-b22b-5bfc1115499d
 
 	column uom
 		dataType: string

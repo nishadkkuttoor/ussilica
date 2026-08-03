@@ -116,7 +116,9 @@ FACT_GROUP_BY_COLS = [
     "gl_date",                 # XF4211_SDDGL
     "service_tax_date",        # XF03B11_RPDSVJ
 ]
-# Attributes functionally dependent on the grain (carried through the aggregation, not grouped on).
+# Attributes functionally dependent on the grain (carried through the aggregation, not grouped on) —
+# shift_factor_applied (constant) and line_number (SDLNID; one F4211 line per recon tuple, so the
+# per-group MAX is that line's number and adding it changes neither the grain, the row count, nor any SUM).
 # Full star schema: plant_name (reused dim_plant, keyed by plant_code = SDMCU), sic_description (dim_sic),
 # and the state name (dim_state) all live in dimensions now — only the constant remains on the fact.
 # The plant's business-stream code (MCRP20) is available on dim_plant (category_code_cost_ct_020); the
@@ -124,7 +126,7 @@ FACT_GROUP_BY_COLS = [
 # on nor carried as a stored column.
 # Stored fact columns, in report order — degenerate dims + FK codes + measures ONLY (star schema).
 FACT_BUSINESS_COLS = [
-    "document_company", "invoice_number", "document_type", "order_number", "order_type",
+    "document_company", "invoice_number", "document_type", "order_number", "order_type", "line_number",
     "plant", "ship_to", "sold_to", "parent_number",   # FKs → dim_plant / dim_address_*
     "tax_explanation_code", "tax_area", "avalara_code",
     "business_stream", "sic_code",                    # business_stream calc (degenerate); sic_code FK → dim_sic
@@ -134,7 +136,7 @@ FACT_BUSINESS_COLS = [
     "tax_status",                                     # derived from the SUMMED tax_amount — see build_fact
     "shift_factor_applied",
 ]
-# Column arithmetic: 24 FACT_BUSINESS_COLS + sales_tax_line_key + document_scope_key = 26 stored.
+# Column arithmetic: 25 FACT_BUSINESS_COLS + sales_tax_line_key + document_scope_key = 27 stored.
 
 def build_fact():
     sd  = load_silver_table(F4211)       # sales order detail
@@ -223,6 +225,7 @@ def build_fact():
         F.col("sd.document_type").alias("document_type"),                # SDDCT
         F.col("sd.document_order_invoice_e").alias("order_number"),      # SDDOCO
         F.col("sd.order_type").alias("order_type"),                      # SDDCTO
+        F.col("sd.line_number").alias("line_number"),                    # SDLNID — carried, NOT grouped (one F4211 line per recon tuple)
         F.col("ar.doc_voucher_invoice_e").alias("ar_document_no"),       # RPDOC  (F03B11 PK)
         F.col("ar.document_type").alias("ar_document_type"),             # RPDCT  (F03B11 PK)
         F.col("ar.company_key").alias("ar_company_key"),                 # RPKCO  (F03B11 PK)
@@ -261,7 +264,8 @@ def build_fact():
                 F.sum("non_taxable_amount").alias("non_taxable_amount"),
                 F.sum("tax_amount").alias("tax_amount"),
                 F.sum("gross_amount").alias("gross_amount"),
-                F.first("shift_factor_applied").alias("shift_factor_applied")))         # constant
+                F.first("shift_factor_applied").alias("shift_factor_applied"),          # constant
+                F.max("line_number").alias("line_number")))                             # carried: one F4211 line per recon tuple (max = that line; deterministic)
 
     df = (agg
           # Tax Status — a PHYSICAL column, not a DAX calculated column: Direct Lake tables cannot
