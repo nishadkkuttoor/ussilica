@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Generates report/billable_payable_freight.SemanticModel (Direct Lake TMDL) for the
 # TWO-FACT ESO1 model (Billable v Payable Freight + Sales Commission) — reconciled to
-# the hand-maintained twin: 14 tables / 16 relationships / 30 measures, mixed schema
+# the hand-maintained twin: 15 tables / 17 relationships / 37 measures, mixed schema
 # (freight fact + dim_item in otc; everything else rpt), NO is_deleted.
 #   • 2026-07-26 base reconcile = 12 tables / 14 rels.
 #   • 2026-07-29 caught up dim_category_code_05 (UDC 01/05, added to the twin 2026-07-27) AND added
@@ -88,6 +88,16 @@ TABLES = {
         ('freight_variance', 'double', True, None),
         ('total_variance', 'double', True, None),
         ('is_primary_shipment_line', 'string', True, None),
+        ('production_code', 'string', False, None),
+        ('production_ship_notes', 'string', False, None),
+        ('order_reference', 'string', False, None),
+        ('routing_notes', 'string', False, None),
+        ('equipment_type', 'string', False, None),
+        ('inland_delterms', 'string', False, None),
+        ('incoterms', 'string', False, None),
+        ('date_requested_ship', 'dateTime', False, None),
+        ('release_date', 'dateTime', False, None),
+        ('route_container_count', 'double', True, None),
       ],
       "measures": [
         ('Billable Freight', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[billable_freight])))", '\\$#,0;-\\$#,0', 'Freight'),
@@ -112,6 +122,7 @@ TABLES = {
         ('Parent Name', 'SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])', None, 'Names'),
         ('Days Past Due', "DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)", '#,0', 'Aging'),
         ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
+        ('Container Count', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))", '#,0', 'Volume'),
       ],
     },
     'fact_sales_commission': {
@@ -340,6 +351,46 @@ TABLES = {
 
       ],
     },
+    # per-F4074-adjustment fact (line × adjustment). Built by nb_eso1_gold_fact_price_adjustment.py.
+    # Line display cols + line-level filters come from fact_sales_order_freight via the BIDIRECTIONAL
+    # relationship; the measures below are physical line values fanned per adjustment (SUM = Hubble's
+    # per-adjustment SUM). Whitelist is the PBI page filter on price_adjustment_type (sets differ per report).
+    'fact_price_adjustment': {
+      "cols": [
+        ('price_adjustment_key', 'string', True, None),
+        ('sales_order_line_key', 'string', True, None),
+        ('company', 'string', True, None),
+        ('company_key_order_no', 'string', True, None),
+        ('order_type', 'string', True, None),
+        ('order_number', 'int64', True, None),
+        ('line_number', 'double', True, None),
+        ('price_adjustment_type', 'string', False, None),
+        ('adj_unit_price', 'double', False, None),
+        ('adj_uom', 'string', False, None),
+        ('adj_based_on_value', 'double', False, None),
+        ('adj_gl_class', 'string', False, None),
+        ('adj_factor_value', 'double', False, None),
+        ('adjustment_seq', 'int64', True, None),
+        ('quantity_shipped', 'double', True, None),
+        ('extended_price', 'double', True, None),
+        ('extended_cost', 'double', True, None),
+        ('transaction_quantity', 'double', True, None),
+        ('primary_quantity_ordered', 'double', True, None),
+        ('quantity_shipped_tons', 'double', True, None),
+        ('transaction_quantity_tons', 'double', True, None),
+        ('conversion_to_tons_rate', 'double', True, None),
+        ('missing_conversion_flag', 'string', False, None),
+        ('currency_code', 'string', False, None),
+      ],
+      "measures": [
+        ('Adj Quantity Shipped', "SUM('fact_price_adjustment'[quantity_shipped])", '#,0.00', 'Adjustments'),
+        ('Adj Extended Price', "SUM('fact_price_adjustment'[extended_price])", '\\$#,0;-\\$#,0', 'Adjustments'),
+        ('Adj Extended Cost', "SUM('fact_price_adjustment'[extended_cost])", '\\$#,0;-\\$#,0', 'Adjustments'),
+        ('Adj Primary Qty Ordered', "SUM('fact_price_adjustment'[primary_quantity_ordered])", '#,0.00', 'Adjustments'),
+        ('Adj Quantity Shipped Tons', "SUM('fact_price_adjustment'[quantity_shipped_tons])", '#,0.00', 'Adjustments'),
+        ('Adj Ordered Tons', "SUM('fact_price_adjustment'[transaction_quantity_tons])", '#,0.00', 'Adjustments'),
+      ],
+    },
 }
 
 # (from_table[MANY], from_col, to_table[ONE], to_col, is_active)
@@ -360,6 +411,9 @@ REL = [
     ('fact_sales_commission', 'category_code_10', 'dim_category_code_10', 'category_code_10', True),
     ('fact_sales_order_freight', 'category_code_05', 'dim_category_code_05', 'category_code_05', True),
     ('fact_sales_order_freight', 'freight_handling_code', 'dim_freight_handling_code', 'freight_handling_code', True),
+    # BIDIRECTIONAL: Tier-2 F4074 reports filter the freight fact BY the adjustment whitelist (many->one),
+    # so cross-filtering must flow both ways. 6th element = bothDirections.
+    ('fact_price_adjustment', 'sales_order_line_key', 'fact_sales_order_freight', 'sales_order_line_key', True, True),
 ]
 
 # ── WIRING CHECK ─────────────────────────────────────────────────────────────
@@ -367,7 +421,8 @@ REL = [
 # the two new tables; every other table must be rpt. Fail fast on a typo.
 _cols_of = {t: {c[0] for c in spec["cols"]} for t, spec in TABLES.items()}
 _errs = []
-for ft, fc, tt, tc, _ in REL:
+for _rel in REL:
+    ft, fc, tt, tc = _rel[0], _rel[1], _rel[2], _rel[3]
     for tbl, col in [(ft, fc), (tt, tc)]:
         if tbl not in TABLES: _errs.append(f"relationship references unknown table '{tbl}'")
         elif col not in _cols_of[tbl]: _errs.append(f"relationship references unknown column '{tbl}[{col}]'")
@@ -408,10 +463,13 @@ for tname, t in TABLES.items():
     w(os.path.join(TBLS, f"{tname}.tmdl"), "\n".join(L) + "\n")
 
 RL = []
-for ft, fc, tt, tc, active in REL:
+for _rel in REL:
+    ft, fc, tt, tc, active = _rel[0], _rel[1], _rel[2], _rel[3], _rel[4]
+    both = _rel[5] if len(_rel) > 5 else False
     rid = tag(f"r:{ft}.{fc}->{tt}.{tc}")
     RL += [f"relationship {rid}"]
     if not active: RL += [f"{T}isActive: false"]
+    if both: RL += [f"{T}crossFilteringBehavior: bothDirections"]
     RL += [f"{T}fromColumn: {ft}.{fc}", f"{T}toColumn: {tt}.{tc}", ""]
 w(os.path.join(DEFN, "relationships.tmdl"), "\n".join(RL) + "\n")
 

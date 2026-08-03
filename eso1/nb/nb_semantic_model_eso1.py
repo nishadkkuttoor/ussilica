@@ -183,6 +183,7 @@ RELATIONSHIPS = [
 # 13 Order Lines                #,0       COUNTROWS(FACT)                                                                                Count of order lines
 # 14 Quantity Shipped Tons      #,0.00    SUM(FACT[quantity_shipped_tons])                                                               Shipped quantity converted to tons
 # 15 Ordered Tons               #,0.00    SUMX(FACT, FACT[transaction_quantity] * COALESCE(FACT[conversion_to_tons_rate], 0))             Ordered quantity (SDUORG) converted to tons; NULL rate -> 0 (SOP0025/SOP000x-620 RC19)
+# 15b Container Count           #,0       SUMX(VALUES(FACT[shipment_number]), CALCULATE(MAX(FACT[route_container_count])))              F4941 SUM(RSNCTR) shipment-deduped (04a Export Open Orders RC2)
 # 16 Price Quantity Shipped     $#,0      SUM(FACT[price_quantity_shipped])                                                              Extended value = price x quantity shipped
 # ── BOL WEIGH-TICKET WEIGHTS (F5549002, line grain) ──────────────────────────
 # 17 Gross Weight               #,0       SUM(FACT[gross_weight])                                                                        Sum of BOL gross weight across a load's lines
@@ -228,6 +229,9 @@ MEASURES = {
     # ordered quantity (SDUORG) converted to tons; conversion_to_tons_rate = TN passthrough + F41002 factor,
     # NULL -> 0 tons (matches Hubble's THEN 0). Same rate the fact uses for quantity_shipped_tons.
     "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
+    # F4941 shipment container count (SUM(RSNCTR)) — per-shipment value, dedup across a shipment's lines
+    # (never a raw SUM). Serves 04a Export Open Orders ReportColumn2.
+    "Container Count":        (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[route_container_count])))", "#,0", False),
     "Price Quantity Shipped": (f"SUM('{FACT}'[price_quantity_shipped])", "\\$#,0", False),
     # BOL weigh-ticket weights (M5, F5549002) — line grain, additive across a load's lines (max_weight is a
     # per-line capacity, not summable, so it stays a column not a measure)

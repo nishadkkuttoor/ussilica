@@ -116,7 +116,7 @@ _RAW_DATE_COLS = [
     "order_date", "requested_date", "scheduled_pick_date", "promised_ship_date",
     "actual_ship_date", "gl_date", "invoice_date", "cancel_date",
     "line_price_effective_date", "header_price_effective_date",
-    "date_earliest_pickup", "date_latest_delivery",
+    "date_earliest_pickup", "date_latest_delivery", "release_date", "date_requested_ship",
 ]
 
 def clean_date(col):
@@ -226,7 +226,7 @@ FACT_BUSINESS_COLS = [
     "transaction_quantity", "price_per_unit", "price_quantity_shipped",
     "major_prod_code", "minor_prod_code", "freight_factor_value",
     # ── denormalized booking / ocean (shipment grain) ──
-    "seal_no", "booking_no", "destination_port",
+    "seal_no", "production_code", "production_ship_notes", "booking_no", "destination_port",
     "no_of_container", "ocean_del_terms", "vessel_name",
     # ── denormalized freight location + buckets (shipment grain) ──
     "freight_city", "freight_state", "freight_zip",
@@ -259,6 +259,8 @@ FACT_BUSINESS_COLS = [
     "adj_gl_class", "adj_based_on_value", "adj_uom", "adj_factor_value",                    # F4074 ALGLC/ALBSDVAL/ALUOM/ALFVTR
     "voyage_number", "loading_port", "ocean_carrier",                                       # F5642B01 ocean-booking
     "booking_reference_1", "booking_reference_2", "booking_reference_3", "date_latest_pickup",
+    "order_reference", "routing_notes", "equipment_type", "inland_delterms", "incoterms",   # F5642B01 (04a Export Open Orders)
+    "date_requested_ship", "release_date",                                                  # BARQSJ (F5642B01) / SDRSDJ (F4211)
     # ── header-level (F4201) display columns ──
     "header_sold_to", "header_order_date", "header_carrier_number", "header_payment_terms",  # SHAN8/SHTRDJ/SHCARS/SHPTC
     "header_parent",                                                # SHPA8 (header parent)
@@ -384,7 +386,9 @@ def build_fact():
     # attributes can't fan the line grain out (b11 = booking detail, b01 = booking header)
     b11d = (b11.groupBy("company_key_order_no", "document_order_invoice_e", "order_type",
                         "line_number", "shipment_number")
-               .agg(F.first("seal_no", ignorenulls=True).alias("seal_no")))
+               .agg(F.first("seal_no", ignorenulls=True).alias("seal_no"),
+                    F.first("production_code",       ignorenulls=True).alias("production_code"),        # AK55PDCD
+                    F.first("production_ship_notes", ignorenulls=True).alias("production_ship_notes"))) # AK55PDSHNT
     # A booking whose destination port (BA55DSTPT joined to F0101 ABAN8) is not
     # in the address book contributes NO booking attributes. Implemented as a left-semi (destination_port must
     # exist in F0101) that drops those booking rows BEFORE the aggregate.
@@ -406,7 +410,14 @@ def build_fact():
                     F.first("reference_01",          ignorenulls=True).alias("booking_reference_1"),
                     F.first("reference_02",          ignorenulls=True).alias("booking_reference_2"),
                     F.first("reference_03",          ignorenulls=True).alias("booking_reference_3"),
-                    F.first("date_latest_pickup",    ignorenulls=True).alias("date_latest_pickup")))
+                    F.first("date_latest_pickup",    ignorenulls=True).alias("date_latest_pickup"),
+                    # 04a Export Open Orders additions (BA55ODREF/ROUT/EQTY/INDLT/INCO + BARQSJ)
+                    F.first("order_reference",       ignorenulls=True).alias("order_reference"),       # BA55ODREF
+                    F.first("routing_notes",         ignorenulls=True).alias("routing_notes"),         # BA55ROUT
+                    F.first("equipment_type",        ignorenulls=True).alias("equipment_type"),        # BA55EQTY
+                    F.first("inland_delterms",       ignorenulls=True).alias("inland_delterms"),       # BA55INDLT
+                    F.first("incoterms",             ignorenulls=True).alias("incoterms"),             # BA55INCO
+                    F.first("date_requested_ship",   ignorenulls=True).alias("date_requested_ship")))  # BARQSJ
 
     j = (sd.alias("sd")
          .join(f4201.alias("sh"),
@@ -508,6 +519,7 @@ def build_fact():
         F.col("sd.date_requested_julian").alias("requested_date"),
         F.col("sd.scheduled_pick_date").alias("scheduled_pick_date"),
         F.col("sd.date_promised_ship_julian").alias("promised_ship_date"),
+        F.col("sd.date_release_julian").alias("release_date"),               # SDRSDJ (04a Export Open Orders)
         F.col("sd.actual_ship_date").alias("actual_ship_date"),
         gl_expr.alias("gl_date"),
         F.col("sd.date_invoice_julian").alias("invoice_date"),
@@ -543,6 +555,8 @@ def build_fact():
         F.col("al.freight_factor_value").alias("freight_factor_value"),
         # ── denormalized booking / ocean (shipment grain) ──
         F.col("b11.seal_no").alias("seal_no"),
+        F.col("b11.production_code").alias("production_code"),                # F5642B11 AK55PDCD
+        F.col("b11.production_ship_notes").alias("production_ship_notes"),    # F5642B11 AK55PDSHNT
         F.col("b01.booking_no").alias("booking_no"),
         F.col("b01.destination_port").alias("destination_port"),   # FK -> dim_address_book_destination[address_number]
         F.col("b01.no_of_container").alias("no_of_container"),
@@ -617,6 +631,12 @@ def build_fact():
         F.col("b01.booking_reference_2").alias("booking_reference_2"),       # F5642B01 BA55REF2
         F.col("b01.booking_reference_3").alias("booking_reference_3"),       # F5642B01 BA55REF3
         F.col("b01.date_latest_pickup").alias("date_latest_pickup"),         # F5642B01 BADLPU
+        F.col("b01.order_reference").alias("order_reference"),                # F5642B01 BA55ODREF
+        F.col("b01.routing_notes").alias("routing_notes"),                   # F5642B01 BA55ROUT
+        F.col("b01.equipment_type").alias("equipment_type"),                 # F5642B01 BA55EQTY
+        F.col("b01.inland_delterms").alias("inland_delterms"),               # F5642B01 BA55INDLT
+        F.col("b01.incoterms").alias("incoterms"),                           # F5642B01 BA55INCO
+        F.col("b01.date_requested_ship").alias("date_requested_ship"),       # F5642B01 BARQSJ
         # ── header-level (F4201) display columns — header AND line carrier/payment-terms differ, so the header
         #    values can't be substituted by the line columns. All from the already-inner-joined `sh`
         #    (1:1 with the order) — purely additive. ──

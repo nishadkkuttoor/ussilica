@@ -109,6 +109,11 @@ table fact_sales_order_freight
 		displayFolder: Volume
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f07
 
+	measure 'Container Count' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))
+		formatString: #,0
+		displayFolder: Volume
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f2a
+
 	column sales_order_line_key
 		dataType: string
 		isHidden
@@ -461,6 +466,67 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: is_primary_shipment_line
 		lineageTag: 677b4b3e-fcdf-5fbb-8b8e-f284ca419ac5
+
+	column production_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: production_code
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f20
+
+	column production_ship_notes
+		dataType: string
+		summarizeBy: none
+		sourceColumn: production_ship_notes
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f21
+
+	column order_reference
+		dataType: string
+		summarizeBy: none
+		sourceColumn: order_reference
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f22
+
+	column routing_notes
+		dataType: string
+		summarizeBy: none
+		sourceColumn: routing_notes
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f23
+
+	column equipment_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: equipment_type
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f24
+
+	column inland_delterms
+		dataType: string
+		summarizeBy: none
+		sourceColumn: inland_delterms
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f25
+
+	column incoterms
+		dataType: string
+		summarizeBy: none
+		sourceColumn: incoterms
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f26
+
+	column date_requested_ship
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: date_requested_ship
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f27
+
+	column release_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: release_date
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f28
+
+	column route_container_count
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: route_container_count
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f29
 
 	partition fact_sales_order_freight = entity
 		mode: directLake

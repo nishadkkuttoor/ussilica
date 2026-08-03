@@ -17,3 +17,30 @@ From my earlier investigation of the SQLs, these are the reports whose adjustmen
 ├───────────────────────────────────────────┼───────────────────────────────────┼────────────────────────────────────────────────────────────┤
 │ BP Freight and Fuel (Combined)            │ ALFVTR                            │ FRTHIDE, FRTTAXY, FRTTAXN, EPDELFRT, FRTNBP, POOLFSC       │
 └───────────────────────────────────────────┴───────────────────────────────────┴────────────────────────────────────────────────────────────┘
+
+
+
+
+Tier 1 — STRICTLY require price_adjustment_fact (7 reports)
+
+These SELECT the F4074 adjustment columns (ALAST + ALUPRC/ALUOM/ALBSDVAL) and GROUP BY ALAST → the report grain is one row per (order line × whitelisted adjustment). A line with N whitelisted adjustments = N rows. The current freight fact collapses F4074 to one arbitrary row per line, so it cannot reproduce these:
+
+1. SOP0025 Monthly Sales Report - Detail
+2. SOP0006 Shipped NOT Invoiced Order Inquiry
+3. SOP0007 Invoiced Orders
+4. SOP0008 Pioneer Natural Resources Sales
+5. SOP000x - Sales Orders at Next Status 577
+6. SOP000x - Sales Orders at Next Status 580 - SO CO & ST
+7. SOP000x - Sales Orders at Next Status 620
+
+Tier 2 — F4074 whitelist used as a FILTER only (3 reports)
+
+These do not display or group by the adjustment — they LEFT JOIN F4074 and filter ALAST IS NULL OR ALAST IN (whitelist). They still need per-adjustment awareness, because:
+- the current fact's single arbitrary adjustment can't correctly answer "does this line have any whitelisted adjustment," and
+- the LEFT-JOIN fan-out can inflate the SUM measures when a line has multiple whitelisted adjustments.
+
+So they need either the price_adjustment_fact or (lighter) a derived has_whitelisted_adjustment existence flag on the line fact:
+
+8. Baseline Report (Finance)
+9. DE Orders
+10. BP Freight and Fuel (Combined) January 2026
