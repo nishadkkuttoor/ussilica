@@ -321,6 +321,7 @@ table fact_extended_sales_order_5
 
 	column quantity
 		dataType: double
+		formatString: #,0.####
 		summarizeBy: none
 		sourceColumn: quantity
 		lineageTag: 9685b13f-eba7-3ce9-c3ca-ee80cfa162e0
@@ -388,6 +389,15 @@ table fact_extended_sales_order_5
 		summarizeBy: none
 		sourceColumn: carrier_po_gl_post_flag
 		lineageTag: dbc9b4a6-7547-0d43-54e8-c7bb34e2bd02
+
+	/// G/L Posted Code as a single "code - description" display value, e.g. "P - Posted".
+	/// P/D -> "<code> - Posted", blank = unposted voucher -> "Unposted", NULL = no OV voucher -> blank.
+	/// This is the report-facing column; [carrier_po_gl_post_flag] keeps the raw code for filtering.
+	column carrier_po_gl_post_flag_desc
+		dataType: string
+		summarizeBy: none
+		sourceColumn: carrier_po_gl_post_flag_desc
+		lineageTag: c7a1b2d3-4e5f-4a6b-8c9d-0e1f2a3b4c5d
 
 	column po_receipt_gl_date
 		dataType: dateTime

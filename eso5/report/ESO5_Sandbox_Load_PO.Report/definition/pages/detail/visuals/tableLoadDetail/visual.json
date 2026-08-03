@@ -527,10 +527,10 @@
                       "Entity": "fact_extended_sales_order_5"
                     }
                   },
-                  "Property": "carrier_po_gl_post_flag"
+                  "Property": "carrier_po_gl_post_flag_desc"
                 }
               },
-              "queryRef": "fact_extended_sales_order_5.carrier_po_gl_post_flag",
+              "queryRef": "fact_extended_sales_order_5.carrier_po_gl_post_flag_desc",
               "nativeQueryRef": "Carrier PO GL Post Flag"
             },
             {

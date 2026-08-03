@@ -256,6 +256,7 @@ FACT_CORE_COLS = [
     "ox_next_status",       # F4311 OXNXTR
     "ox_amount",            # F4311 OXAMT
     "carrier_po_gl_post_flag",  # F0911 GLPOST
+    "carrier_po_gl_post_flag_desc",  # GLPOST as a single "code - description" value, e.g. "P - Posted"
     "po_receipt_gl_date",   # F43121 GLDGJ
     "line_id",              # SDLNID
 ]
@@ -733,7 +734,16 @@ def build_fact():
         F.coalesce(F.col("sd._pox_nxtr"), F.col("_ox_nxtr")).alias("ox_next_status"),
         ox_amount.alias("ox_amount"),                               # OXAMT (three-way rule above)
         ox_amount_gross.alias("ox_amount_gross"),                   # same money, NO item/status condition
-        F.col("carrier_po_gl_post_flag"),                           # F0911
+        F.col("carrier_po_gl_post_flag"),                           # F0911 (raw code, kept for filtering)
+        # decoded G/L Posted Code as a single "code - description" display value: P/D -> "P - Posted",
+        # blank (voucher exists, unposted) -> "Unposted", NULL (no matching OV voucher) -> blank,
+        # any other code -> the code alone.
+        F.when(F.col("carrier_po_gl_post_flag").isNull(), F.lit(None).cast("string"))
+         .when(F.trim(F.col("carrier_po_gl_post_flag")).isin("P", "D"),
+               F.concat(F.trim(F.col("carrier_po_gl_post_flag")), F.lit(" - Posted")))
+         .when(F.trim(F.col("carrier_po_gl_post_flag")) == "", F.lit("Unposted"))
+         .otherwise(F.trim(F.col("carrier_po_gl_post_flag")))
+         .alias("carrier_po_gl_post_flag_desc"),
         F.col("po_receipt_gl_date"),                                # F43121
         # SDLNID — display the RAW JDE line number: 1.00 -> 1000.  Silver decoded the 3 implied decimals;
         # this puts them back. It is LOSSLESS *because* of the decimals, not
