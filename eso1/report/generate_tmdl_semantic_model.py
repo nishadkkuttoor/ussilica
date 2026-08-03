@@ -63,6 +63,7 @@ TABLES = {
         ('invoice_date', 'dateTime', False, None),
         ('requested_date', 'dateTime', False, None),
         ('second_item_number', 'string', False, None),
+        ('third_item_number', 'string', False, None),
         ('line_type', 'string', True, None),
         ('item_name', 'string', False, None),
         ('uom', 'string', False, None),

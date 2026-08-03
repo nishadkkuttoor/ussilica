@@ -215,7 +215,7 @@ FACT_BUSINESS_COLS = [
     # dim_date[year_week] now that there is no date dimension
     "ship_year_week",
     # ── item / uom ──
-    "second_item_number", "line_type", "item_name", "uom", "uom_primary", "uom_pricing",
+    "second_item_number", "third_item_number", "line_type", "item_name", "uom", "uom_primary", "uom_pricing",
     "conversion_to_tons_rate", "missing_conversion_flag",
     # ── filter-only attributes (denormalized for Power BI slicers) ──
     "price_adjustment_type", "standard_industry_code", "category_code_05", "category_code_14",
@@ -302,6 +302,10 @@ def build_fact():
         # used filter (item2<>'MISC BILLING'), so rename to match before the union.
         if "identifier_2nd_item" in _hist.columns and "identifier_second_item" not in _hist.columns:
             _hist = _hist.withColumnRenamed("identifier_2nd_item", "identifier_second_item")
+        # F42119 likewise snake-names SDAITM as `identifier_3rd_item` (≠ F4211 `identifier_third_item`),
+        # so rename to match before the union or third_item_number is NULL for every history row.
+        if "identifier_3rd_item" in _hist.columns and "identifier_third_item" not in _hist.columns:
+            _hist = _hist.withColumnRenamed("identifier_3rd_item", "identifier_third_item")
         f4211 = f4211.unionByName(_hist, allowMissingColumns=True)
     f4201 = load_silver_table(F4201)
     f0101 = load_silver_table(F0101); f4101 = load_silver_table(F4101)
@@ -489,7 +493,7 @@ def build_fact():
         F.trim(F.col("sd.status_code_last")).cast("int").alias("last_status_num"),
         F.col("sd.freight_handling_code").alias("freight_handling_code"),
         F.col("sd.freight_handling_code").alias("freight_handling_code_audit"),
-        F.col("sd.mode_of_transport").alias("mode_of_transport"),
+        F.trim(F.col("sd.mode_of_transport")).alias("mode_of_transport"),
         F.col("rt.route_number").alias("route_number"),
         F.col("sd.container_id").alias("container_id"),
         F.col("sd.transaction_originator").alias("transaction_originator"),
@@ -520,6 +524,7 @@ def build_fact():
         F.col("b01.date_latest_delivery").alias("date_latest_delivery"),
         # ── item / uom ──
         F.col("sd.identifier_second_item").alias("second_item_number"),
+        F.col("sd.identifier_third_item").alias("third_item_number"),   # SDAITM (3rd item number)
         F.col("sd.line_type").alias("line_type"),
         F.col("im.description_line_01").alias("item_name"),
         F.col("sd.uom_as_input").alias("uom"),
