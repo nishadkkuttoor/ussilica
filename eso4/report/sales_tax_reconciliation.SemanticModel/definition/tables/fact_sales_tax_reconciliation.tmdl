@@ -88,6 +88,12 @@ table fact_sales_tax_reconciliation
 		sourceColumn: order_type
 		lineageTag: cb705f89-bf3a-4249-b0d8-df5dd73dadce
 
+	column line_number
+		dataType: double
+		summarizeBy: none
+		sourceColumn: line_number
+		lineageTag: d4e5f6a7-8b9c-4d0e-a1f2-3b4c5d6e7f80
+
 	column plant
 		dataType: string
 		isHidden

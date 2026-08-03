@@ -65,7 +65,6 @@ TABLES = {
         ('second_item_number', 'string', False, None),
         ('third_item_number', 'string', False, None),
         ('line_type', 'string', True, None),
-        ('item_name', 'string', False, None),
         ('uom', 'string', False, None),
         ('conversion_to_tons_rate', 'double', True, None),
         ('missing_conversion_flag', 'string', False, None),

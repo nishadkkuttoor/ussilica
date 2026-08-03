@@ -309,12 +309,6 @@ table fact_sales_order_freight
 		sourceColumn: line_type
 		lineageTag: 5da24c99-b0a4-5455-883e-9563d730e893
 
-	column item_name
-		dataType: string
-		summarizeBy: none
-		sourceColumn: item_name
-		lineageTag: 7a70cda2-9706-5aad-b22b-5bfc1115499d
-
 	column uom
 		dataType: string
 		summarizeBy: none

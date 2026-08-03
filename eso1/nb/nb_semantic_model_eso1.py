@@ -280,7 +280,7 @@ MEASURES = {
 #   percent_commission (SCCPCT), commission_code_type (SCCCTY), category_code_10 (ABAC10 code;
 #   its description = dim_category_code_10[category_code_10_desc] via the UDC 01/10 relationship),
 #   sales_reporting_code_05 (SDSRP5), branch_plant (SDMCU), uom_primary/uom_pricing,
-#   line_type (SDLNTY), item_number_short (SDITM), second_item_number (SDLITM),
+#   line_type (SDLNTY), item_number_short (SDITM), second_item_number (SDLITM), third_item_number (SDAITM),
 #   invoice_number (SDDOC), gl_date (SDDGL), actual_ship_date (SDADDJ) — slice these directly.
 # =============================================================================
 
