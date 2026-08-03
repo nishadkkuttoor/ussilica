@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Generates report/billable_payable_freight.SemanticModel (Direct Lake TMDL) for the
 # TWO-FACT ESO1 model (Billable v Payable Freight + Sales Commission) — reconciled to
-# the hand-maintained twin: 14 tables / 16 relationships / 28 measures, mixed schema
+# the hand-maintained twin: 14 tables / 16 relationships / 30 measures, mixed schema
 # (freight fact + dim_item in otc; everything else rpt), NO is_deleted.
 #   • 2026-07-26 base reconcile = 12 tables / 14 rels.
 #   • 2026-07-29 caught up dim_category_code_05 (UDC 01/05, added to the twin 2026-07-27) AND added
@@ -61,6 +61,7 @@ TABLES = {
         ('ship_year_week', 'string', False, None),
         ('gl_date', 'dateTime', False, None),
         ('invoice_date', 'dateTime', False, None),
+        ('requested_date', 'dateTime', False, None),
         ('second_item_number', 'string', False, None),
         ('line_type', 'string', True, None),
         ('item_name', 'string', False, None),
@@ -109,6 +110,8 @@ TABLES = {
         ('Catch Weight', "SUM('fact_sales_order_freight'[catch_weight])", '#,0', 'Volume'),
         ('Carrier Name', 'SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])', None, 'Names'),
         ('Parent Name', 'SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])', None, 'Names'),
+        ('Days Past Due', "DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)", '#,0', 'Aging'),
+        ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
       ],
     },
     'fact_sales_commission': {
