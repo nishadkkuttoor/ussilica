@@ -62,6 +62,7 @@ def build_dim_item():
     # business columns only — no audit columns
     return (f4101.select(F.col("identifier_short_item").alias("item_number_short"),
                          F.col("description_line_01").alias("item_name"),
+                         F.col("segment_04").alias("item_segment_04"),      # IMSEG4 — moved off the freight fact
                          F.col("uom_weight"))
             .dropDuplicates(["item_number_short"]))
 

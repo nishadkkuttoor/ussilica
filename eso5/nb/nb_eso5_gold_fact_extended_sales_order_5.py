@@ -187,8 +187,14 @@ def load_silver_table(table_name):
     return df.select(*[c for c in df.columns if c not in _SOFT_DELETE_COLS])
 
 def sk(*cols):
-    return F.sha2(F.concat_ws("||", *[F.col(c).cast("string") if isinstance(c, str) else c.cast("string")
-                                       for c in cols]), 256)
+    """Surrogate key — pipe-separated string from one or more column names."""
+    return F.concat_ws(
+        "|",
+        *[
+            F.col(c).cast("string") if isinstance(c, str) else c.cast("string")
+            for c in cols
+        ],
+    )
 
 def load_scope_expr(kcoo_col, dcto_col, doco_col):
     """The per-load scope key, STORED on the fact. Vestigial under the batch build — it was the CDC delete
@@ -777,7 +783,9 @@ def build_fact():
           .withColumn("load_scope_key",
                       load_scope_expr("company", "document_type", "load_number"))   # vestigial key — retained so the fact schema is unchanged
           .withColumn("load_line_key", sk(*FACT_GROUP_BY_COLS)))
-    df = df.dropDuplicates(["load_line_key"])
+    # dedup on the natural group-by columns (not load_line_key) so the row count is independent of the
+    # sk() string format — a no-op after groupBy, but collision-proof regardless of the sk() separator.
+    df = df.dropDuplicates(FACT_GROUP_BY_COLS)
     return df.select("load_line_key", "load_scope_key", *FACT_BUSINESS_COLS)
 
 # ----------------------------------------------------------------------------

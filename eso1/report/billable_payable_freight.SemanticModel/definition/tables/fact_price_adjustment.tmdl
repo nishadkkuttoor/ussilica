@@ -1,0 +1,236 @@
+table fact_price_adjustment
+	lineageTag: c1a4401c-abc0-5b2d-962d-36bcf574f807
+
+	measure 'Adj Quantity Shipped' = SUM('fact_price_adjustment'[quantity_shipped])
+		formatString: #,0.00
+		displayFolder: Adjustments
+		lineageTag: 58e80b0e-7ac7-5da7-9f11-2a3a3d02f18a
+
+	measure 'Adj Extended Price' = SUM('fact_price_adjustment'[extended_price])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Adjustments
+		lineageTag: d7af9259-22fb-5767-b0d9-4f828a1eb0b3
+
+	measure 'Adj Extended Cost' = SUM('fact_price_adjustment'[extended_cost])
+		formatString: \$#,0;-\$#,0
+		displayFolder: Adjustments
+		lineageTag: 3e63ecb5-c3fe-5061-8516-48d1579e838d
+
+	measure 'Adj Primary Qty Ordered' = SUM('fact_price_adjustment'[primary_quantity_ordered])
+		formatString: #,0.00
+		displayFolder: Adjustments
+		lineageTag: cc080be5-6f61-5551-ac63-48d2bcb2a764
+
+	measure 'Adj Quantity Shipped Tons' = SUM('fact_price_adjustment'[quantity_shipped_tons])
+		formatString: #,0.00
+		displayFolder: Adjustments
+		lineageTag: 71dda703-741b-546c-b5b6-e75df600437b
+
+	measure 'Adj Ordered Tons' = SUM('fact_price_adjustment'[transaction_quantity_tons])
+		formatString: #,0.00
+		displayFolder: Adjustments
+		lineageTag: e48169fa-8c80-5a15-94ad-ec5957634c1a
+
+	measure 'Price Per Ton' = DIVIDE([Adj Extended Price], [Adj Ordered Tons])
+		formatString: \$#,0.00
+		displayFolder: Adjustments
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f60
+
+	/// SOP000x Next-Status 620 adjustment buckets. ASSUMPTION: value = adj_unit_price (ALUPRC) and the ALAST->bucket split below — confirm both against the Hubble/report DAX.
+	measure 'Adj Non Product' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"PPSLB", "CASLB"})
+		formatString: \$#,0.00
+		displayFolder: Adjustment Buckets
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f61
+
+	measure 'Adj AL Severance Tax' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"ALST", "A03"})
+		formatString: \$#,0.00
+		displayFolder: Adjustment Buckets
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f62
+
+	measure 'Adj Misc Billing' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"PP06", "PP07", "PP08", "PP13", "PP15", "PP17", "PP26", "PP37", "PP50", "PP51", "PP56", "PP57", "PP97", "PP99"})
+		formatString: \$#,0.00
+		displayFolder: Adjustment Buckets
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f63
+
+	measure 'Adj Freight' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"FRTTAXN", "FRTTAXY"})
+		formatString: \$#,0.00
+		displayFolder: Adjustment Buckets
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f64
+
+	measure 'Adj Car Charges' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"COLPALN", "COLPALT"})
+		formatString: \$#,0.00
+		displayFolder: Adjustment Buckets
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f65
+
+	measure 'Adj Freight Hide' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"FRTHIDE"})
+		formatString: \$#,0.00
+		displayFolder: Adjustment Buckets
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f66
+
+	column price_adjustment_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: price_adjustment_key
+		lineageTag: b9e492a7-ce06-5236-aa40-6d892c60eb4b
+
+	column sales_order_line_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: sales_order_line_key
+		lineageTag: 33029767-7ef7-54f7-8027-eeeb278d72b7
+
+	column company
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: company
+		lineageTag: 08bf53df-edab-5d32-8d74-a5f967edb686
+
+	column company_key_order_no
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: company_key_order_no
+		lineageTag: e4924beb-8306-5a14-93db-1fddf677f850
+
+	column order_type
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: order_type
+		lineageTag: 530fa802-f70a-586e-bb4a-d0d2ea9a7999
+
+	column order_number
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: order_number
+		lineageTag: 3c0ffc5c-6806-51cd-b949-753907ba78ab
+
+	column line_number
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: line_number
+		lineageTag: 98115581-8745-5468-9a52-bee08c66da7d
+
+	column price_adjustment_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: price_adjustment_type
+		lineageTag: f13b12a2-cd41-5584-99ec-ad1547668868
+
+	column adj_unit_price
+		dataType: double
+		summarizeBy: none
+		sourceColumn: adj_unit_price
+		lineageTag: a27e2191-b353-5e93-95ea-9131c5d24ea1
+
+	column adj_uom
+		dataType: string
+		summarizeBy: none
+		sourceColumn: adj_uom
+		lineageTag: c3ee2cb7-020a-594e-bb75-9e1bdd32cda5
+
+	column adj_based_on_value
+		dataType: double
+		summarizeBy: none
+		sourceColumn: adj_based_on_value
+		lineageTag: 1d222990-f50a-57ab-99bc-d4908f1b1658
+
+	column adj_gl_class
+		dataType: string
+		summarizeBy: none
+		sourceColumn: adj_gl_class
+		lineageTag: c6e3c07d-e7a2-51ed-b83f-b97be6797d69
+
+	column adj_factor_value
+		dataType: double
+		summarizeBy: none
+		sourceColumn: adj_factor_value
+		lineageTag: a2940ff6-102a-5e62-bfc7-fcf42fafda61
+
+	column adjustment_seq
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: adjustment_seq
+		lineageTag: 9a3df5bd-26b0-5191-806a-e2874cbe7860
+
+	column quantity_shipped
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: quantity_shipped
+		lineageTag: 679e635e-ff46-5670-921f-52135258060f
+
+	column extended_price
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: extended_price
+		lineageTag: 93d35487-9600-53b4-aa9a-6d13a9bcab13
+
+	column extended_cost
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: extended_cost
+		lineageTag: 6e6fec99-b0cd-5566-a851-e617bdf89777
+
+	column transaction_quantity
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: transaction_quantity
+		lineageTag: 273ef760-515a-5b39-aa4a-80bd9b69ee04
+
+	column primary_quantity_ordered
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: primary_quantity_ordered
+		lineageTag: a454705e-c77b-5c40-af98-a2225a377fa0
+
+	column quantity_shipped_tons
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: quantity_shipped_tons
+		lineageTag: c69342a9-dc23-5249-aa89-ce84746b12b0
+
+	column transaction_quantity_tons
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: transaction_quantity_tons
+		lineageTag: 7dd972c3-24e2-5eec-ab8a-10b7d0e7bfe1
+
+	column conversion_to_tons_rate
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: conversion_to_tons_rate
+		lineageTag: a73a94ee-e3da-5cb3-b2ce-e9551a7d7dcc
+
+	column missing_conversion_flag
+		dataType: string
+		summarizeBy: none
+		sourceColumn: missing_conversion_flag
+		lineageTag: 9b1a2186-9945-5939-9c30-054c93495822
+
+	column currency_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: currency_code
+		lineageTag: dc50df76-99de-5ba1-ab9a-94f9c4dc07d8
+
+	partition fact_price_adjustment = entity
+		mode: directLake
+		source
+			entityName: fact_price_adjustment
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+

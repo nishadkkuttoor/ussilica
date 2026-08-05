@@ -40,7 +40,8 @@ LAKEHOUSE = "lh_jde_gold"
 NEW_TABLES = ["fact_sales_order_freight", "fact_sales_commission", "dim_item",
               "dim_category_code_10",        # UDC 01/10 → category_code_10 description (built by nb_eso1_gold_dim_category_code_10)
               "dim_category_code_05",        # UDC 01/05 → category_code_05 description (built by nb_eso1_gold_dim_category_code_05)
-              "dim_freight_handling_code"]   # UDC 42/FR → freight_handling_code description (built by nb_eso1_gold_dim_freight_handling_code)
+              "dim_freight_handling_code",   # UDC 42/FR → freight_handling_code description (built by nb_eso1_gold_dim_freight_handling_code)
+              "fact_price_adjustment"]       # per-F4074-adjustment fact (built by nb_eso1_gold_fact_price_adjustment)
 RPT_TABLES = ["dim_address_ship_to", "dim_address_sold_to", "dim_address_carrier",
               "dim_address_parent", "dim_address_book_destination", "dim_address_salesperson",
               "dim_plant", "dim_mode_of_transport"]
@@ -62,7 +63,8 @@ NEW_REQUIRED    = [f"{LAKEHOUSE}.rpt.fact_sales_order_freight",
                    f"{LAKEHOUSE}.rpt.dim_item",
                    f"{LAKEHOUSE}.rpt.dim_category_code_10",
                    f"{LAKEHOUSE}.rpt.dim_category_code_05",
-                   f"{LAKEHOUSE}.rpt.dim_freight_handling_code"]
+                   f"{LAKEHOUSE}.rpt.dim_freight_handling_code",
+                   f"{LAKEHOUSE}.rpt.fact_price_adjustment"]
 REUSED_REQUIRED = [f"{LAKEHOUSE}.rpt.dim_address_book", f"{LAKEHOUSE}.rpt.dim_plant",
                    f"{LAKEHOUSE}.rpt.dim_mode_of_transport"]
 REUSED_VIEWS    = [f"{LAKEHOUSE}.rpt.dim_address_ship_to",
@@ -142,7 +144,7 @@ RELATIONSHIPS = [
     ("dim_item",            "item_number_short", FACT, "item_number_short", True),
     ("dim_plant",           "plant_code",        FACT, "branch_plant",     True),
     ("dim_mode_of_transport", "mot_code",        FACT, "mode_of_transport", True),  # UDC 00/TM code -> description
-    ("dim_category_code_05",  "category_code_05", FACT, "category_code_05",  True),  # ABAC05 (UDC 01/05) -> description
+    ("dim_category_code_05",  "category_code_05", "dim_address_ship_to", "category_code_05",  True),  # snowflake: ship-to cat05 (ABAC05) -> UDC 01/05 description (was FACT.category_code_05)
     ("dim_freight_handling_code", "freight_handling_code", FACT, "freight_handling_code", True),  # SDFRTH (UDC 42/FR) -> description
     # ── fact_sales_commission (SOP0027) — conformed dims shared with the freight fact + a salesperson role view.
     #    A dim role view relating to BOTH facts is valid (star with two facts); each rel is dim→fact, single-direction.
@@ -152,6 +154,10 @@ RELATIONSHIPS = [
     ("dim_plant",               "plant_code",        COMM_FACT, "branch_plant",      True),  # SDMCU / SCMCU
     ("dim_item",                "item_number_short", COMM_FACT, "item_number_short", True),  # SDITM / SCITM
     ("dim_category_code_10",    "category_code_10",  COMM_FACT, "category_code_10",  True),  # ABAC10 (UDC 01/10) -> description
+    # ── fact_price_adjustment ↔ fact_sales_order_freight (BIDIRECTIONAL). Tier-2 F4074 reports filter the
+    #    freight fact BY the adjustment whitelist (many→one), so cross-filtering flows both ways. One side
+    #    = the freight fact (unique on sales_order_line_key); many side = the per-adjustment fact.
+    (FACT, "sales_order_line_key", "fact_price_adjustment", "sales_order_line_key", True, "BothDirections"),
     # NO date relationships — there is no date dimension (2026-07-23). Each fact's raw
     # date columns are sliced directly; weekly grouping uses the fact's ship_year_week column.
 ]
@@ -183,6 +189,7 @@ RELATIONSHIPS = [
 # 13 Order Lines                #,0       COUNTROWS(FACT)                                                                                Count of order lines
 # 14 Quantity Shipped Tons      #,0.00    SUM(FACT[quantity_shipped_tons])                                                               Shipped quantity converted to tons
 # 15 Ordered Tons               #,0.00    SUMX(FACT, FACT[transaction_quantity] * COALESCE(FACT[conversion_to_tons_rate], 0))             Ordered quantity (SDUORG) converted to tons; NULL rate -> 0 (SOP0025/SOP000x-620 RC19)
+# 15b Container Count           #,0       SUMX(VALUES(FACT[shipment_number]), CALCULATE(MAX(FACT[route_container_count])))              F4941 SUM(RSNCTR) shipment-deduped (04a Export Open Orders RC2)
 # 16 Price Quantity Shipped     $#,0      SUM(FACT[price_quantity_shipped])                                                              Extended value = price x quantity shipped
 # ── BOL WEIGH-TICKET WEIGHTS (F5549002, line grain) ──────────────────────────
 # 17 Gross Weight               #,0       SUM(FACT[gross_weight])                                                                        Sum of BOL gross weight across a load's lines
@@ -228,6 +235,9 @@ MEASURES = {
     # ordered quantity (SDUORG) converted to tons; conversion_to_tons_rate = TN passthrough + F41002 factor,
     # NULL -> 0 tons (matches Hubble's THEN 0). Same rate the fact uses for quantity_shipped_tons.
     "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
+    # F4941 shipment container count (SUM(RSNCTR)) — per-shipment value, dedup across a shipment's lines
+    # (never a raw SUM). Serves 04a Export Open Orders ReportColumn2.
+    "Container Count":        (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[route_container_count])))", "#,0", False),
     "Price Quantity Shipped": (f"SUM('{FACT}'[price_quantity_shipped])", "\\$#,0", False),
     # BOL weigh-ticket weights (M5, F5549002) — line grain, additive across a load's lines (max_weight is a
     # per-line capacity, not summable, so it stays a column not a measure)
@@ -300,14 +310,40 @@ COMM_MEASURES = {
     "Salesperson Name": ("SELECTEDVALUE(dim_address_salesperson[address_number]) & \" - \" & SELECTEDVALUE(dim_address_salesperson[name_alpha])", None, False),
 }
 
+# =============================================================================
+# PRICE-ADJUSTMENT MEASURE CATALOG — fact_price_adjustment (per-F4074 adjustment grain)
+#   Line values carried physically and fanned per adjustment; SUM at adjustment grain =
+#   Hubble's per-adjustment SUM(SDAEXP/SDSOQS/...). Serves the 10 F4074 Filter-Capture reports.
+# =============================================================================
+PA_FACT = "fact_price_adjustment"
+PA_MEASURES = {
+    "Adj Quantity Shipped":      (f"SUM('{PA_FACT}'[quantity_shipped])",         "#,0.00",         False),
+    "Adj Extended Price":        (f"SUM('{PA_FACT}'[extended_price])",           "\\$#,0;-\\$#,0", False),
+    "Adj Extended Cost":         (f"SUM('{PA_FACT}'[extended_cost])",            "\\$#,0;-\\$#,0", False),
+    "Adj Primary Qty Ordered":   (f"SUM('{PA_FACT}'[primary_quantity_ordered])", "#,0.00",         False),
+    "Adj Quantity Shipped Tons": (f"SUM('{PA_FACT}'[quantity_shipped_tons])",    "#,0.00",         False),
+    "Adj Ordered Tons":          (f"SUM('{PA_FACT}'[transaction_quantity_tons])","#,0.00",         False),
+    "Price Per Ton":             ("DIVIDE([Adj Extended Price], [Adj Ordered Tons])", "\\$#,0.00", False),
+    # SOP000x Next-Status 620 adjustment buckets. ASSUMPTION: value = adj_unit_price (ALUPRC) + the ALAST->bucket
+    # split below — confirm both against the report DAX before relying on these numbers.
+    "Adj Non Product":           (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"PPSLB\", \"CASLB\"}})", "\\$#,0.00", False),
+    "Adj AL Severance Tax":      (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"ALST\", \"A03\"}})", "\\$#,0.00", False),
+    "Adj Misc Billing":          (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"PP06\", \"PP07\", \"PP08\", \"PP13\", \"PP15\", \"PP17\", \"PP26\", \"PP37\", \"PP50\", \"PP51\", \"PP56\", \"PP57\", \"PP97\", \"PP99\"}})", "\\$#,0.00", False),
+    "Adj Freight":               (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"FRTTAXN\", \"FRTTAXY\"}})", "\\$#,0.00", False),
+    "Adj Car Charges":           (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"COLPALN\", \"COLPALT\"}})", "\\$#,0.00", False),
+    "Adj Freight Hide":          (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"FRTHIDE\"}})", "\\$#,0.00", False),
+}
+
 with connect_semantic_model(dataset=MODEL, readonly=False) as tom:
-    # relationships
-    for ft, fc, tt, tc, active in RELATIONSHIPS:
+    # relationships (6th tuple element = cross-filter behavior; default OneDirection)
+    for _rel in RELATIONSHIPS:
+        ft, fc, tt, tc, active = _rel[0], _rel[1], _rel[2], _rel[3], _rel[4]
+        xfb = _rel[5] if len(_rel) > 5 else "OneDirection"
         try:
             tom.add_relationship(
                 from_table=ft, from_column=fc, to_table=tt, to_column=tc,
                 from_cardinality="One", to_cardinality="Many",
-                cross_filtering_behavior="OneDirection", is_active=active)
+                cross_filtering_behavior=xfb, is_active=active)
         except Exception as e:
             print(f"  rel {ft}->{tt} skipped: {e}")
 
@@ -323,6 +359,14 @@ with connect_semantic_model(dataset=MODEL, readonly=False) as tom:
     for name, (dax, fmt, hidden) in COMM_MEASURES.items():
         try:
             tom.add_measure(table_name=COMM_FACT, measure_name=name, expression=dax,
+                            format_string=fmt, hidden=hidden)
+        except Exception as e:
+            print(f"  measure {name} skipped: {e}")
+
+    # measures — price-adjustment fact (per-F4074 adjustment; SUM fans out per adjustment like Hubble)
+    for name, (dax, fmt, hidden) in PA_MEASURES.items():
+        try:
+            tom.add_measure(table_name=PA_FACT, measure_name=name, expression=dax,
                             format_string=fmt, hidden=hidden)
         except Exception as e:
             print(f"  measure {name} skipped: {e}")

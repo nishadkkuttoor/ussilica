@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Generates report/billable_payable_freight.SemanticModel (Direct Lake TMDL) for the
 # TWO-FACT ESO1 model (Billable v Payable Freight + Sales Commission) — reconciled to
-# the hand-maintained twin: 14 tables / 16 relationships / 30 measures, mixed schema
+# the hand-maintained twin: 15 tables / 17 relationships / 44 measures, mixed schema
 # (freight fact + dim_item in otc; everything else rpt), NO is_deleted.
 #   • 2026-07-26 base reconcile = 12 tables / 14 rels.
 #   • 2026-07-29 caught up dim_category_code_05 (UDC 01/05, added to the twin 2026-07-27) AND added
@@ -53,7 +53,6 @@ TABLES = {
         ('carrier_number', 'int64', True, None),
         ('item_number_short', 'int64', True, None),
         ('branch_plant', 'string', True, None),
-        ('category_code_05', 'string', True, None),
         ('ship_date_key', 'int64', True, None),
         ('gl_date_key', 'int64', True, None),
         ('invoice_date_key', 'int64', True, None),
@@ -88,6 +87,35 @@ TABLES = {
         ('freight_variance', 'double', True, None),
         ('total_variance', 'double', True, None),
         ('is_primary_shipment_line', 'string', True, None),
+        ('production_code', 'string', False, None),
+        ('production_ship_notes', 'string', False, None),
+        ('order_reference', 'string', False, None),
+        ('routing_notes', 'string', False, None),
+        ('equipment_type', 'string', False, None),
+        ('inland_delterms', 'string', False, None),
+        ('incoterms', 'string', False, None),
+        ('date_requested_ship', 'dateTime', False, None),
+        ('release_date', 'dateTime', False, None),
+        ('route_container_count', 'double', True, None),
+        # ── SOP000x Next-Status 620 / SOP sales-status page display cols (physical on fact; exposed for the SOP model) ──
+        ('user_reserved_reference', 'string', False, None),   # SDURRF
+        ('transaction_originator', 'string', False, None),    # SDTORG
+        ('user_id', 'string', False, None),                   # SDUSER
+        ('time_of_day', 'int64', False, None),                # SDTDAY
+        ('hold_orders_code', 'string', False, None),          # SHHOLD
+        ('deferred_entries_flag', 'string', False, None),     # F49211 UDDEFF (Cycle Billing Entries Flag)
+        ('gl_class', 'string', False, None),                  # SDGLC
+        ('status_code_last', 'string', False, None),          # SDLTTR
+        ('status_code_next', 'string', False, None),          # SDNXTR
+        ('last_status_num', 'int64', True, None),             # SDLTTR int copy (page range-filter)
+        ('next_status_num', 'int64', True, None),             # SDNXTR int copy (page range-filter)
+        ('container_id', 'string', False, None),              # SDCNID (Vehicle No.)
+        ('reference_01', 'string', False, None),              # SDVR01 (Customer PO Number)
+        ('location', 'string', False, None),                  # SDLOCN
+        ('lot_number', 'string', False, None),                # SDLOTN
+        ('date_updated', 'dateTime', False, None),            # SDUPMJ
+        ('order_date', 'dateTime', False, None),              # SDTRDJ (line order date)
+        ('pricing_issue_remark', 'string', False, None),      # derived: 'Unit Price Zero' / 'No effective price'
       ],
       "measures": [
         ('Billable Freight', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[billable_freight])))", '\\$#,0;-\\$#,0', 'Freight'),
@@ -112,6 +140,7 @@ TABLES = {
         ('Parent Name', 'SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])', None, 'Names'),
         ('Days Past Due', "DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)", '#,0', 'Aging'),
         ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
+        ('Container Count', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))", '#,0', 'Volume'),
       ],
     },
     'fact_sales_commission': {
@@ -178,6 +207,7 @@ TABLES = {
       "cols": [
         ('item_number_short', 'int64', True, None),
         ('item_name', 'string', False, None),
+        ('item_segment_04', 'string', False, None),   # IMSEG4 (was fact.item_segment_04)
         ('uom_weight', 'string', False, None),
       ],
       "measures": [
@@ -199,6 +229,9 @@ TABLES = {
         ('address_line_03', 'string', False, None),
         ('address_line_04', 'string', False, None),
         ('has_postal_address', 'string', False, None),
+        ('category_code_05', 'string', False, None),   # ABAC05 (was fact.category_code_05)
+        ('category_code_14', 'string', False, None),   # ABAC14 (was fact.category_code_14)
+        ('address_rate', 'double', False, None),       # ABURAT (was fact.address_rate)
       ],
       "measures": [
 
@@ -219,6 +252,8 @@ TABLES = {
         ('address_line_03', 'string', False, None),
         ('address_line_04', 'string', False, None),
         ('has_postal_address', 'string', False, None),
+        ('category_code_05', 'string', False, None),   # ABAC05 (was fact.sold_to_category_05)
+        ('category_code_10', 'string', False, None),   # ABAC10 (was fact.sold_to_category_10)
       ],
       "measures": [
 
@@ -340,6 +375,55 @@ TABLES = {
 
       ],
     },
+    # per-F4074-adjustment fact (line × adjustment). Built by nb_eso1_gold_fact_price_adjustment.py.
+    # Line display cols + line-level filters come from fact_sales_order_freight via the BIDIRECTIONAL
+    # relationship; the measures below are physical line values fanned per adjustment (SUM = Hubble's
+    # per-adjustment SUM). Whitelist is the PBI page filter on price_adjustment_type (sets differ per report).
+    'fact_price_adjustment': {
+      "cols": [
+        ('price_adjustment_key', 'string', True, None),
+        ('sales_order_line_key', 'string', True, None),
+        ('company', 'string', True, None),
+        ('company_key_order_no', 'string', True, None),
+        ('order_type', 'string', True, None),
+        ('order_number', 'int64', True, None),
+        ('line_number', 'double', True, None),
+        ('price_adjustment_type', 'string', False, None),
+        ('adj_unit_price', 'double', False, None),
+        ('adj_uom', 'string', False, None),
+        ('adj_based_on_value', 'double', False, None),
+        ('adj_gl_class', 'string', False, None),
+        ('adj_factor_value', 'double', False, None),
+        ('adjustment_seq', 'int64', True, None),
+        ('quantity_shipped', 'double', True, None),
+        ('extended_price', 'double', True, None),
+        ('extended_cost', 'double', True, None),
+        ('transaction_quantity', 'double', True, None),
+        ('primary_quantity_ordered', 'double', True, None),
+        ('quantity_shipped_tons', 'double', True, None),
+        ('transaction_quantity_tons', 'double', True, None),
+        ('conversion_to_tons_rate', 'double', True, None),
+        ('missing_conversion_flag', 'string', False, None),
+        ('currency_code', 'string', False, None),
+      ],
+      "measures": [
+        ('Adj Quantity Shipped', "SUM('fact_price_adjustment'[quantity_shipped])", '#,0.00', 'Adjustments'),
+        ('Adj Extended Price', "SUM('fact_price_adjustment'[extended_price])", '\\$#,0;-\\$#,0', 'Adjustments'),
+        ('Adj Extended Cost', "SUM('fact_price_adjustment'[extended_cost])", '\\$#,0;-\\$#,0', 'Adjustments'),
+        ('Adj Primary Qty Ordered', "SUM('fact_price_adjustment'[primary_quantity_ordered])", '#,0.00', 'Adjustments'),
+        ('Adj Quantity Shipped Tons', "SUM('fact_price_adjustment'[quantity_shipped_tons])", '#,0.00', 'Adjustments'),
+        ('Adj Ordered Tons', "SUM('fact_price_adjustment'[transaction_quantity_tons])", '#,0.00', 'Adjustments'),
+        ('Price Per Ton', "DIVIDE([Adj Extended Price], [Adj Ordered Tons])", '\\$#,0.00', 'Adjustments'),
+        # SOP000x Next-Status 620 adjustment buckets. ASSUMPTION: value = adj_unit_price (ALUPRC) + the ALAST->bucket
+        # split below — confirm both against the report DAX before relying on these numbers.
+        ('Adj Non Product', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"PPSLB\", \"CASLB\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj AL Severance Tax', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"ALST\", \"A03\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Misc Billing', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"PP06\", \"PP07\", \"PP08\", \"PP13\", \"PP15\", \"PP17\", \"PP26\", \"PP37\", \"PP50\", \"PP51\", \"PP56\", \"PP57\", \"PP97\", \"PP99\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Freight', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"FRTTAXN\", \"FRTTAXY\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Car Charges', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"COLPALN\", \"COLPALT\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Freight Hide', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"FRTHIDE\"})", '\\$#,0.00', 'Adjustment Buckets'),
+      ],
+    },
 }
 
 # (from_table[MANY], from_col, to_table[ONE], to_col, is_active)
@@ -358,8 +442,11 @@ REL = [
     ('fact_sales_commission', 'branch_plant', 'dim_plant', 'plant_code', True),
     ('fact_sales_commission', 'item_number_short', 'dim_item', 'item_number_short', True),
     ('fact_sales_commission', 'category_code_10', 'dim_category_code_10', 'category_code_10', True),
-    ('fact_sales_order_freight', 'category_code_05', 'dim_category_code_05', 'category_code_05', True),
+    ('dim_address_ship_to', 'category_code_05', 'dim_category_code_05', 'category_code_05', True),   # snowflake: ship-to cat05 -> UDC 01/05 decode (was fact.category_code_05)
     ('fact_sales_order_freight', 'freight_handling_code', 'dim_freight_handling_code', 'freight_handling_code', True),
+    # BIDIRECTIONAL: Tier-2 F4074 reports filter the freight fact BY the adjustment whitelist (many->one),
+    # so cross-filtering must flow both ways. 6th element = bothDirections.
+    ('fact_price_adjustment', 'sales_order_line_key', 'fact_sales_order_freight', 'sales_order_line_key', True, True),
 ]
 
 # ── WIRING CHECK ─────────────────────────────────────────────────────────────
@@ -367,7 +454,8 @@ REL = [
 # the two new tables; every other table must be rpt. Fail fast on a typo.
 _cols_of = {t: {c[0] for c in spec["cols"]} for t, spec in TABLES.items()}
 _errs = []
-for ft, fc, tt, tc, _ in REL:
+for _rel in REL:
+    ft, fc, tt, tc = _rel[0], _rel[1], _rel[2], _rel[3]
     for tbl, col in [(ft, fc), (tt, tc)]:
         if tbl not in TABLES: _errs.append(f"relationship references unknown table '{tbl}'")
         elif col not in _cols_of[tbl]: _errs.append(f"relationship references unknown column '{tbl}[{col}]'")
@@ -408,10 +496,13 @@ for tname, t in TABLES.items():
     w(os.path.join(TBLS, f"{tname}.tmdl"), "\n".join(L) + "\n")
 
 RL = []
-for ft, fc, tt, tc, active in REL:
+for _rel in REL:
+    ft, fc, tt, tc, active = _rel[0], _rel[1], _rel[2], _rel[3], _rel[4]
+    both = _rel[5] if len(_rel) > 5 else False
     rid = tag(f"r:{ft}.{fc}->{tt}.{tc}")
     RL += [f"relationship {rid}"]
     if not active: RL += [f"{T}isActive: false"]
+    if both: RL += [f"{T}crossFilteringBehavior: bothDirections"]
     RL += [f"{T}fromColumn: {ft}.{fc}", f"{T}toColumn: {tt}.{tc}", ""]
 w(os.path.join(DEFN, "relationships.tmdl"), "\n".join(RL) + "\n")
 
