@@ -80,6 +80,18 @@ table dim_address_sold_to
 		sourceColumn: has_postal_address
 		lineageTag: a5110e95-729c-575a-bc6a-584946aa9d0d
 
+	column category_code_05
+		dataType: string
+		summarizeBy: none
+		sourceColumn: category_code_05
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd4
+
+	column category_code_10
+		dataType: string
+		summarizeBy: none
+		sourceColumn: category_code_10
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd5
+
 	partition dim_address_sold_to = entity
 		mode: directLake
 		source

@@ -114,8 +114,14 @@ def date_key(col):
     return F.when(col.isNotNull(), F.date_format(col, "yyyyMMdd").cast("int"))
 
 def sk(*cols):
-    return F.sha2(F.concat_ws("||", *[F.col(c).cast("string") if isinstance(c, str) else c.cast("string")
-                                       for c in cols]), 256)
+    """Surrogate key — pipe-separated string from one or more column names."""
+    return F.concat_ws(
+        "|",
+        *[
+            F.col(c).cast("string") if isinstance(c, str) else c.cast("string")
+            for c in cols
+        ],
+    )
 
 def _exists(fqn):
     try:

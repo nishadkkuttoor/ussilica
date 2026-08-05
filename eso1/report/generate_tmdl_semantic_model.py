@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Generates report/billable_payable_freight.SemanticModel (Direct Lake TMDL) for the
 # TWO-FACT ESO1 model (Billable v Payable Freight + Sales Commission) — reconciled to
-# the hand-maintained twin: 15 tables / 17 relationships / 37 measures, mixed schema
+# the hand-maintained twin: 15 tables / 17 relationships / 44 measures, mixed schema
 # (freight fact + dim_item in otc; everything else rpt), NO is_deleted.
 #   • 2026-07-26 base reconcile = 12 tables / 14 rels.
 #   • 2026-07-29 caught up dim_category_code_05 (UDC 01/05, added to the twin 2026-07-27) AND added
@@ -53,7 +53,6 @@ TABLES = {
         ('carrier_number', 'int64', True, None),
         ('item_number_short', 'int64', True, None),
         ('branch_plant', 'string', True, None),
-        ('category_code_05', 'string', True, None),
         ('ship_date_key', 'int64', True, None),
         ('gl_date_key', 'int64', True, None),
         ('invoice_date_key', 'int64', True, None),
@@ -98,6 +97,25 @@ TABLES = {
         ('date_requested_ship', 'dateTime', False, None),
         ('release_date', 'dateTime', False, None),
         ('route_container_count', 'double', True, None),
+        # ── SOP000x Next-Status 620 / SOP sales-status page display cols (physical on fact; exposed for the SOP model) ──
+        ('user_reserved_reference', 'string', False, None),   # SDURRF
+        ('transaction_originator', 'string', False, None),    # SDTORG
+        ('user_id', 'string', False, None),                   # SDUSER
+        ('time_of_day', 'int64', False, None),                # SDTDAY
+        ('hold_orders_code', 'string', False, None),          # SHHOLD
+        ('deferred_entries_flag', 'string', False, None),     # F49211 UDDEFF (Cycle Billing Entries Flag)
+        ('gl_class', 'string', False, None),                  # SDGLC
+        ('status_code_last', 'string', False, None),          # SDLTTR
+        ('status_code_next', 'string', False, None),          # SDNXTR
+        ('last_status_num', 'int64', True, None),             # SDLTTR int copy (page range-filter)
+        ('next_status_num', 'int64', True, None),             # SDNXTR int copy (page range-filter)
+        ('container_id', 'string', False, None),              # SDCNID (Vehicle No.)
+        ('reference_01', 'string', False, None),              # SDVR01 (Customer PO Number)
+        ('location', 'string', False, None),                  # SDLOCN
+        ('lot_number', 'string', False, None),                # SDLOTN
+        ('date_updated', 'dateTime', False, None),            # SDUPMJ
+        ('order_date', 'dateTime', False, None),              # SDTRDJ (line order date)
+        ('pricing_issue_remark', 'string', False, None),      # derived: 'Unit Price Zero' / 'No effective price'
       ],
       "measures": [
         ('Billable Freight', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[billable_freight])))", '\\$#,0;-\\$#,0', 'Freight'),
@@ -189,6 +207,7 @@ TABLES = {
       "cols": [
         ('item_number_short', 'int64', True, None),
         ('item_name', 'string', False, None),
+        ('item_segment_04', 'string', False, None),   # IMSEG4 (was fact.item_segment_04)
         ('uom_weight', 'string', False, None),
       ],
       "measures": [
@@ -210,6 +229,9 @@ TABLES = {
         ('address_line_03', 'string', False, None),
         ('address_line_04', 'string', False, None),
         ('has_postal_address', 'string', False, None),
+        ('category_code_05', 'string', False, None),   # ABAC05 (was fact.category_code_05)
+        ('category_code_14', 'string', False, None),   # ABAC14 (was fact.category_code_14)
+        ('address_rate', 'double', False, None),       # ABURAT (was fact.address_rate)
       ],
       "measures": [
 
@@ -230,6 +252,8 @@ TABLES = {
         ('address_line_03', 'string', False, None),
         ('address_line_04', 'string', False, None),
         ('has_postal_address', 'string', False, None),
+        ('category_code_05', 'string', False, None),   # ABAC05 (was fact.sold_to_category_05)
+        ('category_code_10', 'string', False, None),   # ABAC10 (was fact.sold_to_category_10)
       ],
       "measures": [
 
@@ -389,6 +413,15 @@ TABLES = {
         ('Adj Primary Qty Ordered', "SUM('fact_price_adjustment'[primary_quantity_ordered])", '#,0.00', 'Adjustments'),
         ('Adj Quantity Shipped Tons', "SUM('fact_price_adjustment'[quantity_shipped_tons])", '#,0.00', 'Adjustments'),
         ('Adj Ordered Tons', "SUM('fact_price_adjustment'[transaction_quantity_tons])", '#,0.00', 'Adjustments'),
+        ('Price Per Ton', "DIVIDE([Adj Extended Price], [Adj Ordered Tons])", '\\$#,0.00', 'Adjustments'),
+        # SOP000x Next-Status 620 adjustment buckets. ASSUMPTION: value = adj_unit_price (ALUPRC) + the ALAST->bucket
+        # split below — confirm both against the report DAX before relying on these numbers.
+        ('Adj Non Product', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"PPSLB\", \"CASLB\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj AL Severance Tax', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"ALST\", \"A03\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Misc Billing', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"PP06\", \"PP07\", \"PP08\", \"PP13\", \"PP15\", \"PP17\", \"PP26\", \"PP37\", \"PP50\", \"PP51\", \"PP56\", \"PP57\", \"PP97\", \"PP99\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Freight', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"FRTTAXN\", \"FRTTAXY\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Car Charges', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"COLPALN\", \"COLPALT\"})", '\\$#,0.00', 'Adjustment Buckets'),
+        ('Adj Freight Hide', "CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {\"FRTHIDE\"})", '\\$#,0.00', 'Adjustment Buckets'),
       ],
     },
 }
@@ -409,7 +442,7 @@ REL = [
     ('fact_sales_commission', 'branch_plant', 'dim_plant', 'plant_code', True),
     ('fact_sales_commission', 'item_number_short', 'dim_item', 'item_number_short', True),
     ('fact_sales_commission', 'category_code_10', 'dim_category_code_10', 'category_code_10', True),
-    ('fact_sales_order_freight', 'category_code_05', 'dim_category_code_05', 'category_code_05', True),
+    ('dim_address_ship_to', 'category_code_05', 'dim_category_code_05', 'category_code_05', True),   # snowflake: ship-to cat05 -> UDC 01/05 decode (was fact.category_code_05)
     ('fact_sales_order_freight', 'freight_handling_code', 'dim_freight_handling_code', 'freight_handling_code', True),
     # BIDIRECTIONAL: Tier-2 F4074 reports filter the freight fact BY the adjustment whitelist (many->one),
     # so cross-filtering must flow both ways. 6th element = bothDirections.

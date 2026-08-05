@@ -92,9 +92,15 @@ def _load_optional(table_name):
     return None
 
 def sk(*cols):
+    """Surrogate key — pipe-separated string from one or more column names."""
     # identical to the freight fact's sk() so sales_order_line_key matches byte-for-byte
-    return F.sha2(F.concat_ws("||", *[F.col(c).cast("string") if isinstance(c, str) else c.cast("string")
-                                       for c in cols]), 256)
+    return F.concat_ws(
+        "|",
+        *[
+            F.col(c).cast("string") if isinstance(c, str) else c.cast("string")
+            for c in cols
+        ],
+    )
 
 def tableExists(fqn):
     try:

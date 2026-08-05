@@ -55,10 +55,15 @@ relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f38
 	toColumn: dim_category_code_10.category_code_10
 
 relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f39
-	fromColumn: fact_sales_order_freight.category_code_05
+	fromColumn: dim_address_ship_to.category_code_05
 	toColumn: dim_category_code_05.category_code_05
 
 relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f3a
 	fromColumn: fact_sales_order_freight.freight_handling_code
 	toColumn: dim_freight_handling_code.freight_handling_code
+
+relationship 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f3b
+	crossFilteringBehavior: bothDirections
+	fromColumn: fact_price_adjustment.sales_order_line_key
+	toColumn: fact_sales_order_freight.sales_order_line_key
 
