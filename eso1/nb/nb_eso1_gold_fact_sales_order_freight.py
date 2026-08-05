@@ -47,10 +47,11 @@ F4201    = "f4201_sales_order_header_file"
 F0101    = "f0101_address_book_master"
 F4101    = "f4101_item_master"
 F41002   = "f41002_item_units_of_measure_conversion_factors"
-# F41003 (standard UoM conversion) is no longer sourced here — the standard-UoM fallback is
-# served by the reused Gold dim lh_jde_gold.eso7.dim_uom_conversion (from_uom -> std_factor),
-# built/maintained by nb_silver_to_gold_dim_f41003.py, and applied as the Tier-B leg of the
-# Total Tons DAX measure via RELATED.
+F41003   = "f41003_unit_of_measure_standard_conversion"   # standard (item-agnostic) UoM conversion — Tier-2 tons fallback
+# NOTE: F41003 is now sourced HERE (baked into conversion_to_tons_rate as the Tier-2 fallback) rather than deferred
+# to a DAX RELATED against dim_uom_conversion. That deferral was never actually implemented in the semantic model,
+# so lines lacking an F41002 item conversion silently got 0 tons; baking F41003 in reproduces Hubble's
+# F41002 -> F41003 tiering and also feeds the physical *_tons columns (which DAX RELATED could not).
 F4074    = "f4074_price_adjustment_ledger_file"
 F4981    = "f4981_freight_audit_history"
 F5642B01 = "f5642b01_custom_sales_order_entry_screen_header"
@@ -153,18 +154,30 @@ def pick_col(df, candidates):
 
 # UoM -> TN cascades + freight buckets (F4981 -> shipment grain)
 def build_uom_cascades():
-    # item-specific F41002 conversion ONLY (fwd + reciprocal rev union).
-    # The F41003 standard-UoM fallback is served downstream by the reused dim_uom_conversion
-    # dim (built by nb_silver_to_gold_dim_f41003.py) via DAX RELATED, so it is intentionally
-    # not cascaded here.
+    # Tier 1 — item-specific F41002 (UMMCU=blank, direct uom<->TN, fwd + reciprocal rev). For a direct row
+    # Hubble's via-primary ratio UMCNV1(uom)/UMCNV1(TN) reduces to UMCONV, so UMCONV (conversion_factor) is the
+    # correct column. UMMCU=blank matches Hubble's branch-independent pick; dedup prevents LEFT-join fan-out.
     f41002 = load_silver_table(F41002)
+    f41002 = f41002.filter((F.trim(F.col("cost_center")) == "") | F.col("cost_center").isNull())
     item_fwd = (f41002.filter((F.trim("related_uom") == "TN") & (F.col("conversion_factor") != 0))
                 .select(F.col("identifier_short_item").alias("itm"), F.trim("uom").alias("from_uom"),
                         F.col("conversion_factor").cast("double").alias("conv_factor")))
     item_rev = (f41002.filter((F.trim("uom") == "TN") & (F.col("conversion_factor") != 0))
                 .select(F.col("identifier_short_item").alias("itm"), F.trim("related_uom").alias("from_uom"),
                         (F.lit(1.0) / F.col("conversion_factor").cast("double")).alias("conv_factor")))
-    return item_fwd.unionByName(item_rev)
+    return item_fwd.unionByName(item_rev).dropDuplicates(["itm", "from_uom"])
+
+def build_std_uom_cascade():
+    # Tier 2 — F41003 standard (item-agnostic) UoM -> TN, coalesced AFTER the F41002 item factor, reproducing
+    # Hubble's F41002 -> F41003 tiering. Same direct fwd + reciprocal rev shape; deduped to one row per uom.
+    f41003 = load_silver_table(F41003)
+    std_fwd = (f41003.filter((F.trim("related_uom") == "TN") & (F.col("conversion_factor") != 0))
+               .select(F.trim("uom").alias("from_uom"),
+                       F.col("conversion_factor").cast("double").alias("std_factor")))
+    std_rev = (f41003.filter((F.trim("uom") == "TN") & (F.col("conversion_factor") != 0))
+               .select(F.trim("related_uom").alias("from_uom"),
+                       (F.lit(1.0) / F.col("conversion_factor").cast("double")).alias("std_factor")))
+    return std_fwd.unionByName(std_rev).dropDuplicates(["from_uom"])
 
 def transform_freight_buckets():
     f4981 = load_silver_table(F4981)   # no vendor-invoice filter — all freight-audit rows included
@@ -329,7 +342,8 @@ def build_fact():
     f41002 = load_silver_table(F41002)
     f5549 = load_silver_table(F5549002)                    # BOL interface weigh-ticket weights
     f03012 = load_silver_table(F03012); f49211 = load_silver_table(F49211)  # sold-to LOB cat / SO-line tag flag
-    conv_item = build_uom_cascades()
+    conv_item = build_uom_cascades()      # Tier 1 — item-specific F41002
+    conv_std  = build_std_uom_cascade()   # Tier 2 — standard F41003
 
     gl_name, gl_present = pick_col(f4211, ["dt_for_gl_and_vouch_01",   # F4211.SDDGL in Silver
         "date_for_g_l_julian", "date_g_l_julian", "date_general_ledger_julian",
@@ -451,6 +465,8 @@ def build_fact():
          .join(conv_item.alias("ci"),
                (F.col("ci.itm") == F.col("sd.identifier_short_item")) &
                (F.col("ci.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left")
+         .join(conv_std.alias("cs"),                                  # F41003 std fallback (1:1 on uom, no fan-out)
+               (F.col("cs.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left")
          .join(f4074w.alias("al"),
                (F.col("al.company_key_order_no") == F.col("sd.company_key_order_no")) &
                (F.col("al.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
@@ -470,11 +486,11 @@ def build_fact():
                (F.col("tag.order_type") == F.col("sd.order_type")) &
                (F.col("tag.line_number") == F.col("sd.line_number")), "left"))
 
-    # TN passes through as 1.0, else the item-specific F41002 factor.
-    # Unresolved conversions stay NULL (no blanket 1.0 default) so the F41003 fallback
-    # resolves downstream via DAX RELATED; missing_conversion_flag marks those rows.
+    # UoM -> TN rate: TN passthrough (1.0) -> F41002 item factor (Tier 1) -> F41003 standard factor (Tier 2).
+    # Only rows unresolved by ALL THREE stay NULL (missing_conversion_flag='Y'); no blanket 1.0 default.
     conv_rate = F.coalesce(F.when(F.trim(F.col("sd.uom_as_input")) == "TN", F.lit(1.0)),
-                           F.col("ci.conv_factor"))
+                           F.col("ci.conv_factor"),
+                           F.col("cs.std_factor"))
 
     sel = j.select(
         # ── degenerate / order identifiers ──
@@ -733,7 +749,8 @@ FACT_SOURCES = [
     {"silver": F42119,   "join": "union",  "join_pairs": [], "optional": True},  # Sales Order History — unioned via _load_optional if present
     {"silver": F4201,    "join": "static", "join_pairs": []},                    # order header (hold / delivery instr / price-eff / orig-promise)
     {"silver": F0101,    "join": "static", "join_pairs": []},                    # destination address dedup only (_dest_ab); all ship-to/sold-to attrs now via dim_address_*
-    {"silver": F41002,   "join": "static", "join_pairs": []},                    # UoM->TN conversion + UMUSTR structure
+    {"silver": F41002,   "join": "static", "join_pairs": []},                    # item UoM->TN conversion (Tier 1) + UMUSTR structure
+    {"silver": F41003,   "join": "static", "join_pairs": []},                    # standard UoM->TN conversion (Tier 2 fallback)
     {"silver": F4074,    "join": "static", "join_pairs": []},                    # price-adjustment ledger (ALAST / ALUPRC / ALGLC / ALBSDVAL / ALUOM / ALFVTR)
     {"silver": F4941,    "join": "static", "join_pairs": []},                    # shipment routing (route_number / OCE flag / container count)
     {"silver": F4981,    "join": "static", "join_pairs": []},                    # freight-audit buckets (billable / payable / total) at shipment grain

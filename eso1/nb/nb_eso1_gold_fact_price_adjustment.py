@@ -64,6 +64,7 @@ def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 F4211   = "f4211_sales_order_detail_file"
 F4074   = "f4074_price_adjustment_ledger_file"
 F41002  = "f41002_item_units_of_measure_conversion_factors"
+F41003  = "f41003_unit_of_measure_standard_conversion"   # standard (item-agnostic) UoM conversion — Tier-2 tons fallback
 # page-level / history union (optional — same 268-col SD* schema as F4211)
 F42119  = "f42119_sales_order_history_file"
 
@@ -113,18 +114,36 @@ def tableExists(fqn):
 # 2) FACT BUILDER
 # ----------------------------------------------------------------------------
 
-# item-specific F41002 UoM -> TN cascade (fwd + reciprocal rev union) — same approach as the
-# freight fact. The F41003 standard-UoM fallback stays in the reused dim_uom_conversion (DAX RELATED),
-# so it is intentionally not cascaded here.
+# UoM -> TN conversion, faithful to Hubble's SOP620 RC19 / "Shipped w/o Confirmation" cascade:
+#   Tier 1  item-specific F41002 (UMMCU=blank, direct uom<->TN, fwd + reciprocal rev)
+#   Tier 2  standard F41003 (item-agnostic, direct uom<->TN, fwd + reciprocal rev)  ← was missing (F1)
+#   Tier 0  TN passthrough = 1.0     (applied in build_fact)
+# For a direct uom<->TN row Hubble's via-primary ratio UMCNV1(uom)/UMCNV1(TN) reduces to UMCONV, so UMCONV
+# (conversion_factor) is the correct column. UMMCU=blank matches Hubble's branch-independent pick (F3);
+# dedup to one row per key prevents the LEFT-join fan-out that double-counts at adjustment grain (F4).
 def build_uom_cascades():
     f41002 = load_silver_table(F41002)
+    # UMMCU = blank -> the branch-independent (item default) conversion (Hubble filters UMMCU=' ').
+    f41002 = f41002.filter((F.trim(F.col("cost_center")) == "") | F.col("cost_center").isNull())
     item_fwd = (f41002.filter((F.trim("related_uom") == "TN") & (F.col("conversion_factor") != 0))
                 .select(F.col("identifier_short_item").alias("itm"), F.trim("uom").alias("from_uom"),
                         F.col("conversion_factor").cast("double").alias("conv_factor")))
     item_rev = (f41002.filter((F.trim("uom") == "TN") & (F.col("conversion_factor") != 0))
                 .select(F.col("identifier_short_item").alias("itm"), F.trim("related_uom").alias("from_uom"),
                         (F.lit(1.0) / F.col("conversion_factor").cast("double")).alias("conv_factor")))
-    return item_fwd.unionByName(item_rev)
+    return item_fwd.unionByName(item_rev).dropDuplicates(["itm", "from_uom"])
+
+def build_std_uom_cascade():
+    # Tier 2 — F41003 standard (item-agnostic) UoM -> TN, coalesced AFTER the F41002 item factor, reproducing
+    # Hubble's F41002 -> F41003 tiering. Same direct fwd + reciprocal rev shape; deduped to one row per uom.
+    f41003 = load_silver_table(F41003)
+    std_fwd = (f41003.filter((F.trim("related_uom") == "TN") & (F.col("conversion_factor") != 0))
+               .select(F.trim("uom").alias("from_uom"),
+                       F.col("conversion_factor").cast("double").alias("std_factor")))
+    std_rev = (f41003.filter((F.trim("uom") == "TN") & (F.col("conversion_factor") != 0))
+               .select(F.trim("related_uom").alias("from_uom"),
+                       (F.lit(1.0) / F.col("conversion_factor").cast("double")).alias("std_factor")))
+    return std_fwd.unionByName(std_rev).dropDuplicates(["from_uom"])
 
 
 # Stored columns, in report order.
@@ -133,7 +152,8 @@ FACT_BUSINESS_COLS = [
     "company", "company_key_order_no", "order_type", "order_number", "line_number",
     # ── the price adjustment (F4074) — one row per adjustment record ──
     "price_adjustment_type",      # ALAST   (the whitelist filter column; e.g. "PP06", "FRTHIDE")
-    "adj_unit_price",             # ALUPRC  (amt_price_per_unit_02)
+    "adj_unit_price",             # ALUPRC  (amt_price_per_unit_02) — per-TON adjustment RATE
+    "adj_extended_amount",        # extended adjustment $ = adj_unit_price (per-ton) * transaction_quantity_tons (ORDERED tons)
     "adj_uom",                    # ALUOM   (F4074 uom_as_input)
     "adj_based_on_value",         # ALBSDVAL
     "adj_gl_class",               # ALGLC
@@ -176,8 +196,9 @@ def build_fact():
                 F.col("gl_class").alias("adj_gl_class"),                  # ALGLC
                 F.col("factor_value").alias("adj_factor_value")))         # ALFVTR
 
-    # ── item UoM -> TN conversion (line-level, constant per line) ──
-    ci = build_uom_cascades()
+    # ── item + standard UoM -> TN conversion (line-level, constant per line) ──
+    ci = build_uom_cascades()      # Tier 1 — item-specific F41002
+    cs = build_std_uom_cascade()   # Tier 2 — standard F41003
 
     j = (sd.alias("sd")
          # LEFT: a line with no F4074 adjustment survives with a single NULL-adjustment row
@@ -188,12 +209,15 @@ def build_fact():
                (F.col("aj.adj_lnid") == F.col("sd.line_number")), "left")
          .join(ci.alias("ci"),
                (F.col("ci.itm") == F.col("sd.identifier_short_item")) &
-               (F.col("ci.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left"))
+               (F.col("ci.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left")
+         .join(cs.alias("cs"),                                       # F41003 std fallback (1:1 on uom, no fan-out)
+               (F.col("cs.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left"))
 
-    # UoM -> TN rate: TN passthrough (1.0) or the F41002 item factor; NULL if unresolved.
+    # UoM -> TN rate: TN passthrough (1.0) -> F41002 item factor -> F41003 standard factor; NULL if all unresolved.
     conv_rate = F.coalesce(
         F.when(F.trim(F.col("sd.uom_as_input")) == "TN", F.lit(1.0)),
-        F.col("ci.conv_factor"))
+        F.col("ci.conv_factor"),
+        F.col("cs.std_factor"))
 
     sel = j.select(
         # ── line identity ──
@@ -227,7 +251,15 @@ def build_fact():
            .withColumn("transaction_quantity_tons",
                        F.col("transaction_quantity") * F.coalesce(F.col("conversion_to_tons_rate"), F.lit(0.0)))
            .withColumn("missing_conversion_flag",
-                       F.when(F.col("conversion_to_tons_rate").isNull(), F.lit("Y")).otherwise(F.lit("N"))))
+                       F.when(F.col("conversion_to_tons_rate").isNull(), F.lit("Y")).otherwise(F.lit("N")))
+           # extended adjustment $ = per-TON adjustment rate (ALUPRC) * ORDERED TONS (transaction_quantity_tons =
+           # SDUORG * conv). Confirmed vs Hubble: Product Price (A03) matched only after switching the multiplier
+           # from quantity_shipped (input UOM) to ordered tons — ALUPRC is priced per ton, so ALUPRC * quantity_shipped
+           # overstated it by ~1/conv (the per-item UOM->TN factor, ~3.35x here, varying by item). Pre-materialized so
+           # the bucket measures stay a scalar SUM. NULL rate or 0 tons -> 0 (transaction_quantity_tons COALESCEs
+           # missing conv to 0 tons; note the F41003 fallback gap still zeroes lines with no F41002 TN row).
+           .withColumn("adj_extended_amount",
+                       F.col("adj_unit_price") * F.col("transaction_quantity_tons")))
 
     # ── keys ──
     #  sales_order_line_key: SAME sk + SAME four columns as the freight fact (relationship key)
@@ -255,7 +287,8 @@ def build_fact():
 FACT_SOURCES = [
     {"silver": F4211,  "note": "sales-order line spine (measures + keys + item/uom for conversion)"},
     {"silver": F4074,  "note": "price-adjustment ledger — the per-adjustment grain (ALAST/ALUPRC/ALUOM/ALBSDVAL/ALGLC/ALFVTR)"},
-    {"silver": F41002, "note": "item UoM -> TN conversion factors"},
+    {"silver": F41002, "note": "item UoM -> TN conversion factors (Tier 1)"},
+    {"silver": F41003, "note": "standard UoM -> TN conversion factors (Tier 2 fallback)"},
     {"silver": F42119, "note": "sales-order history (optional union; guarded by _load_optional)"},
 ]
 

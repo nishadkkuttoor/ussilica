@@ -322,16 +322,26 @@ PA_MEASURES = {
     "Adj Extended Cost":         (f"SUM('{PA_FACT}'[extended_cost])",            "\\$#,0;-\\$#,0", False),
     "Adj Primary Qty Ordered":   (f"SUM('{PA_FACT}'[primary_quantity_ordered])", "#,0.00",         False),
     "Adj Quantity Shipped Tons": (f"SUM('{PA_FACT}'[quantity_shipped_tons])",    "#,0.00",         False),
-    "Adj Ordered Tons":          (f"SUM('{PA_FACT}'[transaction_quantity_tons])","#,0.00",         False),
-    "Price Per Ton":             ("DIVIDE([Adj Extended Price], [Adj Ordered Tons])", "\\$#,0.00", False),
-    # SOP000x Next-Status 620 adjustment buckets. ASSUMPTION: value = adj_unit_price (ALUPRC) + the ALAST->bucket
-    # split below — confirm both against the report DAX before relying on these numbers.
-    "Adj Non Product":           (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"PPSLB\", \"CASLB\"}})", "\\$#,0.00", False),
-    "Adj AL Severance Tax":      (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"ALST\", \"A03\"}})", "\\$#,0.00", False),
-    "Adj Misc Billing":          (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"PP06\", \"PP07\", \"PP08\", \"PP13\", \"PP15\", \"PP17\", \"PP26\", \"PP37\", \"PP50\", \"PP51\", \"PP56\", \"PP57\", \"PP97\", \"PP99\"}})", "\\$#,0.00", False),
-    "Adj Freight":               (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"FRTTAXN\", \"FRTTAXY\"}})", "\\$#,0.00", False),
-    "Adj Car Charges":           (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"COLPALN\", \"COLPALT\"}})", "\\$#,0.00", False),
-    "Adj Freight Hide":          (f"CALCULATE(SUM('{PA_FACT}'[adj_unit_price]), '{PA_FACT}'[price_adjustment_type] IN {{\"FRTHIDE\"}})", "\\$#,0.00", False),
+    # Line-grain Total Tons + Price Per Ton — deduped over sales_order_line_key so they do NOT fan out by adjustment
+    # count (this fact is line x adjustment grain; tons/extended_price are line values repeated on every adjustment
+    # row; plain SUM would multiply by adjustment count). Price Per Ton numerator = line extended_price for now —
+    # swap to Product Price once the Hubble bucket definition is confirmed (issue #2).
+    "Adj Ordered Tons":          (f"SUMX(VALUES('{PA_FACT}'[sales_order_line_key]), CALCULATE(MAX('{PA_FACT}'[transaction_quantity_tons])))","#,0.00",         False),
+    # Price Per Ton = Product Price / Total Tons (Hubble SOP620) -> resolves to the A03 base price per ton.
+    "Price Per Ton":             ("DIVIDE([Adj Product Price], [Adj Ordered Tons])", "\\$#,0.00", False),
+    # SOP000x Next-Status 620 adjustment buckets. Value = SUM(adj_extended_amount) = adj_unit_price (ALUPRC, priced per
+    # TON) * transaction_quantity_tons (ORDERED tons). Confirmed vs Hubble on Product Price (A03): ALUPRC*quantity_shipped
+    # overstated by ~1/conv (per-item UOM->TN factor ~3.35x); ALUPRC*ordered_tons matches.
+    # ⚠ ALAST->bucket split still an assumption — confirm each total vs Hubble. ⚠ 0 tons when no F41002 TN row (F41003 gap).
+    "Adj Non Product":           (f"CALCULATE(SUM('{PA_FACT}'[adj_extended_amount]), '{PA_FACT}'[price_adjustment_type] IN {{\"PPSLB\", \"CASLB\"}})", "\\$#,0.00", False),
+    "Adj AL Severance Tax":      (f"CALCULATE(SUM('{PA_FACT}'[adj_extended_amount]), '{PA_FACT}'[price_adjustment_type] IN {{\"ALST\"}})", "\\$#,0.00", False),
+    "Adj Misc Billing":          (f"CALCULATE(SUM('{PA_FACT}'[adj_extended_amount]), '{PA_FACT}'[price_adjustment_type] IN {{\"PP06\", \"PP07\", \"PP08\", \"PP13\", \"PP15\", \"PP17\", \"PP26\", \"PP37\", \"PP50\", \"PP51\", \"PP56\", \"PP57\", \"PP97\", \"PP99\"}})", "\\$#,0.00", False),
+    "Adj Freight":               (f"CALCULATE(SUM('{PA_FACT}'[adj_extended_amount]), '{PA_FACT}'[price_adjustment_type] IN {{\"FRTTAXN\", \"FRTTAXY\"}})", "\\$#,0.00", False),
+    "Adj Car Charges":           (f"CALCULATE(SUM('{PA_FACT}'[adj_extended_amount]), '{PA_FACT}'[price_adjustment_type] IN {{\"COLPALN\", \"COLPALT\"}})", "\\$#,0.00", False),
+    "Adj Freight Hide":          (f"CALCULATE(SUM('{PA_FACT}'[adj_extended_amount]), '{PA_FACT}'[price_adjustment_type] IN {{\"FRTHIDE\"}})", "\\$#,0.00", False),
+    # Base Product Price bucket = A03 (extended). ~2.34M rows / ~$8.18B = product price on nearly every line (NOT a
+    # tax); split out of AL Severance Tax (= ALST only) 2026-08-05. ⚠ pending Hubble-total confirmation.
+    "Adj Product Price":         (f"CALCULATE(SUM('{PA_FACT}'[adj_extended_amount]), '{PA_FACT}'[price_adjustment_type] IN {{\"A03\"}})", "\\$#,0.00", False),
 }
 
 with connect_semantic_model(dataset=MODEL, readonly=False) as tom:

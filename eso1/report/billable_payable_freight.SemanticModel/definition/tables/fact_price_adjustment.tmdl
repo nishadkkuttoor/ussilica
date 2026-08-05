@@ -26,46 +26,54 @@ table fact_price_adjustment
 		displayFolder: Adjustments
 		lineageTag: 71dda703-741b-546c-b5b6-e75df600437b
 
-	measure 'Adj Ordered Tons' = SUM('fact_price_adjustment'[transaction_quantity_tons])
+	/// Line-grain Ordered Tons (Total Tons). Deduped over sales_order_line_key so a line with N F4074 adjustment rows counts its tons ONCE (this fact is at line x adjustment grain; transaction_quantity_tons is a line value repeated on every adjustment row). A plain SUM would multiply by the adjustment count.
+	measure 'Adj Ordered Tons' = SUMX(VALUES('fact_price_adjustment'[sales_order_line_key]), CALCULATE(MAX('fact_price_adjustment'[transaction_quantity_tons])))
 		formatString: #,0.00
 		displayFolder: Adjustments
 		lineageTag: e48169fa-8c80-5a15-94ad-ec5957634c1a
 
-	measure 'Price Per Ton' = DIVIDE([Adj Extended Price], [Adj Ordered Tons])
+	/// Price Per Ton = Product Price / Total Tons (Hubble SOP620). Numerator = [Adj Product Price] (A03 extended $ = ALUPRC*ordered_tons); denominator = [Adj Ordered Tons] (line-grain, deduped). Resolves to the A03 base price per ton.
+	measure 'Price Per Ton' = DIVIDE([Adj Product Price], [Adj Ordered Tons])
 		formatString: \$#,0.00
 		displayFolder: Adjustments
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f60
 
-	/// SOP000x Next-Status 620 adjustment buckets. ASSUMPTION: value = adj_unit_price (ALUPRC) and the ALAST->bucket split below — confirm both against the Hubble/report DAX.
-	measure 'Adj Non Product' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"PPSLB", "CASLB"})
+	/// SOP000x Next-Status 620 adjustment buckets. Value = SUM(adj_extended_amount), the pre-materialized EXTENDED adjustment $ = adj_unit_price (ALUPRC, priced per TON) * transaction_quantity_tons (ORDERED tons = SDUORG*conv). Confirmed vs Hubble on Product Price (A03): ALUPRC*quantity_shipped overstated it by ~1/conv (per-item UOM->TN factor, ~3.35x); ALUPRC*ordered_tons matches. ⚠ The ALAST->bucket split is STILL an assumption — confirm each bucket's total against the Hubble pivot. ⚠ Lines with no F41002 TN conversion get 0 tons (F41003 fallback not yet implemented).
+	measure 'Adj Non Product' = CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {"PPSLB", "CASLB"})
 		formatString: \$#,0.00
 		displayFolder: Adjustment Buckets
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f61
 
-	measure 'Adj AL Severance Tax' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"ALST", "A03"})
+	measure 'Adj AL Severance Tax' = CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {"ALST"})
 		formatString: \$#,0.00
 		displayFolder: Adjustment Buckets
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f62
 
-	measure 'Adj Misc Billing' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"PP06", "PP07", "PP08", "PP13", "PP15", "PP17", "PP26", "PP37", "PP50", "PP51", "PP56", "PP57", "PP97", "PP99"})
+	measure 'Adj Misc Billing' = CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {"PP06", "PP07", "PP08", "PP13", "PP15", "PP17", "PP26", "PP37", "PP50", "PP51", "PP56", "PP57", "PP97", "PP99"})
 		formatString: \$#,0.00
 		displayFolder: Adjustment Buckets
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f63
 
-	measure 'Adj Freight' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"FRTTAXN", "FRTTAXY"})
+	measure 'Adj Freight' = CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {"FRTTAXN", "FRTTAXY"})
 		formatString: \$#,0.00
 		displayFolder: Adjustment Buckets
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f64
 
-	measure 'Adj Car Charges' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"COLPALN", "COLPALT"})
+	measure 'Adj Car Charges' = CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {"COLPALN", "COLPALT"})
 		formatString: \$#,0.00
 		displayFolder: Adjustment Buckets
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f65
 
-	measure 'Adj Freight Hide' = CALCULATE(SUM('fact_price_adjustment'[adj_unit_price]), 'fact_price_adjustment'[price_adjustment_type] IN {"FRTHIDE"})
+	measure 'Adj Freight Hide' = CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {"FRTHIDE"})
 		formatString: \$#,0.00
 		displayFolder: Adjustment Buckets
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f66
+
+	/// Base Product Price bucket = A03 (extended). A03 has ~2.34M rows / ~$8.18B — the base product price on nearly every line, NOT a tax; split out of AL Severance Tax (= ALST only) 2026-08-05. ⚠ label/code still pending Hubble-total confirmation.
+	measure 'Adj Product Price' = CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {"A03"})
+		formatString: \$#,0.00
+		displayFolder: Adjustment Buckets
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f67
 
 	column price_adjustment_key
 		dataType: string
@@ -127,6 +135,13 @@ table fact_price_adjustment
 		summarizeBy: none
 		sourceColumn: adj_unit_price
 		lineageTag: a27e2191-b353-5e93-95ea-9131c5d24ea1
+
+	column adj_extended_amount
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: adj_extended_amount
+		lineageTag: a27e2191-b353-5e93-95ea-9131c5d24ea2
 
 	column adj_uom
 		dataType: string
