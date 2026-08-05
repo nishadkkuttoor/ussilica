@@ -20,4 +20,3 @@ ref table dim_mode_of_transport
 ref table dim_category_code_10
 ref table dim_category_code_05
 ref table dim_freight_handling_code
-ref table fact_price_adjustment

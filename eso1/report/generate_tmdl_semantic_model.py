@@ -28,7 +28,7 @@ COMMISSION = "fact_sales_commission"
 OTC_TABLES = {'dim_item', 'fact_sales_order_freight'}
 def schema_of(t): return "otc" if t in OTC_TABLES else "rpt"
 
-# Each table: cols = [(name, dataType, isHidden, sortByColumn|None)],
+# Each table: cols = [(name, dataType, isHidden, sortByColumn|None [, summarizeBy='none' [, formatString|None]])],
 #             measures = [(name, dax, formatString|None, displayFolder|None)]
 # Column/measure ORDER is significant — kept verbatim from the twin.
 TABLES = {
@@ -116,6 +116,13 @@ TABLES = {
         ('date_updated', 'dateTime', False, None),            # SDUPMJ
         ('order_date', 'dateTime', False, None),              # SDTRDJ (line order date)
         ('pricing_issue_remark', 'string', False, None),      # derived: 'Unit Price Zero' / 'No effective price'
+        # SOP620 adjustment buckets — per-line F4074 ALUPRC-sum x shipped tons; summable columns (Product Price = extended_price).
+        ('adj_non_product', 'double', False, None, 'sum', '\\$#,0.00'),
+        ('adj_al_severance_tax', 'double', False, None, 'sum', '\\$#,0.00'),
+        ('adj_misc_billing', 'double', False, None, 'sum', '\\$#,0.00'),
+        ('adj_freight', 'double', False, None, 'sum', '\\$#,0.00'),
+        ('adj_car_charges', 'double', False, None, 'sum', '\\$#,0.00'),
+        ('adj_freight_hide', 'double', False, None, 'sum', '\\$#,0.00'),
       ],
       "measures": [
         ('Billable Freight', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[billable_freight])))", '\\$#,0;-\\$#,0', 'Freight'),
@@ -141,6 +148,15 @@ TABLES = {
         ('Days Past Due', "DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)", '#,0', 'Aging'),
         ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
         ('Container Count', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))", '#,0', 'Volume'),
+        # SOP620 pricing (user-validated vs Hubble): Product Price = line extended price (SDAEXP); Price Per Ton = it / tons.
+        ('Product Price', "SUM('fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Pricing'),
+        ('Price Per Ton', "DIVIDE([Product Price], [Quantity Shipped Tons])", '\\$#,0.00', 'Pricing'),
+        # Short Ship Notifications — raw line quantities + the cancel-date notification-window diff (page-filter =1).
+        ('Short Ship Shipped Qty', "SUM('fact_sales_order_freight'[quantity_shipped])", '#,0.00', 'Short Ship'),
+        ('Short Ship Ordered Qty', "SUM('fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Short Ship'),
+        ('Short Ship Transaction Qty', "SUM('fact_sales_order_freight'[transaction_quantity])", '#,0.00', 'Short Ship'),
+        ('Short Ship Cancelled Qty', "SUM('fact_sales_order_freight'[cancelled_qty])", '#,0.00', 'Short Ship'),
+        ('Days Since Cancel', "DATEDIFF(MAX('fact_sales_order_freight'[cancel_date]), TODAY(), DAY)", '#,0', 'Short Ship'),
       ],
     },
     'fact_sales_commission': {
@@ -375,66 +391,6 @@ TABLES = {
 
       ],
     },
-    # per-F4074-adjustment fact (line × adjustment). Built by nb_eso1_gold_fact_price_adjustment.py.
-    # Line display cols + line-level filters come from fact_sales_order_freight via the BIDIRECTIONAL
-    # relationship; the measures below are physical line values fanned per adjustment (SUM = Hubble's
-    # per-adjustment SUM). Whitelist is the PBI page filter on price_adjustment_type (sets differ per report).
-    'fact_price_adjustment': {
-      "cols": [
-        ('price_adjustment_key', 'string', True, None),
-        ('sales_order_line_key', 'string', True, None),
-        ('company', 'string', True, None),
-        ('company_key_order_no', 'string', True, None),
-        ('order_type', 'string', True, None),
-        ('order_number', 'int64', True, None),
-        ('line_number', 'double', True, None),
-        ('price_adjustment_type', 'string', False, None),
-        ('adj_unit_price', 'double', False, None),
-        ('adj_extended_amount', 'double', True, None),   # extended adj $ = adj_unit_price * quantity_shipped (bucket value)
-        ('adj_uom', 'string', False, None),
-        ('adj_based_on_value', 'double', False, None),
-        ('adj_gl_class', 'string', False, None),
-        ('adj_factor_value', 'double', False, None),
-        ('adjustment_seq', 'int64', True, None),
-        ('quantity_shipped', 'double', True, None),
-        ('extended_price', 'double', True, None),
-        ('extended_cost', 'double', True, None),
-        ('transaction_quantity', 'double', True, None),
-        ('primary_quantity_ordered', 'double', True, None),
-        ('quantity_shipped_tons', 'double', True, None),
-        ('transaction_quantity_tons', 'double', True, None),
-        ('conversion_to_tons_rate', 'double', True, None),
-        ('missing_conversion_flag', 'string', False, None),
-        ('currency_code', 'string', False, None),
-      ],
-      "measures": [
-        ('Adj Quantity Shipped', "SUM('fact_price_adjustment'[quantity_shipped])", '#,0.00', 'Adjustments'),
-        ('Adj Extended Price', "SUM('fact_price_adjustment'[extended_price])", '\\$#,0;-\\$#,0', 'Adjustments'),
-        ('Adj Extended Cost', "SUM('fact_price_adjustment'[extended_cost])", '\\$#,0;-\\$#,0', 'Adjustments'),
-        ('Adj Primary Qty Ordered', "SUM('fact_price_adjustment'[primary_quantity_ordered])", '#,0.00', 'Adjustments'),
-        ('Adj Quantity Shipped Tons', "SUM('fact_price_adjustment'[quantity_shipped_tons])", '#,0.00', 'Adjustments'),
-        # Line-grain Total Tons + Price Per Ton — deduped over sales_order_line_key so they do NOT fan out by
-        # adjustment count (this fact is line x adjustment grain; tons/extended_price are line values repeated on
-        # every adjustment row). Plain SUM would multiply by the adjustment count. Price Per Ton numerator = line
-        # extended_price for now; swap to Product Price once the Hubble bucket definition is confirmed (issue #2).
-        ('Adj Ordered Tons', "SUMX(VALUES('fact_price_adjustment'[sales_order_line_key]), CALCULATE(MAX('fact_price_adjustment'[transaction_quantity_tons])))", '#,0.00', 'Adjustments'),
-        # Price Per Ton = Product Price / Total Tons (Hubble SOP620) -> resolves to the A03 base price per ton.
-        ('Price Per Ton', "DIVIDE([Adj Product Price], [Adj Ordered Tons])", '\\$#,0.00', 'Adjustments'),
-        # SOP000x Next-Status 620 adjustment buckets. Value = SUM(adj_extended_amount) = adj_unit_price (ALUPRC, priced
-        # per TON) * transaction_quantity_tons (ORDERED tons). Confirmed vs Hubble on Product Price (A03): ALUPRC*
-        # quantity_shipped overstated by ~1/conv (per-item UOM->TN factor ~3.35x); ALUPRC*ordered_tons matches.
-        # ⚠ ALAST->bucket split still an assumption — confirm each total vs Hubble. ⚠ 0 tons when no F41002 TN row (F41003 gap).
-        ('Adj Non Product', "CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {\"PPSLB\", \"CASLB\"})", '\\$#,0.00', 'Adjustment Buckets'),
-        ('Adj AL Severance Tax', "CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {\"ALST\"})", '\\$#,0.00', 'Adjustment Buckets'),
-        ('Adj Misc Billing', "CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {\"PP06\", \"PP07\", \"PP08\", \"PP13\", \"PP15\", \"PP17\", \"PP26\", \"PP37\", \"PP50\", \"PP51\", \"PP56\", \"PP57\", \"PP97\", \"PP99\"})", '\\$#,0.00', 'Adjustment Buckets'),
-        ('Adj Freight', "CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {\"FRTTAXN\", \"FRTTAXY\"})", '\\$#,0.00', 'Adjustment Buckets'),
-        ('Adj Car Charges', "CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {\"COLPALN\", \"COLPALT\"})", '\\$#,0.00', 'Adjustment Buckets'),
-        ('Adj Freight Hide', "CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {\"FRTHIDE\"})", '\\$#,0.00', 'Adjustment Buckets'),
-        # Base Product Price bucket = A03 (extended). A03 = ~2.34M rows / ~$8.18B = product price on nearly every line
-        # (NOT a tax); split out of AL Severance Tax (= ALST only) 2026-08-05. ⚠ pending Hubble-total confirmation.
-        ('Adj Product Price', "CALCULATE(SUM('fact_price_adjustment'[adj_extended_amount]), 'fact_price_adjustment'[price_adjustment_type] IN {\"A03\"})", '\\$#,0.00', 'Adjustment Buckets'),
-      ],
-    },
 }
 
 # (from_table[MANY], from_col, to_table[ONE], to_col, is_active)
@@ -457,7 +413,6 @@ REL = [
     ('fact_sales_order_freight', 'freight_handling_code', 'dim_freight_handling_code', 'freight_handling_code', True),
     # BIDIRECTIONAL: Tier-2 F4074 reports filter the freight fact BY the adjustment whitelist (many->one),
     # so cross-filtering must flow both ways. 6th element = bothDirections.
-    ('fact_price_adjustment', 'sales_order_line_key', 'fact_sales_order_freight', 'sales_order_line_key', True, True),
 ]
 
 # ── WIRING CHECK ─────────────────────────────────────────────────────────────
@@ -492,12 +447,16 @@ for tname, t in TABLES.items():
         if folder is not None: L.append(f"{T}{T}displayFolder: {folder}")
         L.append(f"{T}{T}lineageTag: {tag('m:'+tname+'.'+mname)}")
         L.append("")
-    for cname, dt, hidden, sortby in t["cols"]:
+    for col in t["cols"]:
+        cname, dt, hidden, sortby = col[0], col[1], col[2], col[3]
+        summ = col[4] if len(col) > 4 else "none"       # optional summarizeBy (default none)
+        cfmt = col[5] if len(col) > 5 else None          # optional per-column formatString
         L.append(f"{T}column {cname}")
         L.append(f"{T}{T}dataType: {dt}")
         if hidden: L.append(f"{T}{T}isHidden")
-        L.append(f"{T}{T}summarizeBy: none")
+        L.append(f"{T}{T}summarizeBy: {summ}")
         L.append(f"{T}{T}sourceColumn: {cname}")
+        if cfmt is not None: L.append(f"{T}{T}formatString: {cfmt}")
         if sortby: L.append(f"{T}{T}sortByColumn: {sortby}")
         L.append(f"{T}{T}lineageTag: {tag('c:'+tname+'.'+cname)}")
         L.append("")

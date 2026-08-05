@@ -114,6 +114,48 @@ table fact_sales_order_freight
 		displayFolder: Volume
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f2a
 
+	/// SOP620 Product Price = line extended price (SDAEXP). User-validated vs Hubble.
+	measure 'Product Price' = SUM('fact_sales_order_freight'[extended_price])
+		formatString: \$#,0.00
+		displayFolder: Pricing
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f52
+
+	/// SOP620 Price Per Ton = Product Price / Total Tons (= Quantity Shipped Tons). DIVIDE -> BLANK on 0 tons.
+	measure 'Price Per Ton' = DIVIDE([Product Price], [Quantity Shipped Tons])
+		formatString: \$#,0.00
+		displayFolder: Pricing
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f53
+
+	/// Short Ship Notifications — raw shipped qty (SDSOQS).
+	measure 'Short Ship Shipped Qty' = SUM('fact_sales_order_freight'[quantity_shipped])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f54
+
+	/// Short Ship Notifications — raw primary ordered qty (SDPQOR).
+	measure 'Short Ship Ordered Qty' = SUM('fact_sales_order_freight'[primary_quantity_ordered])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f55
+
+	/// Short Ship Notifications — raw transaction qty (SDUORG).
+	measure 'Short Ship Transaction Qty' = SUM('fact_sales_order_freight'[transaction_quantity])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f56
+
+	/// Short Ship Notifications — raw cancelled qty (SDSOCN).
+	measure 'Short Ship Cancelled Qty' = SUM('fact_sales_order_freight'[cancelled_qty])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f57
+
+	/// Short Ship Notifications — days between the line's cancel date (SDCNDJ) and TODAY(); page-filter =1 for the 1-day window.
+	measure 'Days Since Cancel' = DATEDIFF(MAX('fact_sales_order_freight'[cancel_date]), TODAY(), DAY)
+		formatString: #,0
+		displayFolder: Short Ship
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f58
+
 	column sales_order_line_key
 		dataType: string
 		isHidden
@@ -630,6 +672,54 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: pricing_issue_remark
 		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f51
+
+	/// SOP620 bucket (per-line F4074 ALUPRC-sum for PPSLB/CASLB x shipped tons). SUM it directly.
+	column adj_non_product
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_non_product
+		formatString: \$#,0.00
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f71
+
+	/// SOP620 bucket (per-line F4074 ALUPRC-sum for ALST x shipped tons). SUM it directly.
+	column adj_al_severance_tax
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_al_severance_tax
+		formatString: \$#,0.00
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f72
+
+	/// SOP620 bucket (per-line F4074 ALUPRC-sum for PP06..PP99 x shipped tons). SUM it directly.
+	column adj_misc_billing
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_misc_billing
+		formatString: \$#,0.00
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f73
+
+	/// SOP620 bucket (per-line F4074 ALUPRC-sum for FRTTAXN/FRTTAXY x shipped tons). SUM it directly.
+	column adj_freight
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_freight
+		formatString: \$#,0.00
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f74
+
+	/// SOP620 bucket (per-line F4074 ALUPRC-sum for COLPALN/COLPALT x shipped tons). SUM it directly.
+	column adj_car_charges
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_car_charges
+		formatString: \$#,0.00
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f75
+
+	/// SOP620 bucket (per-line F4074 ALUPRC-sum for FRTHIDE x shipped tons). SUM it directly.
+	column adj_freight_hide
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_freight_hide
+		formatString: \$#,0.00
+		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f76
 
 	partition fact_sales_order_freight = entity
 		mode: directLake
