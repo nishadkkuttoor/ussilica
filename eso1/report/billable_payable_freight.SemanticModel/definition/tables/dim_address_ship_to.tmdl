@@ -84,19 +84,19 @@ table dim_address_ship_to
 		dataType: string
 		summarizeBy: none
 		sourceColumn: category_code_05
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd1
+		lineageTag: 9bc1cc27-4021-55f0-9073-b8c5601a2f38
 
 	column category_code_14
 		dataType: string
 		summarizeBy: none
 		sourceColumn: category_code_14
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd2
+		lineageTag: 46d6c0cf-b71a-593a-a0f7-9212a77ea63c
 
 	column address_rate
 		dataType: double
 		summarizeBy: none
 		sourceColumn: address_rate
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fd3
+		lineageTag: a5b5b99d-4ad2-528f-aa6e-366e8a748685
 
 	partition dim_address_ship_to = entity
 		mode: directLake

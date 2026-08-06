@@ -8,8 +8,8 @@
 # (order-line grain; freight denormalized) — from the Silver sales-order detail (F4211),
 # freight-audit (F4981) and their supporting sources. The fact and `dim_item` run as
 # independent jobs (own table, own overwrite switch). Relates to the REUSED dims
-# (`rpt.dim_address_book` role views, `rpt.dim_plant`) and to `dim_item` (built by
-# nb_eso1_gold_dim_item) — those are NOT touched here.
+# (`rpt.dim_address_book` role views, `rpt.dim_plant`) and to `dim_item` — those are
+# NOT touched here.
 #
 # ── BUILD (BATCH) ─────────────────────────
 #   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
@@ -47,10 +47,8 @@ F4201    = "f4201_sales_order_header_file"
 F0101    = "f0101_address_book_master"
 F4101    = "f4101_item_master"
 F41002   = "f41002_item_units_of_measure_conversion_factors"
-# F41003 (standard UoM conversion) is no longer sourced here — the standard-UoM fallback is
-# served by the reused Gold dim lh_jde_gold.eso7.dim_uom_conversion (from_uom -> std_factor),
-# built/maintained by nb_silver_to_gold_dim_f41003.py, and applied as the Tier-B leg of the
-# Total Tons DAX measure via RELATED.
+# F41003 (standard UoM conversion) is not sourced here — this notebook uses F41002 item-specific
+# conversion only; the standard-UoM fallback is handled downstream in the semantic model.
 F4074    = "f4074_price_adjustment_ledger_file"
 F4981    = "f4981_freight_audit_history"
 F5642B01 = "f5642b01_custom_sales_order_entry_screen_header"
@@ -72,10 +70,8 @@ F42119   = "f42119_sales_order_history_file"      # Sales Order History
 # ── Gold target BUILT here (new, rpt) ──────────────────────────────────────────
 FACT         = "fact_sales_order_freight"
 
-# ── report scaling (business WHERE filters removed — fact now carries ALL rows) ──
-# (former Hubble hard filters COMPANIES / ALAST_WHITELIST / ship-to address-type gate /
-#  line_type='S' / status<>980 / vendor_invoice were dropped per the no-filter requirement.)
-SHIFT_FACTOR    = 1.0    # placeholder — ShiftFactor open item
+# ── report scaling — business WHERE filters removed; the fact carries ALL rows (no-filter design) ──
+SHIFT_FACTOR    = 1.0    # placeholder (Silver pre-decoded → 1.0)
 
 print(f"ESO1 Gold fact processor (batch build) — target {gname(FACT)}")
 
@@ -116,7 +112,7 @@ _RAW_DATE_COLS = [
     "order_date", "requested_date", "scheduled_pick_date", "promised_ship_date",
     "actual_ship_date", "gl_date", "invoice_date", "cancel_date",
     "line_price_effective_date", "header_price_effective_date",
-    "date_earliest_pickup", "date_latest_delivery", "release_date", "date_requested_ship",
+    "date_earliest_pickup", "date_earliest_delivery", "date_latest_delivery", "release_date", "date_requested_ship",
 ]
 
 def clean_date(col):
@@ -154,9 +150,7 @@ def pick_col(df, candidates):
 # UoM -> TN cascades + freight buckets (F4981 -> shipment grain)
 def build_uom_cascades():
     # item-specific F41002 conversion ONLY (fwd + reciprocal rev union).
-    # The F41003 standard-UoM fallback is served downstream by the reused dim_uom_conversion
-    # dim (built by nb_silver_to_gold_dim_f41003.py) via DAX RELATED, so it is intentionally
-    # not cascaded here.
+    # The standard-UoM (F41003) fallback is handled downstream, not cascaded here.
     f41002 = load_silver_table(F41002)
     item_fwd = (f41002.filter((F.trim("related_uom") == "TN") & (F.col("conversion_factor") != 0))
                 .select(F.col("identifier_short_item").alias("itm"), F.trim("uom").alias("from_uom"),
@@ -193,7 +187,7 @@ def transform_freight_buckets():
 # FACT  fact_sales_order_freight  (order-line grain; freight denormalized)
 FACT_BUSINESS_COLS = [
     # ── degenerate / order identifiers ──
-    "company", "company_key_order_no", "order_type", "order_number", "line_number",
+    "company", "company_key_order_no", "order_type", "document_type", "order_number", "line_number",
     "shipment_number", "bol_number", "invoice_number",
     "original_document_type", "original_po_so_number", "original_document_no",
     "reference_01", "user_reserved_reference",
@@ -215,7 +209,7 @@ FACT_BUSINESS_COLS = [
     "order_date", "requested_date", "scheduled_pick_date", "promised_ship_date",
     "actual_ship_date", "gl_date", "invoice_date", "cancel_date",
     "line_price_effective_date", "header_price_effective_date",
-    "date_earliest_pickup", "date_latest_delivery",
+    "date_earliest_pickup", "date_earliest_delivery", "date_latest_delivery",
     # weekly grouping bucket (Mon–Sun ISO week label off actual_ship_date) — replaces
     # dim_date[year_week] now that there is no date dimension
     "ship_year_week",
@@ -259,8 +253,8 @@ FACT_BUSINESS_COLS = [
     "is_ocean_route", "route_container_count",                      # F4941 RSMOT='OCE' flag / SUM(RSNCTR)
     "gross_weight", "catch_weight", "max_weight",                   # F5549002 BOL weigh-ticket weights (MIGRWT/MICTWT/MIMXWT)
     "has_effective_price",                                          # F4106 base-price existence
-    "pricing_issue_remark",                                        # derived: 'Unit Price Zero' / 'No effective price' (Orders with Zero Unit Price report)
-    # ── SOP620 adjustment buckets (per-line F4074 ALUPRC-sum x shipped tons; Product Price = extended_price) ──
+    "pricing_issue_remark",                                        # derived: 'Unit Price Zero' / 'No effective price'
+    # ── adjustment buckets (per-line F4074 ALUPRC-sum × shipped tons) ──
     "adj_non_product", "adj_al_severance_tax", "adj_misc_billing",
     "adj_freight", "adj_car_charges", "adj_freight_hide",
     "pull_signal", "reference_02", "reference_03", "vendor_number", # deferred F4211 display (SDPSIG/SDVR02/SDVR03/SDVEND)
@@ -272,15 +266,12 @@ FACT_BUSINESS_COLS = [
     "adj_gl_class", "adj_based_on_value", "adj_uom", "adj_factor_value",                    # F4074 ALGLC/ALBSDVAL/ALUOM/ALFVTR
     "voyage_number", "loading_port", "ocean_carrier",                                       # F5642B01 ocean-booking
     "booking_reference_1", "booking_reference_2", "booking_reference_3", "date_latest_pickup",
-    "order_reference", "routing_notes", "equipment_type", "inland_delterms", "incoterms",   # F5642B01 (04a Export Open Orders)
+    "order_reference", "routing_notes", "equipment_type", "inland_delterms", "incoterms",   # F5642B01
     "date_requested_ship", "release_date",                                                  # BARQSJ (F5642B01) / SDRSDJ (F4211)
     # ── header-level (F4201) display columns ──
     "header_sold_to", "header_order_date", "header_carrier_number", "header_payment_terms",  # SHAN8/SHTRDJ/SHCARS/SHPTC
     "header_parent",                                                # SHPA8 (header parent)
 ]
-# NOTE: gl_class, delivery_instruct_line_01/02 were ALREADY present; user_reserved_number (SDURAB) is
-# already surfaced as `bol_number`. SDUORG/SDPQOR/SDSOQS = transaction_quantity/primary_quantity_ordered/
-# quantity_shipped (all present).
 
 def _add_effective_price_flag(df):
     """has_effective_price: 'Y' when an F4106 item-base-price row EXISTS for the line's
@@ -316,8 +307,8 @@ def build_fact():
     _hist = _load_optional(F42119)
     if _hist is not None:
         # F42119 snake-names SDLITM as `identifier_2nd_item` (≠ F4211 `identifier_second_item`), so an
-        # unqualified unionByName would NULL second_item_number for every history row — item2 is a heavily
-        # used filter (item2<>'MISC BILLING'), so rename to match before the union.
+        # unqualified unionByName would NULL second_item_number for every history row — rename to match
+        # before the union.
         if "identifier_2nd_item" in _hist.columns and "identifier_second_item" not in _hist.columns:
             _hist = _hist.withColumnRenamed("identifier_2nd_item", "identifier_second_item")
         # F42119 likewise snake-names SDAITM as `identifier_3rd_item` (≠ F4211 `identifier_third_item`),
@@ -339,7 +330,7 @@ def build_fact():
         "general_ledger_date", "date_for_g_land_voucher_julian", "gl_date"])
     gl_expr = F.col(f"sd.{gl_name}") if gl_present else F.lit(None).cast("date")
 
-    sd = f4211   # business WHERE filters removed (company / line_type='S' / status<>980)
+    sd = f4211   # business WHERE filters removed — fact carries all rows
 
     # F4074 price-adjustment ledger — ONE actual row per order line (no GROUP BY /
     # aggregation): a deterministic row_number pick keeps a real ALAST/ALUPRC value while
@@ -361,9 +352,9 @@ def build_fact():
               .withColumn("_alrn", F.row_number().over(_alw))
               .where(F.col("_alrn") == 1).drop("_alrn"))
 
-    # SOP620 adjustment buckets — per-line SUM of ALUPRC for each ALAST bucket set, collapsed to ONE row per line so
+    # adjustment buckets — per-line SUM of ALUPRC for each ALAST bucket set, collapsed to ONE row per line so
     # the LEFT join can't fan the line grain out. Multiplied by quantity_shipped_tons below to get the extended $ per
-    # bucket (ALUPRC is priced per ton). Product Price is NOT here — that column is the line's extended_price (SDAEXP).
+    # bucket (ALUPRC is priced per ton).
     # ⚠ The ALAST->bucket split is an assumption (Non Product / Misc Billing code sets had no rows in current data).
     _FB_BUCKETS = {
         "bkt_non_product":      ["PPSLB", "CASLB"],
@@ -433,6 +424,7 @@ def build_fact():
                     F.first("ocean_del_terms",       ignorenulls=True).alias("ocean_del_terms"),
                     F.first("vessel_name",           ignorenulls=True).alias("vessel_name"),
                     F.first("date_earliest_pickup",  ignorenulls=True).alias("date_earliest_pickup"),
+                    F.first("date_earliest_delivery", ignorenulls=True).alias("date_earliest_delivery"),  # BADEDL
                     F.first("date_latest_delivery",  ignorenulls=True).alias("date_latest_delivery"),
                     # extended ocean-booking display — BA55VONO/LODP/OCCR/REF1-3/BADLPU
                     F.first("voyage_no",             ignorenulls=True).alias("voyage_number"),
@@ -442,7 +434,7 @@ def build_fact():
                     F.first("reference_02",          ignorenulls=True).alias("booking_reference_2"),
                     F.first("reference_03",          ignorenulls=True).alias("booking_reference_3"),
                     F.first("date_latest_pickup",    ignorenulls=True).alias("date_latest_pickup"),
-                    # 04a Export Open Orders additions (BA55ODREF/ROUT/EQTY/INDLT/INCO + BARQSJ)
+                    # BA55ODREF/ROUT/EQTY/INDLT/INCO + BARQSJ
                     F.first("order_reference",       ignorenulls=True).alias("order_reference"),       # BA55ODREF
                     F.first("routing_notes",         ignorenulls=True).alias("routing_notes"),         # BA55ROUT
                     F.first("equipment_type",        ignorenulls=True).alias("equipment_type"),        # BA55EQTY
@@ -477,7 +469,7 @@ def build_fact():
                (F.col("al.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
                (F.col("al.order_type") == F.col("sd.order_type")) &
                (F.col("al.line_number") == F.col("sd.line_number")), "left")
-         .join(f4074_buckets.alias("fb"),                              # SOP620 per-line bucket ALUPRC sums (1 row/line, no fan-out)
+         .join(f4074_buckets.alias("fb"),                              # per-line bucket ALUPRC sums (1 row/line, no fan-out)
                (F.col("fb.company_key_order_no") == F.col("sd.company_key_order_no")) &
                (F.col("fb.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
                (F.col("fb.order_type") == F.col("sd.order_type")) &
@@ -497,8 +489,7 @@ def build_fact():
                (F.col("tag.line_number") == F.col("sd.line_number")), "left"))
 
     # TN passes through as 1.0, else the item-specific F41002 factor.
-    # Unresolved conversions stay NULL (no blanket 1.0 default) so the F41003 fallback
-    # resolves downstream via DAX RELATED; missing_conversion_flag marks those rows.
+    # Unresolved conversions stay NULL (no blanket 1.0 default); missing_conversion_flag marks those rows.
     conv_rate = F.coalesce(F.when(F.trim(F.col("sd.uom_as_input")) == "TN", F.lit(1.0)),
                            F.col("ci.conv_factor"))
 
@@ -507,6 +498,7 @@ def build_fact():
         F.col("sd.company").alias("company"),
         F.col("sd.company_key_order_no").alias("company_key_order_no"),
         F.col("sd.order_type").alias("order_type"),
+        F.col("sd.document_type").alias("document_type"),                    # SDDCT — invoice document type (≠ order_type SDDCTO)
         F.col("sd.document_order_invoice_e").alias("order_number"),
         F.col("sd.line_number").alias("line_number"),
         F.col("sd.shipment_number").alias("shipment_number"),
@@ -522,8 +514,7 @@ def build_fact():
         F.col("sd.status_code_last").alias("status_code_last"),
         F.col("sd.status_code_next").alias("status_code_next"),
         # next_status_num: physical INT copy of status_code_next. Direct Lake can't
-        # reliably range-filter the STRING status (5 reports use next < 561/575/620 or BETWEEN 574 AND 620); a
-        # blank/non-numeric status casts to NULL and is excluded.
+        # reliably range-filter the STRING status; a blank/non-numeric status casts to NULL and is excluded.
         # Filter next_status_num in Power BI; keep displaying the string status_code_next.
         F.trim(F.col("sd.status_code_next")).cast("int").alias("next_status_num"),
         # last_status_num: physical INT copy of status_code_last (SDLTTR) — same purpose as
@@ -551,7 +542,7 @@ def build_fact():
         F.col("sd.date_requested_julian").alias("requested_date"),
         F.col("sd.scheduled_pick_date").alias("scheduled_pick_date"),
         F.col("sd.date_promised_ship_julian").alias("promised_ship_date"),
-        F.col("sd.date_release_julian").alias("release_date"),               # SDRSDJ (04a Export Open Orders)
+        F.col("sd.date_release_julian").alias("release_date"),               # SDRSDJ
         F.col("sd.actual_ship_date").alias("actual_ship_date"),
         gl_expr.alias("gl_date"),
         F.col("sd.date_invoice_julian").alias("invoice_date"),
@@ -559,6 +550,7 @@ def build_fact():
         F.col("sd.date_price_effective_date").alias("line_price_effective_date"),
         F.col("sh.date_price_effective_date").alias("header_price_effective_date"),
         F.col("b01.date_earliest_pickup").alias("date_earliest_pickup"),
+        F.col("b01.date_earliest_delivery").alias("date_earliest_delivery"),   # F5642B01 BADEDL
         F.col("b01.date_latest_delivery").alias("date_latest_delivery"),
         # ── item / uom ──
         F.col("sd.identifier_second_item").alias("second_item_number"),
@@ -584,7 +576,7 @@ def build_fact():
         F.col("sd.sales_reporting_code_02").alias("major_prod_code"),
         F.col("sd.sales_reporting_code_04").alias("minor_prod_code"),
         F.col("al.freight_factor_value").alias("freight_factor_value"),
-        # SOP620 per-line bucket ALUPRC sums (intermediate — multiplied by quantity_shipped_tons below into adj_* $)
+        # per-line bucket ALUPRC sums (intermediate — multiplied by quantity_shipped_tons below into adj_* $)
         F.coalesce(F.col("fb.bkt_non_product"),      F.lit(0.0)).alias("bkt_non_product"),
         F.coalesce(F.col("fb.bkt_al_severance_tax"), F.lit(0.0)).alias("bkt_al_severance_tax"),
         F.coalesce(F.col("fb.bkt_misc_billing"),     F.lit(0.0)).alias("bkt_misc_billing"),
@@ -656,7 +648,6 @@ def build_fact():
         F.col("sd.related_po_so_number").alias("related_po_so_number"),      # SDRORN
         F.col("sd.time_of_day").alias("time_of_day"),                        # SDTDAY
         F.col("sh.date_original_promisde").alias("original_promised_date"),  # SHOPDJ — distinct header date
-        # related_address_3 (ABAN83, ship-to F0101) removed — dropped the last st-join column
         F.col("al.adj_gl_class").alias("adj_gl_class"),                      # F4074 ALGLC
         F.col("al.adj_based_on_value").alias("adj_based_on_value"),          # F4074 ALBSDVAL
         F.col("al.adj_uom").alias("adj_uom"),                                # F4074 ALUOM
@@ -722,8 +713,7 @@ def build_fact():
           .withColumn("latest_delivery_date_key",         date_key(F.col("date_latest_delivery")))
           .withColumn("shift_factor_applied", F.coalesce(F.col("shift_factor_applied"), F.lit(SHIFT_FACTOR))))
 
-    # SOP620 bucket $ = per-line bucket ALUPRC sum * shipped tons (matches the validated Total Tons =
-    # SUM(quantity_shipped_tons)). Additive: no existing column is touched. Product Price = extended_price (separate).
+    # bucket $ = per-line bucket ALUPRC sum * shipped tons. Additive: no existing column is touched.
     for _adj, _bkt in [("adj_non_product", "bkt_non_product"), ("adj_al_severance_tax", "bkt_al_severance_tax"),
                        ("adj_misc_billing", "bkt_misc_billing"), ("adj_freight", "bkt_freight"),
                        ("adj_car_charges", "bkt_car_charges"), ("adj_freight_hide", "bkt_freight_hide")]:
@@ -741,11 +731,11 @@ def build_fact():
     # one row per order line
     df = df.dropDuplicates(["sales_order_line_key"])
     df = _add_effective_price_flag(df)                        # has_effective_price (1:1, no fan-out)
-    # pricing_issue_remark — derived label for the "Orders with Zero Unit Price" report (two disjoint cases):
+    # pricing_issue_remark — derived label (two disjoint cases):
     #   'Unit Price Zero'    : SDUPRC=0 on an open line (next status < 620)
     #   'No effective price' : SDUPRC<>0, line shipped (actual_ship_date not null), but no active F4106 base
-    #                          price covers it (has_effective_price='N' == the report's NOT EXISTS clause)
-    # NULL = no pricing issue; the report page-filters pricing_issue_remark IS NOT NULL.
+    #                          price covers it (has_effective_price='N')
+    # NULL = no pricing issue.
     df = df.withColumn(
         "pricing_issue_remark",
         F.when((F.col("price_per_unit") == 0) & (F.col("next_status_num") < 620),
@@ -766,8 +756,8 @@ def build_fact():
 # helpers build_uom_cascades / transform_freight_buckets / _add_effective_price_flag), so join_pairs
 # are [] here — the joins are not simple FK pairs. The list documents the source inventory and drives
 # the RUN source preflight.  join: spine=F4211 order-line driver, union=F42119 history (optional),
-# static=lookup / denormalized attribute source. The REUSED rpt address/plant dims are read-only
-# (owned by old_nb jobs) and dim_item is owned by nb_eso1_gold_dim_item — not built or checked here.
+# static=lookup / denormalized attribute source. The REUSED rpt address/plant dims and dim_item are
+# read-only — not built or checked here.
 FACT_SOURCES = [
     {"silver": F4211,    "join": "spine",  "join_pairs": []},                    # SX order-line driver (grain)
     {"silver": F42119,   "join": "union",  "join_pairs": [], "optional": True},  # Sales Order History — unioned via _load_optional if present
@@ -803,7 +793,7 @@ for _s in FACT_SOURCES:
 #   MANUAL_OVERWRITE = True  -> drop + rebuild from the full Silver snapshot.
 #   MANUAL_OVERWRITE = False -> build only if the fact is missing (re-run to refresh).
 #   Plain overwrite (no Gold CDF). Address dims are REUSED
-#   (rpt.dim_address_book role views) + rpt.dim_plant; dim_item is built by nb_eso1_gold_dim_item.
+#   (rpt.dim_address_book role views) + rpt.dim_plant.
 _run_start = time.time()
 if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(FACT)):
     print("== FULL LOAD ==")

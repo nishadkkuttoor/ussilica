@@ -3,24 +3,20 @@
 
 # ## nb_eso1_gold_fact_sales_commission
 #
-# **Gold `fact_sales_commission` processor** for Extended Sales Order 1 — the SOP0027
-# Commission report (Family 10). This is the ONE report the order-line freight fact
-# (`fact_sales_order_freight`) cannot serve: its commission measures come from the JDE
-# Sales Commission ledger **F42005**.
+# **Gold `fact_sales_commission` processor** for Extended Sales Order 1. Commission
+# measures come from the JDE Sales Commission ledger **F42005**.
 #
 # JOIN MODEL: **F4211 is the DRIVER**,
 # F42005 is **LEFT-joined**. So the grain is one row per **sales line × commission record** —
 # a line with no commission appears once with NULL commission columns; a line
 # with N commission records fans to N rows (the F4211 line metrics dedup in DAX via
-# is_primary_commission_line). This replaced an earlier F42005-driven build, which silently
-# dropped non-commissioned sales lines.
+# is_primary_commission_line).
 #
 # Builds ONE table — `lh_jde_gold.rpt.fact_sales_commission` — from the Silver
 # sales-order-detail (F4211, ∪ F42119 history) and commission (F42005) sources.
 # Own table, own OVERWRITE switch, and
-# **no report filters — all filtering is Power BI page-level** (the query's INNER
-# F4201/F0101 + ABAT1 band become page filters: sold_to IS NOT NULL, sold_to_search_type
-# in A–P / R–ZZZ).
+# **no report filters — all filtering is Power BI page-level** (e.g. sold_to IS NOT NULL,
+# sold_to_search_type in A–P / R–ZZZ).
 #
 # ── BUILD (BATCH) ────────────────────────────────────────────────────────────────────────
 #   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.

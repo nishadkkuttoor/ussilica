@@ -39,6 +39,7 @@ TABLES = {
         ('company', 'string', False, None),
         ('company_key_order_no', 'string', True, None),
         ('order_type', 'string', False, None),
+        ('document_type', 'string', False, None),
         ('order_number', 'int64', False, None),
         ('line_number', 'double', False, None),
         ('shipment_number', 'int64', False, None),
@@ -97,6 +98,20 @@ TABLES = {
         ('date_requested_ship', 'dateTime', False, None),
         ('release_date', 'dateTime', False, None),
         ('route_container_count', 'double', True, None),
+        # ── Mak Export Orders ocean-booking display cols (physical on fact; exposed for the export model) ──
+        ('sold_to_lob_category_05', 'string', False, None),    # F03012 AIAC05 (Sales Rep grouping / E26 export flag)
+        ('scheduled_pick_date', 'dateTime', False, None),      # SDPDDJ (labelled "Production Date")
+        ('cancel_date', 'dateTime', False, None),              # SDCNDJ (Cancellation Date)
+        ('date_earliest_pickup', 'dateTime', False, None),     # BADEPU (Sail Date)
+        ('date_earliest_delivery', 'dateTime', False, None),   # BADEDL (ETA Date)
+        ('ocean_carrier', 'int64', True, None),                # BA55OCCR — FK to dim_address_ocean_carrier (hidden; decoded via dim + Ocean Carrier Name)
+        ('booking_no', 'string', False, None),                 # BA55BKNO (Booking Number) — ⚠ verify string vs int64 vs physical schema
+        ('vessel_name', 'string', False, None),                # BA55VLNO (Vessel Name)
+        ('voyage_number', 'string', False, None),              # BA55VONO (Voyage No) — ⚠ verify string vs int64 vs physical schema
+        # ── Ottawa Whole Grain Truck (Packaged) display cols (physical on fact; exposed for the report) ──
+        ('sales_reporting_code_03', 'string', False, None),    # SDSRP3 (Pack Code; also the PKG page filter)
+        ('delivery_instruct_line_01', 'string', False, None),  # SHDEL1 (Delivery Instructions Line 1)
+        ('delivery_instruct_line_02', 'string', False, None),  # SHDEL2 (Delivery Instructions Line 2)
         # ── SOP000x Next-Status 620 / SOP sales-status page display cols (physical on fact; exposed for the SOP model) ──
         ('user_reserved_reference', 'string', False, None),   # SDURRF
         ('transaction_originator', 'string', False, None),    # SDTORG
@@ -145,6 +160,7 @@ TABLES = {
         ('Catch Weight', "SUM('fact_sales_order_freight'[catch_weight])", '#,0', 'Volume'),
         ('Carrier Name', 'SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])', None, 'Names'),
         ('Parent Name', 'SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])', None, 'Names'),
+        ('Ocean Carrier Name', 'SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])', None, 'Names'),
         ('Days Past Due', "DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)", '#,0', 'Aging'),
         ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
         ('Container Count', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))", '#,0', 'Volume'),
@@ -156,6 +172,7 @@ TABLES = {
         ('Short Ship Ordered Qty', "SUM('fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Short Ship'),
         ('Short Ship Transaction Qty', "SUM('fact_sales_order_freight'[transaction_quantity])", '#,0.00', 'Short Ship'),
         ('Short Ship Cancelled Qty', "SUM('fact_sales_order_freight'[cancelled_qty])", '#,0.00', 'Short Ship'),
+        ('Open Qty', "SUM('fact_sales_order_freight'[open_qty])", '#,0.00', 'Volume'),
         ('Days Since Cancel', "DATEDIFF(MAX('fact_sales_order_freight'[cancel_date]), TODAY(), DAY)", '#,0', 'Short Ship'),
       ],
     },
@@ -338,6 +355,20 @@ TABLES = {
 
       ],
     },
+    'dim_address_ocean_carrier': {   # role view over rpt.dim_address_book — decodes fact.ocean_carrier (BA55OCCR)
+      "cols": [
+        ('address_number', 'int64', True, None),
+        ('name_alpha', 'string', False, None),
+        ('address_type_01', 'string', False, None),
+        ('city', 'string', False, None),
+        ('state', 'string', False, None),
+        ('country', 'string', False, None),
+        ('zip_code_postal', 'string', False, None),
+      ],
+      "measures": [
+
+      ],
+    },
     'dim_plant': {
       "cols": [
         ('plant_code', 'string', False, None),
@@ -391,6 +422,15 @@ TABLES = {
 
       ],
     },
+    'dim_uom_conversion': {   # REUSED F41003 std UOM->TN dim (lh_jde_gold.rpt); Tier-B tons fallback keyed on from_uom
+      "cols": [
+        ('from_uom', 'string', True, None),     # PK — joins fact_sales_order_freight.uom (SDUOM / uom_as_input)
+        ('std_factor', 'double', False, None),  # standard UOM->TN factor (fwd UMRUM='TN', rev 1/factor)
+      ],
+      "measures": [
+
+      ],
+    },
 }
 
 # (from_table[MANY], from_col, to_table[ONE], to_col, is_active)
@@ -403,6 +443,8 @@ REL = [
     ('fact_sales_order_freight', 'address_number_parent', 'dim_address_parent', 'address_number', True),
     ('fact_sales_order_freight', 'mode_of_transport', 'dim_mode_of_transport', 'mot_code', True),
     ('fact_sales_order_freight', 'destination_port', 'dim_address_book_destination', 'address_number', True),
+    ('fact_sales_order_freight', 'ocean_carrier', 'dim_address_ocean_carrier', 'address_number', True),
+    ('fact_sales_order_freight', 'uom', 'dim_uom_conversion', 'from_uom', True),   # std UOM->TN fallback (rpt), many:1
     ('fact_sales_commission', 'salesperson', 'dim_address_salesperson', 'address_number', True),
     ('fact_sales_commission', 'ship_to', 'dim_address_ship_to', 'address_number', True),
     ('fact_sales_commission', 'sold_to', 'dim_address_sold_to', 'address_number', True),

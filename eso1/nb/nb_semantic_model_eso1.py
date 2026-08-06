@@ -43,6 +43,8 @@ NEW_TABLES = ["fact_sales_order_freight", "fact_sales_commission", "dim_item",
               "dim_freight_handling_code"]   # UDC 42/FR → freight_handling_code description (built by nb_eso1_gold_dim_freight_handling_code)
 RPT_TABLES = ["dim_address_ship_to", "dim_address_sold_to", "dim_address_carrier",
               "dim_address_parent", "dim_address_book_destination", "dim_address_salesperson",
+              "dim_address_ocean_carrier",   # decodes fact.ocean_carrier (BA55OCCR) — Mak Export Orders
+              "dim_uom_conversion",          # REUSED F41003 std UOM→TN dim (lh_jde_gold.rpt); Tier-B tons fallback
               "dim_plant", "dim_mode_of_transport"]
 MODEL_TABLES = NEW_TABLES + RPT_TABLES
 def schema_of(t): return "rpt"                         # everything in rpt now
@@ -64,7 +66,9 @@ NEW_REQUIRED    = [f"{LAKEHOUSE}.rpt.fact_sales_order_freight",
                    f"{LAKEHOUSE}.rpt.dim_category_code_05",
                    f"{LAKEHOUSE}.rpt.dim_freight_handling_code"]
 REUSED_REQUIRED = [f"{LAKEHOUSE}.rpt.dim_address_book", f"{LAKEHOUSE}.rpt.dim_plant",
-                   f"{LAKEHOUSE}.rpt.dim_mode_of_transport"]
+                   f"{LAKEHOUSE}.rpt.dim_mode_of_transport",
+                   # reused F41003 std UOM→TN dim (built by nb_silver_to_gold_dim_f41003.py)
+                   f"{LAKEHOUSE}.rpt.dim_uom_conversion"]
 REUSED_VIEWS    = [f"{LAKEHOUSE}.rpt.dim_address_ship_to",
                    f"{LAKEHOUSE}.rpt.dim_address_sold_to",
                    f"{LAKEHOUSE}.rpt.dim_address_carrier",
@@ -72,7 +76,10 @@ REUSED_VIEWS    = [f"{LAKEHOUSE}.rpt.dim_address_ship_to",
                    f"{LAKEHOUSE}.rpt.dim_address_book_destination",
                    # salesperson role view (SCSLSP) — mirror ship_to/sold_to/carrier over dim_address_book.
                    # If absent, create it via nb_dim_address_book before the commission rels can resolve.
-                   f"{LAKEHOUSE}.rpt.dim_address_salesperson"]
+                   f"{LAKEHOUSE}.rpt.dim_address_salesperson",
+                   # ocean-carrier role view (BA55OCCR) — mirror over dim_address_book; decodes fact.ocean_carrier.
+                   # If absent, create it via nb_dim_address_book before the Mak Export ocean-carrier rel can resolve.
+                   f"{LAKEHOUSE}.rpt.dim_address_ocean_carrier"]
 
 def _exists(fqn):
     try:
@@ -139,6 +146,8 @@ RELATIONSHIPS = [
     ("dim_address_carrier", "address_number",    FACT, "carrier_number",        True),
     ("dim_address_parent",  "address_number",    FACT, "address_number_parent", True),  # parent-customer role view
     ("dim_address_book_destination", "address_number", FACT, "destination_port", True),  # dest-point role view (was dest_point_name_alpha)
+    ("dim_address_ocean_carrier", "address_number", FACT, "ocean_carrier", True),  # BA55OCCR ocean-carrier role view (Mak Export Orders)
+    ("dim_uom_conversion", "from_uom", FACT, "uom", True),  # reused F41003 std UOM→TN dim (rpt); fact.uom → from_uom, many:1
     ("dim_item",            "item_number_short", FACT, "item_number_short", True),
     ("dim_plant",           "plant_code",        FACT, "branch_plant",     True),
     ("dim_mode_of_transport", "mot_code",        FACT, "mode_of_transport", True),  # UDC 00/TM code -> description
@@ -240,6 +249,8 @@ MEASURES = {
     "Short Ship Ordered Qty":     (f"SUM('{FACT}'[primary_quantity_ordered])", "#,0.00", False),
     "Short Ship Transaction Qty": (f"SUM('{FACT}'[transaction_quantity])", "#,0.00", False),
     "Short Ship Cancelled Qty":   (f"SUM('{FACT}'[cancelled_qty])", "#,0.00", False),
+    # open (unshipped) primary quantity — Ottawa Whole Grain "Primary Quantity Open" (SDUOPN)
+    "Open Qty":                   (f"SUM('{FACT}'[open_qty])", "#,0.00", False),
     "Days Since Cancel":          (f"DATEDIFF(MAX('{FACT}'[cancel_date]), TODAY(), DAY)", "#,0", False),
     "Price Quantity Shipped": (f"SUM('{FACT}'[price_quantity_shipped])", "\\$#,0", False),
     # BOL weigh-ticket weights (M5, F5549002) — line grain, additive across a load's lines (max_weight is a
@@ -254,6 +265,7 @@ MEASURES = {
     # related row under a fact-line filter context.
     "Carrier Name": ("SELECTEDVALUE(dim_address_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_carrier[name_alpha])", None, False),
     "Parent Name":  ("SELECTEDVALUE(dim_address_parent[address_number]) & \" - \" & SELECTEDVALUE(dim_address_parent[name_alpha])",   None, False),
+    "Ocean Carrier Name": ("SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])", None, False),
     # days a line is past its requested date; report-level as-of = TODAY() (positive = past due)
     "Days Past Due": (f"DATEDIFF(MAX('{FACT}'[requested_date]), TODAY(), DAY)", "#,0", False),
 }
