@@ -1,53 +1,53 @@
-table dim_address_salesperson
-	lineageTag: f697acbe-12b3-5099-839e-55ebe0f5f221
+table dim_address_ocean_carrier
+	lineageTag: 8e677a4a-7ea3-5d90-a681-074fab514ba5
 
 	column address_number
 		dataType: int64
 		isHidden
 		summarizeBy: none
 		sourceColumn: address_number
-		lineageTag: 688c275d-765a-5ae2-a7f5-18876bbff714
+		lineageTag: e34cdf5f-4ca2-5aa4-8c23-b523c4b4735f
 
 	column name_alpha
 		dataType: string
 		summarizeBy: none
 		sourceColumn: name_alpha
-		lineageTag: 5f238068-012d-5599-98f4-bcd2a3627081
+		lineageTag: a5896acf-4c0b-5f54-b7cc-b685d962383b
 
 	column address_type_01
 		dataType: string
 		summarizeBy: none
 		sourceColumn: address_type_01
-		lineageTag: 3b04e482-5262-5821-8fe1-b26c92abdb1c
+		lineageTag: a138e506-ef57-526c-89a4-57727a3e449d
 
 	column city
 		dataType: string
 		summarizeBy: none
 		sourceColumn: city
-		lineageTag: 15a89dba-d8d2-5f85-a765-183d9a0b22ec
+		lineageTag: 63daefc0-5ec3-568e-9449-2ec69bc00b6e
 
 	column state
 		dataType: string
 		summarizeBy: none
 		sourceColumn: state
-		lineageTag: 7be83481-7824-5870-99d6-f524c7db8ed8
+		lineageTag: fbeb0122-17ce-5ada-a33c-eb429d344125
 
 	column country
 		dataType: string
 		summarizeBy: none
 		sourceColumn: country
-		lineageTag: a7effd1b-d0f6-5b6b-ad66-5a4fcabac57d
+		lineageTag: a2e3c615-c7ea-52d1-b596-85421624c2f1
 
 	column zip_code_postal
 		dataType: string
 		summarizeBy: none
 		sourceColumn: zip_code_postal
-		lineageTag: 3b7479e1-44e5-5bcb-bada-b33d87afa848
+		lineageTag: 09f17893-88b1-59cc-9346-7e8951910106
 
-	partition dim_address_salesperson = entity
+	partition dim_address_ocean_carrier = entity
 		mode: directLake
 		source
-			entityName: dim_address_salesperson
+			entityName: dim_address_ocean_carrier
 			schemaName: rpt
 			expressionSource: DatabaseQuery
 

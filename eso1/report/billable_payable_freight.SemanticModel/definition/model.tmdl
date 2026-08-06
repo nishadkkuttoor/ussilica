@@ -15,9 +15,10 @@ ref table dim_address_carrier
 ref table dim_address_parent
 ref table dim_address_book_destination
 ref table dim_address_salesperson
+ref table dim_address_ocean_carrier
 ref table dim_plant
 ref table dim_mode_of_transport
 ref table dim_category_code_10
 ref table dim_category_code_05
 ref table dim_freight_handling_code
-ref table fact_price_adjustment
+ref table dim_uom_conversion

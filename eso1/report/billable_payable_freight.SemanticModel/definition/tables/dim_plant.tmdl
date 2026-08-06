@@ -42,13 +42,13 @@ table dim_plant
 		dataType: string
 		summarizeBy: none
 		sourceColumn: category_code_cost_ct_020
-		lineageTag: 7a90c1e2-4b53-5d16-9e07-1c2d3e4f5061
+		lineageTag: 790a3d95-bc86-51ee-841a-47782d19c7db
 
 	column state
 		dataType: string
 		summarizeBy: none
 		sourceColumn: state
-		lineageTag: 8b01d2f3-5c64-5e27-af18-2d3e4f506172
+		lineageTag: 98a21d58-7915-5c18-b9b1-7c030df6a2c0
 
 	column parent_plant_code
 		dataType: string
@@ -61,7 +61,7 @@ table dim_plant
 		isHidden
 		summarizeBy: none
 		sourceColumn: last_refreshed_timestamp
-		lineageTag: 9c12e304-6d75-5f38-b029-3e4f50617283
+		lineageTag: ca07b327-969c-5b86-884c-c43a75106ce1
 
 	partition dim_plant = entity
 		mode: directLake

@@ -79,40 +79,84 @@ table fact_sales_order_freight
 	measure 'Total Freight' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[total_freight])))
 		formatString: \$#,0;-\$#,0
 		displayFolder: Freight
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f01
+		lineageTag: 496d25de-487f-580f-95a6-998ece751644
 
 	measure 'Gross Weight' = SUM('fact_sales_order_freight'[gross_weight])
 		formatString: #,0
 		displayFolder: Volume
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f02
+		lineageTag: 8a124861-b9dc-5f81-9a72-42f18f8ba950
 
 	measure 'Catch Weight' = SUM('fact_sales_order_freight'[catch_weight])
 		formatString: #,0
 		displayFolder: Volume
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f03
+		lineageTag: 957c5b3c-f3f9-5c8e-b0da-4b5af68a81b8
 
 	measure 'Carrier Name' = SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])
 		displayFolder: Names
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f04
+		lineageTag: 8c13a510-0c37-5ee5-833a-e2c0bb65dca5
 
 	measure 'Parent Name' = SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])
 		displayFolder: Names
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f05
+		lineageTag: 8512832a-ae0f-5d26-8b89-5cfd944687b2
+
+	measure 'Ocean Carrier Name' = SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])
+		displayFolder: Names
+		lineageTag: 9a20d7ee-8359-562f-b14a-889a4de33f77
 
 	measure 'Days Past Due' = DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)
 		formatString: #,0
 		displayFolder: Aging
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f06
+		lineageTag: c858c685-6699-5fcf-813e-21f9d693408b
 
 	measure 'Ordered Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))
 		formatString: #,0.00
 		displayFolder: Volume
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f07
+		lineageTag: 0f5a8d12-4aa0-5589-830f-a8d94a3e33ed
 
 	measure 'Container Count' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))
 		formatString: #,0
 		displayFolder: Volume
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f2a
+		lineageTag: 2c04dbae-acbb-5617-9262-1ad19053f004
+
+	measure 'Product Price' = SUM('fact_sales_order_freight'[extended_price])
+		formatString: \$#,0.00
+		displayFolder: Pricing
+		lineageTag: e798cec8-e286-5a35-ba25-d0f46e19dad1
+
+	measure 'Price Per Ton' = DIVIDE([Product Price], [Quantity Shipped Tons])
+		formatString: \$#,0.00
+		displayFolder: Pricing
+		lineageTag: 55fd1a5f-0405-5f4a-9828-da3f4ebb19f1
+
+	measure 'Short Ship Shipped Qty' = SUM('fact_sales_order_freight'[quantity_shipped])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: 3853521b-7540-5324-82d5-edf00660226e
+
+	measure 'Short Ship Ordered Qty' = SUM('fact_sales_order_freight'[primary_quantity_ordered])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: d6728036-9a86-5664-8479-c21ceeede313
+
+	measure 'Short Ship Transaction Qty' = SUM('fact_sales_order_freight'[transaction_quantity])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: 0b6ccd3b-b301-53c6-9281-0b0bc8720982
+
+	measure 'Short Ship Cancelled Qty' = SUM('fact_sales_order_freight'[cancelled_qty])
+		formatString: #,0.00
+		displayFolder: Short Ship
+		lineageTag: 4b53bb29-c8d8-5c8b-94a0-d685e3a080b2
+
+	measure 'Open Qty' = SUM('fact_sales_order_freight'[open_qty])
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: 7dcc726c-5314-51e5-b4f5-a59caf8c147b
+
+	measure 'Days Since Cancel' = DATEDIFF(MAX('fact_sales_order_freight'[cancel_date]), TODAY(), DAY)
+		formatString: #,0
+		displayFolder: Short Ship
+		lineageTag: 2ab6bc86-43aa-512b-be50-9d7b8c360861
 
 	column sales_order_line_key
 		dataType: string
@@ -146,6 +190,12 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: order_type
 		lineageTag: 33266b8d-6be3-5c25-a1d1-c08f7d02f4df
+
+	column document_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: document_type
+		lineageTag: b8142435-50c5-5af8-aed7-9e9323a30110
 
 	column order_number
 		dataType: int64
@@ -194,7 +244,7 @@ table fact_sales_order_freight
 		isHidden
 		summarizeBy: none
 		sourceColumn: destination_port
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f15
+		lineageTag: b6cb56db-1d2d-5249-8783-a2f99c46568e
 
 	column route_number
 		dataType: int64
@@ -268,7 +318,7 @@ table fact_sales_order_freight
 		dataType: string
 		summarizeBy: none
 		sourceColumn: ship_year_week
-		lineageTag: 7a1c9e42-0b3d-5f88-9c21-4e0f1a2b3c4d
+		lineageTag: 9c02148d-7f49-5701-9050-2e84c11144cd
 
 	column gl_date
 		dataType: dateTime
@@ -286,7 +336,7 @@ table fact_sales_order_freight
 		dataType: dateTime
 		summarizeBy: none
 		sourceColumn: requested_date
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f16
+		lineageTag: b7679516-1df0-5f27-96f9-75c68c643f3a
 
 	column second_item_number
 		dataType: string
@@ -298,7 +348,7 @@ table fact_sales_order_freight
 		dataType: string
 		summarizeBy: none
 		sourceColumn: third_item_number
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f17
+		lineageTag: 61b08411-df80-5137-bb4e-e8fb82bfe8b7
 
 	column line_type
 		dataType: string
@@ -416,28 +466,28 @@ table fact_sales_order_freight
 		isHidden
 		summarizeBy: none
 		sourceColumn: total_freight
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f11
+		lineageTag: 8ba68496-2b03-5110-9969-c386f3c78847
 
 	column gross_weight
 		dataType: double
 		isHidden
 		summarizeBy: none
 		sourceColumn: gross_weight
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f12
+		lineageTag: 9d1e4895-7c39-5c49-af46-bc886aedf431
 
 	column catch_weight
 		dataType: double
 		isHidden
 		summarizeBy: none
 		sourceColumn: catch_weight
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f13
+		lineageTag: 28dee823-98e7-5b13-a4ef-76a7c9e6da66
 
 	column address_number_parent
 		dataType: int64
 		isHidden
 		summarizeBy: none
 		sourceColumn: address_number_parent
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f14
+		lineageTag: b7349e1d-0edb-55af-8262-c06612098acd
 
 	column freight_variance
 		dataType: double
@@ -464,172 +514,287 @@ table fact_sales_order_freight
 		dataType: string
 		summarizeBy: none
 		sourceColumn: production_code
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f20
+		lineageTag: 2811813d-92e2-5804-b71c-4c32505e81d8
 
 	column production_ship_notes
 		dataType: string
 		summarizeBy: none
 		sourceColumn: production_ship_notes
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f21
+		lineageTag: 5c0e5f90-ba9e-518b-a218-7d8bcaea0fdc
 
 	column order_reference
 		dataType: string
 		summarizeBy: none
 		sourceColumn: order_reference
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f22
+		lineageTag: 040bab50-b85d-5bb1-821b-2ef3208571e6
 
 	column routing_notes
 		dataType: string
 		summarizeBy: none
 		sourceColumn: routing_notes
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f23
+		lineageTag: af523576-f56a-574a-baf9-c08b950a74c5
 
 	column equipment_type
 		dataType: string
 		summarizeBy: none
 		sourceColumn: equipment_type
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f24
+		lineageTag: 060c4b11-e2ba-57c3-baa3-54a2459bc999
 
 	column inland_delterms
 		dataType: string
 		summarizeBy: none
 		sourceColumn: inland_delterms
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f25
+		lineageTag: 83579a58-1c41-5242-9fc8-6286280d6325
 
 	column incoterms
 		dataType: string
 		summarizeBy: none
 		sourceColumn: incoterms
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f26
+		lineageTag: 30905b6f-84a3-5a78-a5b0-6606f288de60
 
 	column date_requested_ship
 		dataType: dateTime
 		summarizeBy: none
 		sourceColumn: date_requested_ship
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f27
+		lineageTag: 91e566cb-5b7b-5295-ac4a-a5ea222c81e6
 
 	column release_date
 		dataType: dateTime
 		summarizeBy: none
 		sourceColumn: release_date
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f28
+		lineageTag: e6b47f63-0141-5e9e-9043-8535a5a6503e
 
 	column route_container_count
 		dataType: double
 		isHidden
 		summarizeBy: none
 		sourceColumn: route_container_count
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f29
+		lineageTag: 0846a0f3-609b-5bad-9a44-57697f0d50e6
+
+	column sold_to_lob_category_05
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sold_to_lob_category_05
+		lineageTag: a2a0cebc-cc74-592f-88bd-b04ed8041fa5
+
+	column scheduled_pick_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: scheduled_pick_date
+		lineageTag: 4fdf36f9-e15d-5915-8aba-a46ff2e7a0c4
+
+	column cancel_date
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: cancel_date
+		lineageTag: 0676839b-da50-56e0-b283-495793152f04
+
+	column date_earliest_pickup
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: date_earliest_pickup
+		lineageTag: a706946b-bb89-573f-98cd-736aff794a4c
+
+	column date_earliest_delivery
+		dataType: dateTime
+		summarizeBy: none
+		sourceColumn: date_earliest_delivery
+		lineageTag: 9f17e1eb-cd5e-58fe-bea7-9f774fa641f5
+
+	column ocean_carrier
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ocean_carrier
+		lineageTag: 1c127b27-c376-5a95-8341-718466bde1cf
+
+	column booking_no
+		dataType: string
+		summarizeBy: none
+		sourceColumn: booking_no
+		lineageTag: d8d07fd1-cee9-5912-ae44-369718af7e01
+
+	column vessel_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: vessel_name
+		lineageTag: c9d26737-25bd-546d-b5cd-7222d59aed8a
+
+	column voyage_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: voyage_number
+		lineageTag: 696b8815-54af-532e-b083-b5889f1c8178
+
+	column sales_reporting_code_03
+		dataType: string
+		summarizeBy: none
+		sourceColumn: sales_reporting_code_03
+		lineageTag: 22a3fe24-068d-57a3-96f2-806bc7e8e5ca
+
+	column delivery_instruct_line_01
+		dataType: string
+		summarizeBy: none
+		sourceColumn: delivery_instruct_line_01
+		lineageTag: 272bc028-5a48-5664-b7c7-8f9a170657ee
+
+	column delivery_instruct_line_02
+		dataType: string
+		summarizeBy: none
+		sourceColumn: delivery_instruct_line_02
+		lineageTag: 1c209597-f3ce-5a80-9c9a-a93f3dcdc844
 
 	column user_reserved_reference
 		dataType: string
 		summarizeBy: none
 		sourceColumn: user_reserved_reference
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f40
+		lineageTag: b2f6c3ea-8d92-56f0-806f-fb2d6f1e71a9
 
 	column transaction_originator
 		dataType: string
 		summarizeBy: none
 		sourceColumn: transaction_originator
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f41
+		lineageTag: f21a362f-55a9-5f61-b7c2-6984e6a3da01
 
 	column user_id
 		dataType: string
 		summarizeBy: none
 		sourceColumn: user_id
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f42
+		lineageTag: 58df22d4-9077-5ae0-b766-2277e6199cda
 
 	column time_of_day
 		dataType: int64
 		summarizeBy: none
 		sourceColumn: time_of_day
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f43
+		lineageTag: 6044647c-8133-5936-bc9a-304e17bc2fa2
 
 	column hold_orders_code
 		dataType: string
 		summarizeBy: none
 		sourceColumn: hold_orders_code
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f44
+		lineageTag: 4fea44c0-8c2f-5827-8f5c-648c806aee4f
 
 	column deferred_entries_flag
 		dataType: string
 		summarizeBy: none
 		sourceColumn: deferred_entries_flag
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f45
+		lineageTag: 8d704898-d065-57f3-9756-9ef8883daff8
 
 	column gl_class
 		dataType: string
 		summarizeBy: none
 		sourceColumn: gl_class
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f46
+		lineageTag: 49a38244-c62a-598d-87bf-ed9fc2d08a0a
 
 	column status_code_last
 		dataType: string
 		summarizeBy: none
 		sourceColumn: status_code_last
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f47
+		lineageTag: 359195bc-5b7a-5729-a79d-d42b93a53081
 
 	column status_code_next
 		dataType: string
 		summarizeBy: none
 		sourceColumn: status_code_next
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f48
+		lineageTag: 17e65601-9c24-50da-9378-3b1c1c9b9b00
 
 	column last_status_num
 		dataType: int64
 		isHidden
 		summarizeBy: none
 		sourceColumn: last_status_num
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f49
+		lineageTag: 929fe7dc-7cf5-505f-b775-b48334e7fb84
 
 	column next_status_num
 		dataType: int64
 		isHidden
 		summarizeBy: none
 		sourceColumn: next_status_num
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f4a
+		lineageTag: 4f3513da-8653-56e7-a57d-7deab119cd93
 
 	column container_id
 		dataType: string
 		summarizeBy: none
 		sourceColumn: container_id
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f4b
+		lineageTag: 4c3d4ad7-b772-5e89-bebb-4768e5dc6a60
 
 	column reference_01
 		dataType: string
 		summarizeBy: none
 		sourceColumn: reference_01
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f4c
+		lineageTag: 889166d3-a0db-52d0-b817-8ff5eca3fb8a
 
 	column location
 		dataType: string
 		summarizeBy: none
 		sourceColumn: location
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f4d
+		lineageTag: 0c01cf23-52a7-595a-8a07-3bd35aa24d70
 
 	column lot_number
 		dataType: string
 		summarizeBy: none
 		sourceColumn: lot_number
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f4e
+		lineageTag: af3deebb-8cf9-506b-8cc6-3a7e772315ab
 
 	column date_updated
 		dataType: dateTime
 		summarizeBy: none
 		sourceColumn: date_updated
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f4f
+		lineageTag: 652485aa-e54e-57fa-b341-8280aad8c2ad
 
 	column order_date
 		dataType: dateTime
 		summarizeBy: none
 		sourceColumn: order_date
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f50
+		lineageTag: c4572bf9-adc2-5c09-9221-39dd4520929d
 
 	column pricing_issue_remark
 		dataType: string
 		summarizeBy: none
 		sourceColumn: pricing_issue_remark
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f51
+		lineageTag: 0462c972-2fa1-56dc-b31f-ecebc7c3cd5d
+
+	column adj_non_product
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_non_product
+		formatString: \$#,0.00
+		lineageTag: 41708f5a-5752-5352-824d-ee6d4053ce2f
+
+	column adj_al_severance_tax
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_al_severance_tax
+		formatString: \$#,0.00
+		lineageTag: 0457d610-97e9-56b6-b8f8-c06866130730
+
+	column adj_misc_billing
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_misc_billing
+		formatString: \$#,0.00
+		lineageTag: 2d18ee9f-8240-5ede-8629-bf35b1d7430e
+
+	column adj_freight
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_freight
+		formatString: \$#,0.00
+		lineageTag: a324bc13-5e29-5580-bb1c-430430148238
+
+	column adj_car_charges
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_car_charges
+		formatString: \$#,0.00
+		lineageTag: d6ccab86-7278-5f37-84a7-7d2b1afaf2a8
+
+	column adj_freight_hide
+		dataType: double
+		summarizeBy: sum
+		sourceColumn: adj_freight_hide
+		formatString: \$#,0.00
+		lineageTag: 4d536e62-2f1f-531c-b145-a9a2286475ea
 
 	partition fact_sales_order_freight = entity
 		mode: directLake

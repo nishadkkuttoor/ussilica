@@ -1,48 +1,48 @@
 table dim_address_book_destination
-	lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f50
+	lineageTag: ea5a6fa8-506d-5c25-991c-19ce2809356a
 
 	column address_number
 		dataType: int64
 		isHidden
 		summarizeBy: none
 		sourceColumn: address_number
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f51
+		lineageTag: b9dd428b-3350-5a0e-b406-2b7bd2447c05
 
 	column name_alpha
 		dataType: string
 		summarizeBy: none
 		sourceColumn: name_alpha
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f52
+		lineageTag: 030e50c5-ddae-587a-a649-e4111d48de7d
 
 	column address_type_01
 		dataType: string
 		summarizeBy: none
 		sourceColumn: address_type_01
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f53
+		lineageTag: bdfe3783-f03c-51b2-ba1e-033ee646df75
 
 	column city
 		dataType: string
 		summarizeBy: none
 		sourceColumn: city
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f54
+		lineageTag: b252ef61-1690-5116-a718-f45729d26b98
 
 	column state
 		dataType: string
 		summarizeBy: none
 		sourceColumn: state
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f55
+		lineageTag: 4eea6fca-d75d-51e8-8d51-a650f640956b
 
 	column country
 		dataType: string
 		summarizeBy: none
 		sourceColumn: country
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f56
+		lineageTag: 55895963-33fd-52d5-90d6-1d220b3413b2
 
 	column zip_code_postal
 		dataType: string
 		summarizeBy: none
 		sourceColumn: zip_code_postal
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f57
+		lineageTag: 08b4b7d4-16b9-56c4-9db4-fb69ee8ca01f
 
 	partition dim_address_book_destination = entity
 		mode: directLake
@@ -50,3 +50,4 @@ table dim_address_book_destination
 			entityName: dim_address_book_destination
 			schemaName: rpt
 			expressionSource: DatabaseQuery
+

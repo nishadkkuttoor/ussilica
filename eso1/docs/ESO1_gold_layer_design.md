@@ -94,9 +94,13 @@
 > - **UoM → TN conversion now follows the `nb_silver_to_gold_eso7_v2_fact` approach.** The in-notebook cascade dropped
 >   its **standard-UoM `F41003`** leg — `build_uom_cascades()` now returns a **single** item-specific `F41002` union
 >   (UMRUM='TN' fwd + UMUM='TN' reciprocal rev), and `conv_rate = coalesce(when uom='TN' → 1.0, F41002 item factor)`.
->   The `F41003` fallback is served by the **reused `dim_uom_conversion` dimension** (`lh_jde_gold.eso7.dim_uom_conversion`;
->   grain `from_uom` → `std_factor`), built/maintained by **`nb_silver_to_gold_dim_f41003.py`** and applied as the Tier-B
->   fallback in the **Total Tons** DAX measure via `RELATED`.
+>   The `F41003` fallback is served by the **reused `dim_uom_conversion` dimension** (`lh_jde_gold.rpt.dim_uom_conversion`;
+>   grain `from_uom` → `std_factor`), built/maintained by **`nb_silver_to_gold_dim_f41003.py`**. **2026-08-06:** the dim is
+>   now **related in the semantic model** — `fact_sales_order_freight.uom → dim_uom_conversion.from_uom` (many:1) — so it is
+>   available as the Tier-B leg (`RELATED(dim_uom_conversion[std_factor])`) if needed. ⚠ The current **Total Tons /
+>   Ordered Tons** measures still use **F41002-only** conversion (`COALESCE(conversion_to_tons_rate, 0)`); they already match
+>   Hubble for the validated lines, so **no measure references `std_factor` yet** — wiring RELATED into the tons measures is a
+>   separate, result-changing opt-in.
 > - **Unresolved conversions stay `NULL`** (the blanket `1.0` default was removed), so `conversion_to_tons_rate` and
 >   `quantity_shipped_tons` are `NULL` for lines with no item-specific factor; `missing_conversion_flag='Y'` still marks them.
 > - `F41003` is **no longer a notebook source** (constant retired). The separate `uom_str` lookup for `uom_structure`
@@ -368,7 +372,7 @@ the open-order variations; guarded/optional, name confirmed in `full_metadata.js
 | 3 | `f5642b11_…_detail` | LEFT | KCOO,DOCO,DCTO,LNID,**SHPN** (pre-collapsed `b11d`) |
 | 4 | `f5642b01_…_header` | LEFT | KCOO,DOCO,DCTO,**SHPN** (pre-collapsed `b01d`) |
 | 5 | `f4101_item_master` | LEFT | IMITM = SDITM (also supplies `item_segment_04`) |
-| 6 | `…conversion_factors` (F41002) | LEFT | item-specific conversion UMITM=SDITM, UMRUM='TN', UMUM=SDUOM (**F41003 std fallback moved to DAX RELATED**); **plus** a separate `uom_str` lookup (item+input-UoM) for `uom_structure` (UMUSTR) |
+| 6 | `…conversion_factors` (F41002) | LEFT | item-specific conversion UMITM=SDITM, UMRUM='TN', UMUM=SDUOM (**F41003 std fallback → reused `dim_uom_conversion`, related in model but not yet in tons DAX**); **plus** a separate `uom_str` lookup (item+input-UoM) for `uom_structure` (UMUSTR) |
 | 7 | `f4074_price_adjustment_ledger_file` | LEFT | KCOO,DOCO,DCTO,LNID — **no `ALAST` whitelist**; collapsed to **one actual row per line** (`row_number` pick) |
 | 8 | `f4981_freight_audit_history` (buckets) | LEFT | on `shipment_number` (pre-aggregated, §4.3) |
 | 9 | `f4941_shipment_routing_steps` | LEFT | on `shipment_number` → `route_number` (RSRTN) |
@@ -455,7 +459,7 @@ no report filter is applied in Gold.
 | `mode_of_transport` | F4211 | SDMOT | |
 | `uom` | F4211 | SDUOM | |
 | `quantity_shipped` | F4211 | SDSOQS | raw units |
-| `conversion_to_tons_rate` | F41002 | UMCONV | item-specific TN factor (F41003 fallback via DAX); **NULL if unresolved**; `missing_conversion_flag` |
+| `conversion_to_tons_rate` | F41002 | UMCONV | item-specific TN factor (F41003 fallback = reused `dim_uom_conversion`, related in model, not yet in tons DAX); **NULL if unresolved**; `missing_conversion_flag` |
 | `quantity_shipped_tons` | calc | — | `quantity_shipped × conversion_to_tons_rate` (**NULL when rate unresolved**) |
 | `price_per_unit` | F4211 | SDUPRC | |
 | `price_quantity_shipped` | calc | — | `price_per_unit × quantity_shipped` (spec col 29) |
@@ -487,9 +491,11 @@ no report filter is applied in Gold.
 ### 4.5 UoM → TN conversion (ESO7 v2 fact approach — v2.7)
 Item-specific `F41002` only: `conv_rate = coalesce(when uom='TN' → 1.0, F41002 item factor)` where the F41002 union is
 UMRUM='TN' fwd + UMUM='TN' reciprocal rev (`1/factor`). The standard-UoM `F41003` leg is **no longer cascaded in the
-notebook** — that fallback is served by the reused **`dim_uom_conversion`** dimension (`lh_jde_gold.eso7.dim_uom_conversion`,
-grain `from_uom` → `std_factor`; built/maintained by **`nb_silver_to_gold_dim_f41003.py`**) and applied as the Tier-B leg
-of the **Total Tons** DAX measure via `RELATED`. Unresolved conversions stay **`NULL`** (no blanket
+notebook** — that fallback is served by the reused **`dim_uom_conversion`** dimension (`lh_jde_gold.rpt.dim_uom_conversion`,
+grain `from_uom` → `std_factor`; built/maintained by **`nb_silver_to_gold_dim_f41003.py`**), **related in the semantic model
+2026-08-06** as `fact_sales_order_freight.uom → dim_uom_conversion.from_uom` (many:1) and available as the Tier-B leg via
+`RELATED(dim_uom_conversion[std_factor])`. ⚠ Not yet wired into the tons measures (they use F41002-only and already match
+Hubble). Unresolved conversions stay **`NULL`** (no blanket
 `1.0`), so `missing_conversion_flag='Y'` marks them and `quantity_shipped_tons` is `NULL` for those lines. **v2.1:** F4074 (many adjustments/line) is
 collapsed to **one actual row per line** with a `row_number` pick *before* the join (not a post-projection `DISTINCT`), so
 the line grain is guaranteed and the MERGE key stays unique.

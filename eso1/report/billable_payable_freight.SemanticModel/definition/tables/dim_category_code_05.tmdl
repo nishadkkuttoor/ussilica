@@ -1,18 +1,18 @@
 table dim_category_code_05
-	lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fc0
+	lineageTag: c50f3266-576f-508b-81a2-b58fef493e43
 
 	column category_code_05
 		dataType: string
 		isHidden
 		summarizeBy: none
 		sourceColumn: category_code_05
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fc1
+		lineageTag: f5473096-9caa-55f6-a08b-aacd3b012546
 
 	column category_code_05_desc
 		dataType: string
 		summarizeBy: none
 		sourceColumn: category_code_05_desc
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6fc2
+		lineageTag: c28ace9a-2f05-5625-8c60-0e2c47a4de98
 
 	partition dim_category_code_05 = entity
 		mode: directLake
@@ -20,3 +20,4 @@ table dim_category_code_05
 			entityName: dim_category_code_05
 			schemaName: rpt
 			expressionSource: DatabaseQuery
+

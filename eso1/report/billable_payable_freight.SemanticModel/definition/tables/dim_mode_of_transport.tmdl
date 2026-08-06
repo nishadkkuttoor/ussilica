@@ -1,18 +1,18 @@
 table dim_mode_of_transport
-	lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f40
+	lineageTag: 071308b7-66b3-5818-a8bd-e0d81b57004b
 
 	column mot_code
 		dataType: string
 		isHidden
 		summarizeBy: none
 		sourceColumn: mot_code
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f41
+		lineageTag: 4e863ce2-c923-5d1b-923b-1a397f03ace1
 
 	column description
 		dataType: string
 		summarizeBy: none
 		sourceColumn: description
-		lineageTag: 5b1a7e60-1c2f-5a44-9e11-7a0c2d4e6f42
+		lineageTag: 136d15fa-a935-5f17-8e2d-ce594e491788
 
 	partition dim_mode_of_transport = entity
 		mode: directLake
@@ -20,3 +20,4 @@ table dim_mode_of_transport
 			entityName: dim_mode_of_transport
 			schemaName: rpt
 			expressionSource: DatabaseQuery
+
