@@ -3,7 +3,7 @@
 
 # ## nb_eso1_gold_dim_category_code_10
 #
-# **Gold UDC-dimension processor** for ESO1 — SOP0027 Commission.
+# **Gold UDC-dimension processor** for ESO1 — resolves the sold-to category description.
 # Builds ONE small reference dimension from ONE Silver source (the user-defined-code
 # values, F0005):
 #   • `lh_jde_gold.rpt.dim_category_code_10` — UDC 01/10 : category_code_10 -> category_code_10_desc

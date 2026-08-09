@@ -38,6 +38,14 @@ relationship d3d17029-db0e-52b0-a3cb-3a8cf96660f2
 	fromColumn: fact_sales_order_freight.uom
 	toColumn: dim_uom_conversion.from_uom
 
+relationship 41d699f8-6a5d-57dc-8c82-f9c76902852e
+	fromColumn: fact_sales_order_freight.second_item_number
+	toColumn: 'Second Item Filter'.second_item_number
+
+relationship 16ec58f6-002a-5fa4-8631-205d5adacf99
+	fromColumn: fact_sales_order_freight.order_number
+	toColumn: 'Order Filter'.order_number
+
 relationship a6e0bf2a-d28f-559d-8fa4-ef3a5cfc113b
 	fromColumn: fact_sales_commission.salesperson
 	toColumn: dim_address_salesperson.address_number

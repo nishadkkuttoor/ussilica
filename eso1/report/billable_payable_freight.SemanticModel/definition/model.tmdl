@@ -22,3 +22,5 @@ ref table dim_category_code_10
 ref table dim_category_code_05
 ref table dim_freight_handling_code
 ref table dim_uom_conversion
+ref table 'Second Item Filter'
+ref table 'Order Filter'

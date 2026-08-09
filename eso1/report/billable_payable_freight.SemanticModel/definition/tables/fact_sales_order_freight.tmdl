@@ -153,6 +153,26 @@ table fact_sales_order_freight
 		displayFolder: Volume
 		lineageTag: 7dcc726c-5314-51e5-b4f5-a59caf8c147b
 
+	measure 'Order Qty' = SUM('fact_sales_order_freight'[transaction_quantity])
+		formatString: #,0.00
+		displayFolder: Quantities
+		lineageTag: 4ea16d6f-ee07-5c5a-b2de-8342d218b93a
+
+	measure 'Primary Qty Ordered' = SUM('fact_sales_order_freight'[primary_quantity_ordered])
+		formatString: #,0.00
+		displayFolder: Quantities
+		lineageTag: 18658318-625f-5380-ac9f-4d6a10fec9a2
+
+	measure 'Primary Qty Loaded' = SUM('fact_sales_order_freight'[quantity_shipped])
+		formatString: #,0.00
+		displayFolder: Quantities
+		lineageTag: 968ccb8e-c915-58a7-84ae-f68cb7f73ace
+
+	measure 'Primary Qty Open' = SUM('fact_sales_order_freight'[open_qty])
+		formatString: #,0.00
+		displayFolder: Quantities
+		lineageTag: 89ee398e-c561-56ab-8034-db0da3effd74
+
 	measure 'Days Since Cancel' = DATEDIFF(MAX('fact_sales_order_freight'[cancel_date]), TODAY(), DAY)
 		formatString: #,0
 		displayFolder: Short Ship
@@ -718,6 +738,12 @@ table fact_sales_order_freight
 		sourceColumn: container_id
 		lineageTag: 4c3d4ad7-b772-5e89-bebb-4768e5dc6a60
 
+	column pull_signal
+		dataType: string
+		summarizeBy: none
+		sourceColumn: pull_signal
+		lineageTag: c5b95056-d8f0-5185-a2d8-7f904810734a
+
 	column reference_01
 		dataType: string
 		summarizeBy: none
@@ -800,6 +826,6 @@ table fact_sales_order_freight
 		mode: directLake
 		source
 			entityName: fact_sales_order_freight
-			schemaName: otc
+			schemaName: rpt
 			expressionSource: DatabaseQuery
 

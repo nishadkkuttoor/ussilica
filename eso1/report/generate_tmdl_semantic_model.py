@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # Generates report/billable_payable_freight.SemanticModel (Direct Lake TMDL) for the
 # TWO-FACT ESO1 model (Billable v Payable Freight + Sales Commission) — reconciled to
-# the hand-maintained twin: 15 tables / 17 relationships / 44 measures, mixed schema
-# (freight fact + dim_item in otc; everything else rpt), NO is_deleted.
-#   • 2026-07-26 base reconcile = 12 tables / 14 rels.
-#   • 2026-07-29 caught up dim_category_code_05 (UDC 01/05, added to the twin 2026-07-27) AND added
-#     dim_freight_handling_code (UDC 42/FR) + their fact FK cols/relationships → 14 tables / 16 rels.
+# the hand-maintained twin: 17 tables / 19 relationships / 40 measures, ALL rpt schema (all
+# Direct Lake), NO is_deleted. dim_second_item = physical Direct Lake dim (distinct second_item_number
+# + Included/Excluded flag) for the large-exclusion-list slicer; built by nb_eso1_gold_dim_second_item.
 # Data below is transcribed from the twin; regenerating reproduces it (deterministic
 # uuid5 lineageTags). Run:  python report/generate_tmdl_semantic_model.py
 import os, uuid, json
@@ -23,10 +21,15 @@ def w(path, text):
 FREIGHT = "fact_sales_order_freight"
 COMMISSION = "fact_sales_commission"
 
-# Mixed-schema Direct Lake: freight fact + dim_item live in otc; everything else in rpt
-# (the reused conformed dims + the commission fact). Matches the hand twin exactly.
-OTC_TABLES = {'dim_item', 'fact_sales_order_freight'}
-def schema_of(t): return "otc" if t in OTC_TABLES else "rpt"
+# Direct Lake: every table lives in the rpt schema of lh_jde_gold — matches the notebooks
+# (which write to GOLD_SCHEMA='rpt') and the runtime builder nb_semantic_model_eso1.py.
+def schema_of(t): return "rpt"
+
+# Optional model DISPLAY name per table (field-list label) — the physical Delta table / entityName /
+# dict key stays as-is; only the emitted table/partition/ref/relationship references use the display name.
+TABLE_DISPLAY = {'dim_second_item': 'Second Item Filter', 'dim_order_number': 'Order Filter'}
+def disp_t(t): return TABLE_DISPLAY.get(t, t)
+def qname(n):  return f"'{n}'" if any(c in n for c in " '\"") else n   # quote names with spaces
 
 # Each table: cols = [(name, dataType, isHidden, sortByColumn|None [, summarizeBy='none' [, formatString|None]])],
 #             measures = [(name, dax, formatString|None, displayFolder|None)]
@@ -125,6 +128,7 @@ TABLES = {
         ('last_status_num', 'int64', True, None),             # SDLTTR int copy (page range-filter)
         ('next_status_num', 'int64', True, None),             # SDNXTR int copy (page range-filter)
         ('container_id', 'string', False, None),              # SDCNID (Vehicle No.)
+        ('pull_signal', 'string', False, None),               # SDPSIG (Sand Ticket)
         ('reference_01', 'string', False, None),              # SDVR01 (Customer PO Number)
         ('location', 'string', False, None),                  # SDLOCN
         ('lot_number', 'string', False, None),                # SDLOTN
@@ -173,6 +177,11 @@ TABLES = {
         ('Short Ship Transaction Qty', "SUM('fact_sales_order_freight'[transaction_quantity])", '#,0.00', 'Short Ship'),
         ('Short Ship Cancelled Qty', "SUM('fact_sales_order_freight'[cancelled_qty])", '#,0.00', 'Short Ship'),
         ('Open Qty', "SUM('fact_sales_order_freight'[open_qty])", '#,0.00', 'Volume'),
+        # Open-order-report quantity aliases (report-label-friendly; same sums as the Short Ship * measures)
+        ('Order Qty', "SUM('fact_sales_order_freight'[transaction_quantity])", '#,0.00', 'Quantities'),
+        ('Primary Qty Ordered', "SUM('fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Quantities'),
+        ('Primary Qty Loaded', "SUM('fact_sales_order_freight'[quantity_shipped])", '#,0.00', 'Quantities'),
+        ('Primary Qty Open', "SUM('fact_sales_order_freight'[open_qty])", '#,0.00', 'Quantities'),
         ('Days Since Cancel', "DATEDIFF(MAX('fact_sales_order_freight'[cancel_date]), TODAY(), DAY)", '#,0', 'Short Ship'),
       ],
     },
@@ -431,6 +440,31 @@ TABLES = {
 
       ],
     },
+    'dim_second_item': {   # physical Direct Lake dim (rpt) — distinct second_item_number + one Included/Excluded flag per Ottawa variation (built by nb_eso1_gold_dim_second_item)
+      "cols": [
+        ('second_item_number', 'string', False, None),
+        # one flag column per Ottawa variation (display name ≠ physical col); slice ='Included'
+        (('WG Truck Packaged Filter', 'whole_grain_truck_packaged_filter'), 'string', False, None),
+        (('WG Truck Bulk Filter',     'whole_grain_truck_bulk_filter'),     'string', False, None),
+        (('WG Rail Bulk Filter',      'whole_grain_rail_bulk_filter'),      'string', False, None),
+        (('Ground Packaged Filter',   'ground_packaged_filter'),            'string', False, None),
+        (('Ground Bulk Filter',       'ground_bulk_filter'),                'string', False, None),
+        (('ASTM Packaged Filter',     'astm_packaged_filter'),              'string', False, None),
+      ],
+      "measures": [
+
+      ],
+    },
+    'dim_order_number': {   # physical Direct Lake dim (rpt) — distinct order_number + one Included/Excluded flag per whitelist report (built by nb_eso1_gold_dim_order_number)
+      "cols": [
+        ('order_number', 'int64', False, None),
+        # one flag column per order-whitelist report (display name ≠ physical col); slice ='Included'
+        (('Mak Export Filter', 'mak_export_filter'), 'string', False, None),   # Mak Export Orders (~70 SDDOCO whitelist)
+      ],
+      "measures": [
+
+      ],
+    },
 }
 
 # (from_table[MANY], from_col, to_table[ONE], to_col, is_active)
@@ -445,6 +479,8 @@ REL = [
     ('fact_sales_order_freight', 'destination_port', 'dim_address_book_destination', 'address_number', True),
     ('fact_sales_order_freight', 'ocean_carrier', 'dim_address_ocean_carrier', 'address_number', True),
     ('fact_sales_order_freight', 'uom', 'dim_uom_conversion', 'from_uom', True),   # std UOM->TN fallback (rpt), many:1
+    ('fact_sales_order_freight', 'second_item_number', 'dim_second_item', 'second_item_number', True),   # physical exclusion dim, many:1
+    ('fact_sales_order_freight', 'order_number', 'dim_order_number', 'order_number', True),   # physical order-whitelist dim, many:1
     ('fact_sales_commission', 'salesperson', 'dim_address_salesperson', 'address_number', True),
     ('fact_sales_commission', 'ship_to', 'dim_address_ship_to', 'address_number', True),
     ('fact_sales_commission', 'sold_to', 'dim_address_sold_to', 'address_number', True),
@@ -460,18 +496,16 @@ REL = [
 # ── WIRING CHECK ─────────────────────────────────────────────────────────────
 # Every relationship must resolve to an emitted table+column; otc set must be exactly
 # the two new tables; every other table must be rpt. Fail fast on a typo.
-_cols_of = {t: {c[0] for c in spec["cols"]} for t, spec in TABLES.items()}
+_cols_of = {t: {(c[0][0] if isinstance(c[0], tuple) else c[0]) for c in spec["cols"]} for t, spec in TABLES.items()}
 _errs = []
 for _rel in REL:
     ft, fc, tt, tc = _rel[0], _rel[1], _rel[2], _rel[3]
     for tbl, col in [(ft, fc), (tt, tc)]:
         if tbl not in TABLES: _errs.append(f"relationship references unknown table '{tbl}'")
         elif col not in _cols_of[tbl]: _errs.append(f"relationship references unknown column '{tbl}[{col}]'")
-if OTC_TABLES != {FREIGHT, "dim_item"}:
-    _errs.append(f"OTC_TABLES drifted: {OTC_TABLES}")
 for t in TABLES:
-    if t not in OTC_TABLES and schema_of(t) != "rpt":
-        _errs.append(f"non-otc table '{t}' must be rpt")
+    if schema_of(t) != "rpt":
+        _errs.append(f"table '{t}' must be rpt")
 if _errs:
     raise SystemExit("Wiring check FAILED:\n  - " + "\n  - ".join(_errs))
 
@@ -482,29 +516,38 @@ for t in TABLES:
 
 T = "\t"
 for tname, t in TABLES.items():
-    L = [f"table {tname}", f"{T}lineageTag: {tag('t:'+tname)}", ""]
+    L = [f"table {qname(disp_t(tname))}", f"{T}lineageTag: {tag('t:'+tname)}", ""]
     for mname, dax, fmt, folder in t["measures"]:
         L.append(f"{T}measure '{mname}' = {dax}")
         if fmt is not None:    L.append(f"{T}{T}formatString: {fmt}")
         if folder is not None: L.append(f"{T}{T}displayFolder: {folder}")
         L.append(f"{T}{T}lineageTag: {tag('m:'+tname+'.'+mname)}")
         L.append("")
+    is_calc = bool(t.get("calc"))   # DAX calculated table (import; e.g. DATATABLE) vs Direct Lake entity
     for col in t["cols"]:
         cname, dt, hidden, sortby = col[0], col[1], col[2], col[3]
+        # cname may be "src" (display == sourceColumn) or ("Display Name", "source_column")
+        disp, src = cname if isinstance(cname, tuple) else (cname, cname)
         summ = col[4] if len(col) > 4 else "none"       # optional summarizeBy (default none)
         cfmt = col[5] if len(col) > 5 else None          # optional per-column formatString
-        L.append(f"{T}column {cname}")
+        _decl = f"'{disp}'" if any(ch in disp for ch in " '\"") else disp   # quote names with spaces
+        L.append(f"{T}column {_decl}")
         L.append(f"{T}{T}dataType: {dt}")
         if hidden: L.append(f"{T}{T}isHidden")
         L.append(f"{T}{T}summarizeBy: {summ}")
-        L.append(f"{T}{T}sourceColumn: {cname}")
+        # calc-table columns reference the DAX-produced column ([name]); Direct Lake columns bind a Delta column
+        L.append(f"{T}{T}sourceColumn: {'['+src+']' if is_calc else src}")
         if cfmt is not None: L.append(f"{T}{T}formatString: {cfmt}")
         if sortby: L.append(f"{T}{T}sortByColumn: {sortby}")
-        L.append(f"{T}{T}lineageTag: {tag('c:'+tname+'.'+cname)}")
+        L.append(f"{T}{T}lineageTag: {tag('c:'+tname+'.'+src)}")
         L.append("")
-    L += [f"{T}partition {tname} = entity", f"{T}{T}mode: directLake", f"{T}{T}source",
-          f"{T}{T}{T}entityName: {tname}", f"{T}{T}{T}schemaName: {schema_of(tname)}",
-          f"{T}{T}{T}expressionSource: DatabaseQuery", ""]
+    if is_calc:
+        L += [f"{T}partition {qname(disp_t(tname))} = calculated", f"{T}{T}mode: import",
+              f"{T}{T}source = {t['calc']}", ""]
+    else:
+        L += [f"{T}partition {qname(disp_t(tname))} = entity", f"{T}{T}mode: directLake", f"{T}{T}source",
+              f"{T}{T}{T}entityName: {tname}", f"{T}{T}{T}schemaName: {schema_of(tname)}",
+              f"{T}{T}{T}expressionSource: DatabaseQuery", ""]
     w(os.path.join(TBLS, f"{tname}.tmdl"), "\n".join(L) + "\n")
 
 RL = []
@@ -515,7 +558,7 @@ for _rel in REL:
     RL += [f"relationship {rid}"]
     if not active: RL += [f"{T}isActive: false"]
     if both: RL += [f"{T}crossFilteringBehavior: bothDirections"]
-    RL += [f"{T}fromColumn: {ft}.{fc}", f"{T}toColumn: {tt}.{tc}", ""]
+    RL += [f"{T}fromColumn: {qname(disp_t(ft))}.{fc}", f"{T}toColumn: {qname(disp_t(tt))}.{tc}", ""]
 w(os.path.join(DEFN, "relationships.tmdl"), "\n".join(RL) + "\n")
 
 expr = (
@@ -529,7 +572,7 @@ f"{T}annotation PBI_IncludeFutureArtifacts = False\n"
 )
 w(os.path.join(DEFN, "expressions.tmdl"), expr)
 
-refs = "\n".join(f"ref table {n}" for n in TABLES)
+refs = "\n".join(f"ref table {qname(disp_t(n))}" for n in TABLES)
 model = (
 "model Model\n"
 f"{T}culture: en-US\n"

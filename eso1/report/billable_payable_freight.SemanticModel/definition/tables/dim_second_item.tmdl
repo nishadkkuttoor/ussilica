@@ -1,0 +1,52 @@
+table 'Second Item Filter'
+	lineageTag: 7fbd9406-593a-59da-8419-d45a70aad905
+
+	column second_item_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: second_item_number
+		lineageTag: 6470c8b3-a676-571f-b883-11f67bc192e6
+
+	column 'WG Truck Packaged Filter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: whole_grain_truck_packaged_filter
+		lineageTag: 6de941e1-eb2d-5813-bbe3-453c30671686
+
+	column 'WG Truck Bulk Filter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: whole_grain_truck_bulk_filter
+		lineageTag: a0c29914-8138-50a9-b98b-d52a3a679ba6
+
+	column 'WG Rail Bulk Filter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: whole_grain_rail_bulk_filter
+		lineageTag: 214b1f7e-1f20-527b-8372-1ecf570a41c5
+
+	column 'Ground Packaged Filter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ground_packaged_filter
+		lineageTag: de9a146e-989f-5014-aa5c-3256f6f0b1ba
+
+	column 'Ground Bulk Filter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ground_bulk_filter
+		lineageTag: 7816f397-e113-5d84-9b52-743052c218f3
+
+	column 'ASTM Packaged Filter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: astm_packaged_filter
+		lineageTag: d2156a21-0aec-509c-b940-1b3dcb9b2f88
+
+	partition 'Second Item Filter' = entity
+		mode: directLake
+		source
+			entityName: dim_second_item
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
