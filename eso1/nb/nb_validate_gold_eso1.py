@@ -241,6 +241,52 @@ check("recon_freight_shipment_count", "> 0", f"{ship_ct:,}", ship_ct > 0)
 # In[8]:
 
 
+# ── 7. BUCKET-RECOMPUTE PARITY (migration guard) ──────────────────────────────
+# The ALAPRP1 bucket recompute must change ONLY the 6 adj_* columns (+ the new
+# price_adjustment_print_code). This compares the latest fact build against the
+# immediately-previous Delta version and asserts: (a) identical row count, and
+# (b) every OTHER column byte-identical per sales_order_line_key. Auto-SKIPs when
+# <2 versions exist, or once the previous version already carries the new column
+# (i.e. after the first post-change rebuild) so ongoing rebuilds don't false-fail.
+# ⚠ Assumes both builds ran on the SAME Silver snapshot — Silver drift between them
+# would surface here as (legitimate) diffs, not a code regression.
+_ADJ_COLS = ["adj_non_product", "adj_al_severance_tax", "adj_misc_billing",
+             "adj_freight", "adj_car_charges", "adj_freight_hide"]
+_NEW_COLS = ["price_adjustment_print_code"]   # added by the ALAPRP1 change (absent pre-change)
+_KEY = "sales_order_line_key"
+try:
+    _hist = spark.sql(f"DESCRIBE HISTORY {T_FACT}")
+    _vers = [r["version"] for r in
+             _hist.select("version").orderBy(F.col("version").desc()).limit(2).collect()]
+except Exception:
+    _vers = []
+
+if len(_vers) < 2:
+    check("bucket_parity", "compare latest 2 versions", f"SKIP (only {len(_vers)} version(s))", True)
+else:
+    _v_cur, _v_prev = _vers[0], _vers[1]
+    _cur  = spark.read.format("delta").option("versionAsOf", _v_cur).table(T_FACT)
+    _prev = spark.read.format("delta").option("versionAsOf", _v_prev).table(T_FACT)
+    if not all(c not in _prev.columns for c in _NEW_COLS):
+        check("bucket_parity", "migration rebuild",
+              f"SKIP (prev v{_v_prev} already has new schema)", True)
+    else:
+        _n_prev, _n_cur = _prev.count(), _cur.count()
+        check("bucket_parity_rowcount", _n_prev, _n_cur, _n_prev == _n_cur)
+        _cmp = [c for c in _cur.columns
+                if c in _prev.columns and c not in _ADJ_COLS and c not in _NEW_COLS and c != _KEY]
+        def _sig(df):
+            return df.select(_KEY, F.sha2(F.concat_ws(
+                "||", *[F.coalesce(F.col(c).cast("string"), F.lit("<NULL>")) for c in _cmp]), 256).alias("_h"))
+        _j = _sig(_cur).alias("c").join(_sig(_prev).alias("p"), _KEY, "full_outer")
+        _mismatch = _j.filter(F.col("c._h").isNull() | F.col("p._h").isNull()
+                              | (F.col("c._h") != F.col("p._h"))).count()
+        check(f"bucket_parity_noncols_identical ({len(_cmp)} cols)", 0, _mismatch, _mismatch == 0)
+
+
+# In[9]:
+
+
 # ── Persist the validation log + overall gate ─────────────────────────────────
 log = spark.createDataFrame(
     [Row(check_name=n, expected=e, actual=a, passed=p,

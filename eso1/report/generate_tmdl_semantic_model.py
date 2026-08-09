@@ -183,6 +183,26 @@ TABLES = {
         ('Primary Qty Loaded', "SUM('fact_sales_order_freight'[quantity_shipped])", '#,0.00', 'Quantities'),
         ('Primary Qty Open', "SUM('fact_sales_order_freight'[open_qty])", '#,0.00', 'Quantities'),
         ('Days Since Cancel', "DATEDIFF(MAX('fact_sales_order_freight'[cancel_date]), TODAY(), DAY)", '#,0', 'Short Ship'),
+        # Ottawa (updated) conditional buckets — qty + matching line-count pairs; all over base cols already on the fact.
+        # KG lines: transaction qty where uom = KG.
+        ('KG Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[uom]) = \"KG\"), 'fact_sales_order_freight'[transaction_quantity])", '#,0.00', 'Ottawa Buckets'),
+        ('KG Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[uom]) = \"KG\")) + 0", '#,0', 'Ottawa Buckets'),
+        # Freight-type lines (SDLNTY in F / FT / CA): primary ordered qty.
+        ('Freight-Type Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\" || TRIM('fact_sales_order_freight'[line_type]) = \"CA\"), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
+        ('Freight-Type Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\" || TRIM('fact_sales_order_freight'[line_type]) = \"CA\")) + 0", '#,0', 'Ottawa Buckets'),
+        # Confirmed-shipped lines (last status 530 AND next status 560): primary ordered qty.
+        ('Confirmed Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 530 && 'fact_sales_order_freight'[next_status_num] = 560), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
+        ('Confirmed Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 530 && 'fact_sales_order_freight'[next_status_num] = 560)) + 0", '#,0', 'Ottawa Buckets'),
+        # Backorder/cancel lines (last status in 520 / 914): primary ordered qty.
+        ('Backorder Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 520 || 'fact_sales_order_freight'[last_status_num] = 914), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
+        ('Backorder Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 520 || 'fact_sales_order_freight'[last_status_num] = 914)) + 0", '#,0', 'Ottawa Buckets'),
+        # SOP620 F4074 adjustment buckets — line extended price (SDAEXP) attributed by ALAPRP1 print code (materialized as adj_* on the fact).
+        ('Non Product', "SUM('fact_sales_order_freight'[adj_non_product])", '\\$#,0.00', 'SOP620 Adjustments'),
+        ('AL Severance Tax', "SUM('fact_sales_order_freight'[adj_al_severance_tax])", '\\$#,0.00', 'SOP620 Adjustments'),
+        ('Misc Billing', "SUM('fact_sales_order_freight'[adj_misc_billing])", '\\$#,0.00', 'SOP620 Adjustments'),
+        ('Freight', "SUM('fact_sales_order_freight'[adj_freight])", '\\$#,0.00', 'SOP620 Adjustments'),
+        ('Car Charges', "SUM('fact_sales_order_freight'[adj_car_charges])", '\\$#,0.00', 'SOP620 Adjustments'),
+        ('Freight Hide', "SUM('fact_sales_order_freight'[adj_freight_hide])", '\\$#,0.00', 'SOP620 Adjustments'),
       ],
     },
     'fact_sales_commission': {
