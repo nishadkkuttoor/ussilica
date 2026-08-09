@@ -221,7 +221,7 @@ FACT_BUSINESS_COLS = [
     # [standard_industry_code] / [address_type_01] via the ship_to relationship.
     # category_code_05 (ABAC05) / category_code_14 (ABAC14) removed — served by
     # dim_address_ship_to[category_code_05] / [category_code_14] via the ship_to relationship.
-    "price_adjustment_type",
+    "price_adjustment_type", "price_adjustment_print_code",
     "uom_structure", "payment_terms",   # item_segment_04 (IMSEG4) moved to dim_item
     # ── measures / numerics (line grain) ──
     "quantity_shipped", "quantity_shipped_tons", "primary_quantity_ordered",
@@ -344,6 +344,7 @@ def build_fact():
                   F.col("company_key_order_no"), F.col("document_order_invoice_e"),
                   F.col("order_type"), F.col("line_number"),
                   F.trim(F.col("price_adjustment_type")).alias("price_adjustment_type"),
+                  F.trim(F.col("pricing_report_code_01")).alias("price_adjustment_print_code"),  # ALAPRP1
                   F.col("amt_price_per_unit_02").cast("double").alias("freight_factor_value"),
                   F.col("gl_class").alias("adj_gl_class"),                   # ALGLC
                   F.col("based_on_value").alias("adj_based_on_value"),       # ALBSDVAL
@@ -352,23 +353,25 @@ def build_fact():
               .withColumn("_alrn", F.row_number().over(_alw))
               .where(F.col("_alrn") == 1).drop("_alrn"))
 
-    # adjustment buckets — per-line SUM of ALUPRC for each ALAST bucket set, collapsed to ONE row per line so
-    # the LEFT join can't fan the line grain out. Multiplied by quantity_shipped_tons below to get the extended $ per
-    # bucket (ALUPRC is priced per ton).
-    # ⚠ The ALAST->bucket split is an assumption (Non Product / Misc Billing code sets had no rows in current data).
-    _FB_BUCKETS = {
-        "bkt_non_product":      ["PPSLB", "CASLB"],
-        "bkt_al_severance_tax": ["ALST"],
-        "bkt_misc_billing":     ["PP06", "PP07", "PP08", "PP13", "PP15", "PP17", "PP26",
-                                 "PP37", "PP50", "PP51", "PP56", "PP57", "PP97", "PP99"],
-        "bkt_freight":          ["FRTTAXN", "FRTTAXY"],
-        "bkt_car_charges":      ["COLPALN", "COLPALT"],
-        "bkt_freight_hide":     ["FRTHIDE"],
+    # adjustment buckets — per-line COUNT of F4074 rows matching each bucket predicate, collapsed to ONE row
+    # per line so the LEFT join can't fan the line grain out. On the fact each count is multiplied by the line
+    # extended_price (SDAEXP) into the adj_* $ columns (below): count * SDAEXP reproduces the line-grain
+    # SUM(CASE WHEN <predicate> THEN SDAEXP) — a line's price lands in every bucket whose adjustment it carries.
+    # Buckets are keyed on the adjustment print code ALAPRP1, with ALAST fallbacks for Misc Billing (PP*) and
+    # Freight Hide (FRTHIDE). Freight = FR1 only (FR2 is a separate freight print code, not in this bucket).
+    _aprp = F.trim(F.col("pricing_report_code_01"))            # ALAPRP1
+    _atyp = F.trim(F.col("price_adjustment_type"))             # ALAST
+    _FB_PREDS = {
+        "bkt_non_product":      _aprp == "NON",
+        "bkt_al_severance_tax": _aprp == "ALA",
+        "bkt_misc_billing":     (_aprp == "ACR") | (F.substring(_atyp, 1, 2) == "PP"),
+        "bkt_freight":          _aprp == "FR1",
+        "bkt_car_charges":      _aprp == "CAR",
+        "bkt_freight_hide":     _atyp == "FRTHIDE",
     }
     f4074_buckets = (f4074.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "line_number")
-                     .agg(*[F.sum(F.when(F.trim(F.col("price_adjustment_type")).isin(_codes),
-                                         F.col("amt_price_per_unit_02").cast("double")).otherwise(0.0)).alias(_name)
-                            for _name, _codes in _FB_BUCKETS.items()]))
+                     .agg(*[F.sum(F.when(_pred, F.lit(1)).otherwise(F.lit(0))).alias(_name)
+                            for _name, _pred in _FB_PREDS.items()]))
 
     # F41002 UOM structure (UMUSTR) — read from the item's TN-conversion row (join
     # UMITM=SDITM AND UMRUM='TN' AND UMUM=SDUOM). Without the related_uom='TN' gate the
@@ -563,6 +566,7 @@ def build_fact():
         F.when(conv_rate.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
         # ── filter-only attributes (Power BI slicers) ──
         F.col("al.price_adjustment_type").alias("price_adjustment_type"),       # ALAST (F4074, actual)
+        F.col("al.price_adjustment_print_code").alias("price_adjustment_print_code"),  # ALAPRP1 (F4074, actual)
         # standard_industry_code (ABSIC) / search_type (ABAT1) / category_code_05 (ABAC05) /
         # category_code_14 (ABAC14) dropped — resolved via dim_address_ship_to
         F.col("us.uom_structure").alias("uom_structure"),                       # UMUSTR (F41002)
@@ -576,7 +580,7 @@ def build_fact():
         F.col("sd.sales_reporting_code_02").alias("major_prod_code"),
         F.col("sd.sales_reporting_code_04").alias("minor_prod_code"),
         F.col("al.freight_factor_value").alias("freight_factor_value"),
-        # per-line bucket ALUPRC sums (intermediate — multiplied by quantity_shipped_tons below into adj_* $)
+        # per-line bucket match counts (intermediate — multiplied by extended_price below into adj_* $)
         F.coalesce(F.col("fb.bkt_non_product"),      F.lit(0.0)).alias("bkt_non_product"),
         F.coalesce(F.col("fb.bkt_al_severance_tax"), F.lit(0.0)).alias("bkt_al_severance_tax"),
         F.coalesce(F.col("fb.bkt_misc_billing"),     F.lit(0.0)).alias("bkt_misc_billing"),
@@ -713,11 +717,11 @@ def build_fact():
           .withColumn("latest_delivery_date_key",         date_key(F.col("date_latest_delivery")))
           .withColumn("shift_factor_applied", F.coalesce(F.col("shift_factor_applied"), F.lit(SHIFT_FACTOR))))
 
-    # bucket $ = per-line bucket ALUPRC sum * shipped tons. Additive: no existing column is touched.
+    # bucket $ = line extended_price (SDAEXP) * per-line match count. Additive: no existing column is touched.
     for _adj, _bkt in [("adj_non_product", "bkt_non_product"), ("adj_al_severance_tax", "bkt_al_severance_tax"),
                        ("adj_misc_billing", "bkt_misc_billing"), ("adj_freight", "bkt_freight"),
                        ("adj_car_charges", "bkt_car_charges"), ("adj_freight_hide", "bkt_freight_hide")]:
-        df = df.withColumn(_adj, F.col(_bkt) * F.coalesce(F.col("quantity_shipped_tons"), F.lit(0.0)))
+        df = df.withColumn(_adj, F.coalesce(F.col("extended_price"), F.lit(0.0)) * F.col(_bkt))
 
     w = Window.partitionBy("shipment_number").orderBy("order_number", "line_number")
     df = (df.withColumn("_rn", F.row_number().over(w))

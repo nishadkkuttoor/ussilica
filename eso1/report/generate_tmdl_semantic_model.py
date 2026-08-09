@@ -188,14 +188,14 @@ TABLES = {
         ('KG Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[uom]) = \"KG\"), 'fact_sales_order_freight'[transaction_quantity])", '#,0.00', 'Ottawa Buckets'),
         ('KG Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[uom]) = \"KG\")) + 0", '#,0', 'Ottawa Buckets'),
         # Freight-type lines (SDLNTY in F / FT / CA): primary ordered qty.
-        ('Freight-Type Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) IN {\"F\", \"FT\", \"CA\"}), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
-        ('Freight-Type Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) IN {\"F\", \"FT\", \"CA\"})) + 0", '#,0', 'Ottawa Buckets'),
+        ('Freight-Type Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\" || TRIM('fact_sales_order_freight'[line_type]) = \"CA\"), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
+        ('Freight-Type Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\" || TRIM('fact_sales_order_freight'[line_type]) = \"CA\")) + 0", '#,0', 'Ottawa Buckets'),
         # Confirmed-shipped lines (last status 530 AND next status 560): primary ordered qty.
         ('Confirmed Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 530 && 'fact_sales_order_freight'[next_status_num] = 560), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
         ('Confirmed Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 530 && 'fact_sales_order_freight'[next_status_num] = 560)) + 0", '#,0', 'Ottawa Buckets'),
         # Backorder/cancel lines (last status in 520 / 914): primary ordered qty.
-        ('Backorder Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] IN {520, 914}), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
-        ('Backorder Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] IN {520, 914})) + 0", '#,0', 'Ottawa Buckets'),
+        ('Backorder Ordered Qty', "SUMX(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 520 || 'fact_sales_order_freight'[last_status_num] = 914), 'fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Ottawa Buckets'),
+        ('Backorder Line Count', "COUNTROWS(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 520 || 'fact_sales_order_freight'[last_status_num] = 914)) + 0", '#,0', 'Ottawa Buckets'),
       ],
     },
     'fact_sales_commission': {
