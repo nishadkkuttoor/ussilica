@@ -321,7 +321,7 @@ def build_fact():
     b01   = load_silver_table(F5642B01); b11 = load_silver_table(F5642B11)
     f4074 = load_silver_table(F4074); f4941 = load_silver_table(F4941)
     f41002 = load_silver_table(F41002)
-    f5549 = load_silver_table(F5549002)                    # BOL interface weigh-ticket weights
+    f5549002 = load_silver_table(F5549002)                 # BOL interface weigh-ticket weights
     f03012 = load_silver_table(F03012); f49211 = load_silver_table(F49211)  # sold-to LOB cat / SO-line tag flag
     conv_item = build_uom_cascades()
 
@@ -394,7 +394,7 @@ def build_fact():
 
     # BOL weigh-ticket weights (F5549002) collapsed to ONE row per order line (gross/catch/max), so the
     # LEFT join can't fan the line grain out. Silver is pre-decoded, so no /10000 or /100 scaling.
-    wt = (f5549.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "line_number")
+    wt = (f5549002.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "line_number")
              .agg(F.first("gross_weight",   ignorenulls=True).alias("gross_weight"),
                   F.first("catch_weight",   ignorenulls=True).alias("catch_weight"),
                   F.first("maximum_weight", ignorenulls=True).alias("max_weight")))
