@@ -30,6 +30,6 @@ table dim_item
 		mode: directLake
 		source
 			entityName: dim_item
-			schemaName: otc
+			schemaName: rpt
 			expressionSource: DatabaseQuery
 

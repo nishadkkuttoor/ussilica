@@ -54,22 +54,22 @@ F4211  = "f4211_sales_order_detail_file"      # sales-line context (amounts, ite
 F4201  = "f4201_sales_order_header_file"      # header — sold-to (SHAN8)
 F0101  = "f0101_address_book_master"          # sold-to category (ABAC10)
 # ABAC10 (category_code_10) description is resolved by a SEPARATE reused dim — dim_category_code_10
-# (UDC 01/10, built by nb_eso1_gold_dim_category_code_10.py). The fact carries only the FK code.
-# F42119 (Sales Order History) — OPTIONAL context: SOP0027 is a completed-order report (next=999), so a
-# commission's sales line may already be purged to history. Unioned into the line-context lookup when present
+# (UDC 01/10). The fact carries only the FK code.
+# F42119 (Sales Order History) — OPTIONAL context: a commission's sales line may already be purged to
+# history (completed orders). Unioned into the line-context lookup when present
 # (guarded via _load_optional); the fact is F4211-only if F42119 is absent.
 F42119 = "f42119_sales_order_history_file"
 
 # ── Gold target BUILT here ─────────────────────────────────────────────────────
 FACT = "fact_sales_commission"
 
-# REUSED rpt address/plant dims are read-only (owned by old_nb jobs); salesperson (SCSLSP) is an
+# REUSED rpt address/plant dims are read-only; salesperson (SCSLSP) is an
 # address-book number related to dim_address_book in the model. No reused dim is built or checked here.
 
 # ── report scaling (business WHERE filters removed — fact carries ALL commission rows) ──
 # The line amounts (SDAEXP/SDECST), the commission amounts (SCTOTL/SCLRCS/SCCOMA) and SCCPCT carry
 # implied-decimal scales that Silver has ALREADY applied. So NO scaling here.
-SHIFT_FACTOR = 1.0   # lineage placeholder on the line amounts — ShiftFactor open item
+SHIFT_FACTOR = 1.0   # lineage placeholder on the line amounts
 
 print(f"ESO1 Gold commission-fact processor (batch build) — target {gname(FACT)}")
 
@@ -159,7 +159,7 @@ FACT_BUSINESS_COLS = [
     "extended_price", "extended_cost", "quantity_shipped", "primary_quantity_ordered",
     "invoice_number", "second_item_number", "line_type",
     "uom_primary", "uom_pricing", "sales_reporting_code_05",
-    # ── status filter attributes (page-level; SOP0027 WHERE next='999' / last<>'980') ──
+    # ── status filter attributes (page-level; e.g. next='999' / last<>'980') ──
     "status_code_next", "status_code_last",
     # ── filter / display attributes ──
     "category_code_10", "sold_to_search_type",
@@ -198,9 +198,8 @@ def build_fact():
     # JOIN MODEL: F4211 is the DRIVER, F42005 is LEFT-joined.
     #   • a sales line with NO commission → one row, commission_* columns NULL;
     #   • a sales line with N commission records → N rows (fan-out; the F4211 line metrics dedup in DAX
-    #     via is_primary_commission_line). All joins are LEFT so Gold stays filter-free (the query's INNER
-    #     F4201/F0101 + ABAT1 band are reproduced as Power BI page filters: sold_to IS NOT NULL, and
-    #     sold_to_search_type in A–P / R–ZZZ).
+    #     via is_primary_commission_line). All joins are LEFT so Gold stays filter-free (page filters
+    #     reproduce the scope: sold_to IS NOT NULL, and sold_to_search_type in A–P / R–ZZZ).
     # F42005 key snake-names: SCKCOO=company_key_order_no, SCDCTO=order_type,
     # SCDOCO=document_order_invoice_e, SCLNID=line_number, SCCMLN=commission_line_number.
     # ⚠ SCKCOO / SDKCOO: Silver normalizes both to `company_key_order_no` (NOT the metadata's
@@ -267,9 +266,9 @@ def build_fact():
         # ── filter / display attributes ──
         F.col("cc.report_code_add_book_010").alias("category_code_10"),             # ABAC10 (sold-to F0101) → FK dim_category_code_10
         F.col("cc.address_type_01").alias("sold_to_search_type"),                   # ABAT1 (sold-to) — the sold-to
-                                                                                    #   F0101 band is INNER-gated in the source;
-                                                                                    #   relaxed to LEFT here + carried so PBI can
-                                                                                    #   reproduce the exclusion at page level
+                                                                                    #   F0101 band is relaxed to LEFT here +
+                                                                                    #   carried so PBI can reproduce the
+                                                                                    #   exclusion at page level
         # ── lineage ──
         F.lit(SHIFT_FACTOR).cast("double").alias("shift_factor_applied"),
     ).distinct()
@@ -314,8 +313,8 @@ def build_fact():
 # The joins are applied inside build_fact() / _line_context(), so join_pairs are []
 # here; the list documents the source inventory and drives the RUN source preflight.  join: spine=F4211 driver
 # (grain), left=F42005 commission ledger (0..N per line), union=F42119 history (optional line-context),
-# static=lookup. The REUSED rpt address/plant dims are read-only (owned by old_nb jobs) and
-# dim_category_code_10 is owned by nb_eso1_gold_dim_category_code_10 — not built or checked here.
+# static=lookup. The REUSED rpt address/plant dims and dim_category_code_10 are read-only —
+# not built or checked here.
 FACT_SOURCES = [
     {"silver": F4211,  "join": "spine",  "join_pairs": []},                    # sales-order detail — the fact DRIVER (grain)
     {"silver": F42005, "join": "left",   "join_pairs": []},                    # commission ledger — LEFT-joined (0..N commission records per line)
@@ -357,7 +356,7 @@ for _s in FACT_SOURCES:
 # ── BATCH BUILD — read the full Silver snapshot, run build_fact() ONCE, overwrite the fact.
 #   Plain overwrite (no Gold CDF).
 #   Address dims are REUSED (rpt.dim_address_book role views) + rpt.dim_plant; the ABAC10 description
-#   resolves via dim_category_code_10 (built by nb_eso1_gold_dim_category_code_10). None are touched here.
+#   resolves via dim_category_code_10. None are touched here.
 _run_start = time.time()
 if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(FACT)):
     print("== FULL LOAD ==")

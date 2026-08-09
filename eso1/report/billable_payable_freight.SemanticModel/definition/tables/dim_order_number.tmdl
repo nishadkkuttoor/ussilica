@@ -1,0 +1,22 @@
+table 'Order Filter'
+	lineageTag: 64b60393-d741-5b15-bb21-83594a50e3c4
+
+	column order_number
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: order_number
+		lineageTag: 0a4faccb-82dd-5d23-85a8-554ea185852e
+
+	column 'Mak Export Filter'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: mak_export_filter
+		lineageTag: 1d1bf003-a1cf-526c-9005-1e15e6d93dfa
+
+	partition 'Order Filter' = entity
+		mode: directLake
+		source
+			entityName: dim_order_number
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
