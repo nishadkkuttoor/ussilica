@@ -218,6 +218,36 @@ table fact_sales_order_freight
 		displayFolder: Ottawa Buckets
 		lineageTag: 041e4e75-e3b7-524f-b45d-2255ffbdc26c
 
+	measure 'Non Product' = SUM('fact_sales_order_freight'[adj_non_product])
+		formatString: \$#,0.00
+		displayFolder: SOP620 Adjustments
+		lineageTag: e79682b1-c4c5-5dbb-abc2-06d2a02e9bce
+
+	measure 'AL Severance Tax' = SUM('fact_sales_order_freight'[adj_al_severance_tax])
+		formatString: \$#,0.00
+		displayFolder: SOP620 Adjustments
+		lineageTag: 7290ee46-3fb0-5b4c-bbae-a2e72e08a4dc
+
+	measure 'Misc Billing' = SUM('fact_sales_order_freight'[adj_misc_billing])
+		formatString: \$#,0.00
+		displayFolder: SOP620 Adjustments
+		lineageTag: 0c98c47f-d067-536a-a6af-214a59e86684
+
+	measure 'Freight' = SUM('fact_sales_order_freight'[adj_freight])
+		formatString: \$#,0.00
+		displayFolder: SOP620 Adjustments
+		lineageTag: d570f680-0af7-572e-a4c2-d1638c556113
+
+	measure 'Car Charges' = SUM('fact_sales_order_freight'[adj_car_charges])
+		formatString: \$#,0.00
+		displayFolder: SOP620 Adjustments
+		lineageTag: 685d2e98-a3f8-52ed-8608-a93fa33d631d
+
+	measure 'Freight Hide' = SUM('fact_sales_order_freight'[adj_freight_hide])
+		formatString: \$#,0.00
+		displayFolder: SOP620 Adjustments
+		lineageTag: 5b325885-578a-5a7a-b845-19e044a43f9b
+
 	column sales_order_line_key
 		dataType: string
 		isHidden

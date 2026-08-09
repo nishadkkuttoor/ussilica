@@ -272,6 +272,13 @@ MEASURES = {
     "Confirmed Line Count":       (f"COUNTROWS(FILTER('{FACT}', '{FACT}'[last_status_num] = 530 && '{FACT}'[next_status_num] = 560)) + 0", "#,0", False),
     "Backorder Ordered Qty":      (f"SUMX(FILTER('{FACT}', '{FACT}'[last_status_num] = 520 || '{FACT}'[last_status_num] = 914), '{FACT}'[primary_quantity_ordered])", "#,0.00", False),
     "Backorder Line Count":       (f"COUNTROWS(FILTER('{FACT}', '{FACT}'[last_status_num] = 520 || '{FACT}'[last_status_num] = 914)) + 0", "#,0", False),
+    # SOP620 F4074 adjustment buckets — line extended price (SDAEXP) attributed by ALAPRP1 print code (materialized adj_* cols)
+    "Non Product":                (f"SUM('{FACT}'[adj_non_product])", "\\$#,0.00", False),
+    "AL Severance Tax":           (f"SUM('{FACT}'[adj_al_severance_tax])", "\\$#,0.00", False),
+    "Misc Billing":               (f"SUM('{FACT}'[adj_misc_billing])", "\\$#,0.00", False),
+    "Freight":                    (f"SUM('{FACT}'[adj_freight])", "\\$#,0.00", False),
+    "Car Charges":                (f"SUM('{FACT}'[adj_car_charges])", "\\$#,0.00", False),
+    "Freight Hide":               (f"SUM('{FACT}'[adj_freight_hide])", "\\$#,0.00", False),
     "Price Quantity Shipped": (f"SUM('{FACT}'[price_quantity_shipped])", "\\$#,0", False),
     # BOL weigh-ticket weights (M5, F5549002) — line grain, additive across a load's lines (max_weight is a
     # per-line capacity, not summable, so it stays a column not a measure)
