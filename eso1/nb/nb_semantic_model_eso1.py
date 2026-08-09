@@ -263,6 +263,15 @@ MEASURES = {
     "Primary Qty Loaded":         (f"SUM('{FACT}'[quantity_shipped])", "#,0.00", False),
     "Primary Qty Open":           (f"SUM('{FACT}'[open_qty])", "#,0.00", False),
     "Days Since Cancel":          (f"DATEDIFF(MAX('{FACT}'[cancel_date]), TODAY(), DAY)", "#,0", False),
+    # Ottawa (updated) conditional buckets — qty + matching line-count pairs over base cols already on the fact
+    "KG Ordered Qty":             (f"SUMX(FILTER('{FACT}', TRIM('{FACT}'[uom]) = \"KG\"), '{FACT}'[transaction_quantity])", "#,0.00", False),
+    "KG Line Count":              (f"COUNTROWS(FILTER('{FACT}', TRIM('{FACT}'[uom]) = \"KG\")) + 0", "#,0", False),
+    "Freight-Type Ordered Qty":   (f"SUMX(FILTER('{FACT}', TRIM('{FACT}'[line_type]) IN {{\"F\", \"FT\", \"CA\"}}), '{FACT}'[primary_quantity_ordered])", "#,0.00", False),
+    "Freight-Type Line Count":    (f"COUNTROWS(FILTER('{FACT}', TRIM('{FACT}'[line_type]) IN {{\"F\", \"FT\", \"CA\"}})) + 0", "#,0", False),
+    "Confirmed Ordered Qty":      (f"SUMX(FILTER('{FACT}', '{FACT}'[last_status_num] = 530 && '{FACT}'[next_status_num] = 560), '{FACT}'[primary_quantity_ordered])", "#,0.00", False),
+    "Confirmed Line Count":       (f"COUNTROWS(FILTER('{FACT}', '{FACT}'[last_status_num] = 530 && '{FACT}'[next_status_num] = 560)) + 0", "#,0", False),
+    "Backorder Ordered Qty":      (f"SUMX(FILTER('{FACT}', '{FACT}'[last_status_num] IN {{520, 914}}), '{FACT}'[primary_quantity_ordered])", "#,0.00", False),
+    "Backorder Line Count":       (f"COUNTROWS(FILTER('{FACT}', '{FACT}'[last_status_num] IN {{520, 914}})) + 0", "#,0", False),
     "Price Quantity Shipped": (f"SUM('{FACT}'[price_quantity_shipped])", "\\$#,0", False),
     # BOL weigh-ticket weights (M5, F5549002) — line grain, additive across a load's lines (max_weight is a
     # per-line capacity, not summable, so it stays a column not a measure)

@@ -178,6 +178,46 @@ table fact_sales_order_freight
 		displayFolder: Short Ship
 		lineageTag: 2ab6bc86-43aa-512b-be50-9d7b8c360861
 
+	measure 'KG Ordered Qty' = SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[uom]) = "KG"), 'fact_sales_order_freight'[transaction_quantity])
+		formatString: #,0.00
+		displayFolder: Ottawa Buckets
+		lineageTag: 6ef491d2-8532-5744-a66e-b373f984a540
+
+	measure 'KG Line Count' = COUNTROWS(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[uom]) = "KG")) + 0
+		formatString: #,0
+		displayFolder: Ottawa Buckets
+		lineageTag: e43f1eb7-dd41-5b10-a5f0-9554d0521b13
+
+	measure 'Freight-Type Ordered Qty' = SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) IN {"F", "FT", "CA"}), 'fact_sales_order_freight'[primary_quantity_ordered])
+		formatString: #,0.00
+		displayFolder: Ottawa Buckets
+		lineageTag: 282c128a-ef1c-59c1-8c5c-ce2d68494bf7
+
+	measure 'Freight-Type Line Count' = COUNTROWS(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[line_type]) IN {"F", "FT", "CA"})) + 0
+		formatString: #,0
+		displayFolder: Ottawa Buckets
+		lineageTag: 54877308-4bd6-5ce7-8fc5-30cab952bb39
+
+	measure 'Confirmed Ordered Qty' = SUMX(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 530 && 'fact_sales_order_freight'[next_status_num] = 560), 'fact_sales_order_freight'[primary_quantity_ordered])
+		formatString: #,0.00
+		displayFolder: Ottawa Buckets
+		lineageTag: 717c98c5-5cfc-574b-94d1-350a38a153bb
+
+	measure 'Confirmed Line Count' = COUNTROWS(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] = 530 && 'fact_sales_order_freight'[next_status_num] = 560)) + 0
+		formatString: #,0
+		displayFolder: Ottawa Buckets
+		lineageTag: fb495943-8722-5b19-971d-07f892c9a862
+
+	measure 'Backorder Ordered Qty' = SUMX(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] IN {520, 914}), 'fact_sales_order_freight'[primary_quantity_ordered])
+		formatString: #,0.00
+		displayFolder: Ottawa Buckets
+		lineageTag: b72c9afe-ba61-5a33-9465-cd1a4be749fb
+
+	measure 'Backorder Line Count' = COUNTROWS(FILTER('fact_sales_order_freight', 'fact_sales_order_freight'[last_status_num] IN {520, 914})) + 0
+		formatString: #,0
+		displayFolder: Ottawa Buckets
+		lineageTag: 041e4e75-e3b7-524f-b45d-2255ffbdc26c
+
 	column sales_order_line_key
 		dataType: string
 		isHidden
