@@ -244,12 +244,16 @@ MEASURES = {
     # ordered quantity (SDUORG) converted to tons; conversion_to_tons_rate = TN passthrough + F41002 factor,
     # NULL -> 0 tons (matches Hubble's THEN 0). Same rate the fact uses for quantity_shipped_tons.
     "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
+    # SOP620: F41003 standard-UOM fallback (RELATED dim_uom_conversion) where F41002 rate is blank; isolated from base Ordered Tons
+    "Ordered Tons (F41003)":  (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
     # F4941 shipment container count (SUM(RSNCTR)) — per-shipment value, dedup across a shipment's lines
     # (never a raw SUM). Serves 04a Export Open Orders ReportColumn2.
     "Container Count":        (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[route_container_count])))", "#,0", False),
     # SOP620 pricing (user-validated vs Hubble): Product Price = line extended price (SDAEXP); Price Per Ton = it / tons.
     "Product Price":          (f"SUM('{FACT}'[extended_price])", "\\$#,0.00", False),
     "Price Per Ton":          ("DIVIDE([Product Price], [Quantity Shipped Tons])", "\\$#,0.00", False),
+    # SOP620: Total Tons = Ordered Tons (SDUORG), so price/ton divides by Ordered Tons (not shipped)
+    "Price Per Ton (Ordered)": ("DIVIDE([Product Price], [Ordered Tons])", "\\$#,0.00", False),
     # Short Ship Notifications — raw line quantities + cancel-date notification-window diff (page-filter =1).
     "Short Ship Shipped Qty":     (f"SUM('{FACT}'[quantity_shipped])", "#,0.00", False),
     "Short Ship Ordered Qty":     (f"SUM('{FACT}'[primary_quantity_ordered])", "#,0.00", False),

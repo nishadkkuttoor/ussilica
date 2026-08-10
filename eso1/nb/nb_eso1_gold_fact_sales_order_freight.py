@@ -353,10 +353,10 @@ def build_fact():
               .withColumn("_alrn", F.row_number().over(_alw))
               .where(F.col("_alrn") == 1).drop("_alrn"))
 
-    # adjustment buckets — per-line COUNT of F4074 rows matching each bucket predicate, collapsed to ONE row
-    # per line so the LEFT join can't fan the line grain out. On the fact each count is multiplied by the line
-    # extended_price (SDAEXP) into the adj_* $ columns (below): count * SDAEXP reproduces the line-grain
-    # SUM(CASE WHEN <predicate> THEN SDAEXP) — a line's price lands in every bucket whose adjustment it carries.
+    # adjustment buckets — per-line SUM of ALUPRC (adjustment unit price) for each bucket predicate, collapsed to
+    # ONE row per line so the LEFT join can't fan the line grain out. ALUPRC is priced per ton, so on the fact each
+    # bucket sum is multiplied by ORDERED tons (below) into the adj_* $ columns — reproducing the report's
+    # per-adjustment amount (ALUPRC x tons), NOT the line extended price.
     # Buckets are keyed on the adjustment print code ALAPRP1, with ALAST fallbacks for Misc Billing (PP*) and
     # Freight Hide (FRTHIDE). Freight = FR1 only (FR2 is a separate freight print code, not in this bucket).
     _aprp = F.trim(F.col("pricing_report_code_01"))            # ALAPRP1
@@ -370,7 +370,7 @@ def build_fact():
         "bkt_freight_hide":     _atyp == "FRTHIDE",
     }
     f4074_buckets = (f4074.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "line_number")
-                     .agg(*[F.sum(F.when(_pred, F.lit(1)).otherwise(F.lit(0))).alias(_name)
+                     .agg(*[F.sum(F.when(_pred, F.col("amt_price_per_unit_02").cast("double")).otherwise(0.0)).alias(_name)
                             for _name, _pred in _FB_PREDS.items()]))
 
     # F41002 UOM structure (UMUSTR) — read from the item's TN-conversion row (join
@@ -717,11 +717,13 @@ def build_fact():
           .withColumn("latest_delivery_date_key",         date_key(F.col("date_latest_delivery")))
           .withColumn("shift_factor_applied", F.coalesce(F.col("shift_factor_applied"), F.lit(SHIFT_FACTOR))))
 
-    # bucket $ = line extended_price (SDAEXP) * per-line match count. Additive: no existing column is touched.
+    # bucket $ = per-line SUM(ALUPRC) for the bucket * ORDERED tons (transaction_quantity * conversion_to_tons_rate).
+    # Ordered tons (SDUORG-based), NOT shipped tons — quantity_shipped (SDSOQS) is Silver-defective / 0 at status 620.
+    # Additive: no existing column is touched.
     for _adj, _bkt in [("adj_non_product", "bkt_non_product"), ("adj_al_severance_tax", "bkt_al_severance_tax"),
                        ("adj_misc_billing", "bkt_misc_billing"), ("adj_freight", "bkt_freight"),
                        ("adj_car_charges", "bkt_car_charges"), ("adj_freight_hide", "bkt_freight_hide")]:
-        df = df.withColumn(_adj, F.coalesce(F.col("extended_price"), F.lit(0.0)) * F.col(_bkt))
+        df = df.withColumn(_adj, F.col(_bkt) * F.coalesce(F.col("transaction_quantity") * F.col("conversion_to_tons_rate"), F.lit(0.0)))
 
     w = Window.partitionBy("shipment_number").orderBy("order_number", "line_number")
     df = (df.withColumn("_rn", F.row_number().over(w))

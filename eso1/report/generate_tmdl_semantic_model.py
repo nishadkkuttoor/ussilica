@@ -78,6 +78,13 @@ TABLES = {
         ('major_prod_code', 'string', False, None),
         ('minor_prod_code', 'string', False, None),
         ('freight_factor_value', 'double', True, None),
+        # F4074 adjustment detail + line attrs — exposed for SOP0006/0008 (physical, previously hidden)
+        ('price_adjustment_type', 'string', False, None),        # ALAST
+        ('adj_uom', 'string', False, None),                      # ALUOM
+        ('adj_based_on_value', 'double', False, None),           # ALBSDVAL
+        ('price_adjustment_schedule', 'string', False, None),    # SDASN (⚠ snake price_adjustment_schedule_n — verify string vs numeric vs Delta)
+        ('user_reserved_code', 'string', False, None),           # SDURCD
+        ('price_override_code', 'string', False, None),          # SDPROV
         ('billable_freight', 'double', True, None),
         ('billable_fuel', 'double', True, None),
         ('total_billable', 'double', True, None),
@@ -167,10 +174,14 @@ TABLES = {
         ('Ocean Carrier Name', 'SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])', None, 'Names'),
         ('Days Past Due', "DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)", '#,0', 'Aging'),
         ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
+        # SOP620: adds the F41003 standard-UOM fallback (RELATED dim_uom_conversion) where the item-specific F41002 rate is blank — matches the query's F41002->F41003 cascade. Isolated: does NOT touch the base Ordered Tons.
+        ('Ordered Tons (F41003)', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Volume'),
         ('Container Count', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))", '#,0', 'Volume'),
         # SOP620 pricing (user-validated vs Hubble): Product Price = line extended price (SDAEXP); Price Per Ton = it / tons.
         ('Product Price', "SUM('fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Pricing'),
         ('Price Per Ton', "DIVIDE([Product Price], [Quantity Shipped Tons])", '\\$#,0.00', 'Pricing'),
+        # SOP620: report's Total Tons = Ordered Tons (SDUORG), so price/ton must divide by Ordered Tons (not shipped)
+        ('Price Per Ton (Ordered)', "DIVIDE([Product Price], [Ordered Tons])", '\\$#,0.00', 'Pricing'),
         # Short Ship Notifications — raw line quantities + the cancel-date notification-window diff (page-filter =1).
         ('Short Ship Shipped Qty', "SUM('fact_sales_order_freight'[quantity_shipped])", '#,0.00', 'Short Ship'),
         ('Short Ship Ordered Qty', "SUM('fact_sales_order_freight'[primary_quantity_ordered])", '#,0.00', 'Short Ship'),
