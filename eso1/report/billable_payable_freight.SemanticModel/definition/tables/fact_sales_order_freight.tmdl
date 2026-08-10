@@ -113,6 +113,11 @@ table fact_sales_order_freight
 		displayFolder: Volume
 		lineageTag: 0f5a8d12-4aa0-5589-830f-a8d94a3e33ed
 
+	measure 'Ordered Tons (F41003)' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: acb2421f-8103-5bd5-b46c-6195574ecf06
+
 	measure 'Container Count' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))
 		formatString: #,0
 		displayFolder: Volume
@@ -127,6 +132,11 @@ table fact_sales_order_freight
 		formatString: \$#,0.00
 		displayFolder: Pricing
 		lineageTag: 55fd1a5f-0405-5f4a-9828-da3f4ebb19f1
+
+	measure 'Price Per Ton (Ordered)' = DIVIDE([Product Price], [Ordered Tons])
+		formatString: \$#,0.00
+		displayFolder: Pricing
+		lineageTag: a7cca466-cde9-5bad-95d6-0d4c42c6c263
 
 	measure 'Short Ship Shipped Qty' = SUM('fact_sales_order_freight'[quantity_shipped])
 		formatString: #,0.00
@@ -508,6 +518,42 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: freight_factor_value
 		lineageTag: e73e11b3-8b75-5a2a-b17c-4418119c21ff
+
+	column price_adjustment_type
+		dataType: string
+		summarizeBy: none
+		sourceColumn: price_adjustment_type
+		lineageTag: 8999b7c4-0705-5f88-a40b-15a09f9a1de7
+
+	column adj_uom
+		dataType: string
+		summarizeBy: none
+		sourceColumn: adj_uom
+		lineageTag: ce405959-7063-517c-812b-37fed030a8b7
+
+	column adj_based_on_value
+		dataType: double
+		summarizeBy: none
+		sourceColumn: adj_based_on_value
+		lineageTag: 62ec6c97-acd1-5ec2-b1e7-a1cf62e6f221
+
+	column price_adjustment_schedule
+		dataType: string
+		summarizeBy: none
+		sourceColumn: price_adjustment_schedule
+		lineageTag: b26b2303-51f2-59b4-b130-e4c8c8bed8b9
+
+	column user_reserved_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: user_reserved_code
+		lineageTag: 3420b0a4-116f-577e-9a45-caa2c582564e
+
+	column price_override_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: price_override_code
+		lineageTag: b9962a97-66c8-5a52-b184-f02b9e091422
 
 	column billable_freight
 		dataType: double
