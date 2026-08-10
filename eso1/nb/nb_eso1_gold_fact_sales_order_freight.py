@@ -225,7 +225,7 @@ FACT_BUSINESS_COLS = [
     "uom_structure", "payment_terms",   # item_segment_04 (IMSEG4) moved to dim_item
     # ── measures / numerics (line grain) ──
     "quantity_shipped", "quantity_shipped_tons", "primary_quantity_ordered",
-    "transaction_quantity", "price_per_unit", "price_quantity_shipped",
+    "transaction_quantity", "price_per_unit", "unit_price_primary", "price_quantity_shipped",
     "major_prod_code", "minor_prod_code", "freight_factor_value",
     # ── denormalized booking / ocean (shipment grain) ──
     "seal_no", "production_code", "production_ship_notes", "booking_no", "destination_port",
@@ -577,6 +577,7 @@ def build_fact():
         F.col("sd.units_primary_qty_order").alias("primary_quantity_ordered"),
         F.col("sd.units_transaction_qty").alias("transaction_quantity"),
         F.col("sd.amt_price_per_unit_02").alias("price_per_unit"),
+        F.col("sd.uom_ent_up").alias("unit_price_primary"),                  # SDAPUM — unit price in primary/entered UOM (≠ price_per_unit SDUPRC)
         F.col("sd.sales_reporting_code_02").alias("major_prod_code"),
         F.col("sd.sales_reporting_code_04").alias("minor_prod_code"),
         F.col("al.freight_factor_value").alias("freight_factor_value"),
