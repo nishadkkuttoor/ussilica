@@ -103,10 +103,25 @@ table fact_sales_order_freight
 		displayFolder: Names
 		lineageTag: 9a20d7ee-8359-562f-b14a-889a4de33f77
 
-	measure 'Days Past Due' = DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)
+	measure 'Days Past Due' = VAR AsOf = TODAY() VAR ReqD = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))
 		formatString: #,0
 		displayFolder: Aging
 		lineageTag: c858c685-6699-5fcf-813e-21f9d693408b
+
+	measure 'Days Past Due (SM)' = VAR AsOf = TODAY() VAR ReqD = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))
+		formatString: #,0
+		displayFolder: Aging
+		lineageTag: 3d8f6de1-f86d-5171-9d05-83713b39776f
+
+	measure 'Last Invoice Date' = MAX('fact_sales_order_freight'[invoice_date])
+		formatString: m/d/yyyy
+		displayFolder: Aging
+		lineageTag: 13942e9c-5b91-5540-bafa-98f92df4ad08
+
+	measure 'Days Since Invoice' = VAR AsOf = TODAY() VAR InvD = MAX('fact_sales_order_freight'[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf - InvD))
+		formatString: #,0
+		displayFolder: Aging
+		lineageTag: 5e890b50-34a1-58e1-bf11-4d725a90a408
 
 	measure 'Ordered Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))
 		formatString: #,0.00

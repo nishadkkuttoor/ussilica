@@ -209,7 +209,10 @@ RELATIONSHIPS = [
 # 20 Carrier Name               (text)    SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])   Carrier as "20000049 - FUNDIS COMPANY INC"
 # 21 Parent Name                (text)    SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])     Parent customer, same format
 # ── AGING ────────────────────────────────────────────────────────────────────
-# 22 Days Past Due              #,0       DATEDIFF(MAX(FACT[requested_date]), TODAY(), DAY)                                              Days a line is past its requested date (SM Trucking-Past Due; as-of = TODAY())
+# 22 Days Past Due              #,0       VAR AsOf=TODAY() VAR ReqD=MAX(FACT[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf-ReqD))   Days a line is past its requested date, live as-of=TODAY() (SM Trucking-Past Due); date-subtraction + blank guard
+# 23 Days Past Due (SM)         #,0       (same expr as #22)                                                                             SM Past Due Orders alias; live as-of=TODAY() (Hubble pins a fixed as-of — matches only on run day)
+# 24 Last Invoice Date          m/d/yyyy  MAX(FACT[invoice_date])                                                                        Latest invoice date on the line set (Days Since Invoice report)
+# 25 Days Since Invoice         #,0       VAR AsOf=TODAY() VAR InvD=MAX(FACT[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf-InvD))   Days since last invoice, live as-of=TODAY()
 #
 # NOTE — no date-role measures: there is no date dimension. To view $ by GL/invoice
 #   date, slice the fact's raw gl_date / invoice_date column on the visual.
@@ -217,7 +220,6 @@ RELATIONSHIPS = [
 #   Address Rate = SELECTEDVALUE(FACT[address_rate])                  -- 9 status-529 customer-rate reports (ABURAT)
 #   Order with Multiple Shipments  -- DISTINCTCOUNT(FACT[shipment_number]) per order,  visual filter > 1
 #   Shipment with Multiple Orders  -- DISTINCTCOUNT(FACT[order_number]) per shipment,  visual filter > 1
-#   Days Since Invoice = DATEDIFF(MAX(FACT[invoice_date]), TODAY(), DAY)   -- Days-Since-Invoice report
 #   Transaction Quantity = SUM(FACT[transaction_quantity])            -- Standridge / Sto Corp / Thai Tan / Tri-Iso (SDUORG)
 # =============================================================================
 
@@ -297,8 +299,15 @@ MEASURES = {
     "Carrier Name": ("SELECTEDVALUE(dim_address_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_carrier[name_alpha])", None, False),
     "Parent Name":  ("SELECTEDVALUE(dim_address_parent[address_number]) & \" - \" & SELECTEDVALUE(dim_address_parent[name_alpha])",   None, False),
     "Ocean Carrier Name": ("SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])", None, False),
-    # days a line is past its requested date; report-level as-of = TODAY() (positive = past due)
-    "Days Past Due": (f"DATEDIFF(MAX('{FACT}'[requested_date]), TODAY(), DAY)", "#,0", False),
+    # days a line is past its requested date; live as-of = TODAY() (positive = past due). Date subtraction
+    # (not DATEDIFF) + blank short-circuit for speed; filter past-due via a relative-date COLUMN filter on
+    # requested_date (is before today), NOT a measure filter.
+    "Days Past Due": (f"VAR AsOf = TODAY() VAR ReqD = MAX('{FACT}'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))", "#,0", False),
+    # SM Past Due Orders alias — same live as-of=TODAY() semantics (Hubble pins a fixed as-of; this is live).
+    "Days Past Due (SM)": (f"VAR AsOf = TODAY() VAR ReqD = MAX('{FACT}'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))", "#,0", False),
+    # latest invoice date + days since it (Days Since Invoice report); live as-of=TODAY(), date-subtraction + blank guard
+    "Last Invoice Date": (f"MAX('{FACT}'[invoice_date])", "m/d/yyyy", False),
+    "Days Since Invoice": (f"VAR AsOf = TODAY() VAR InvD = MAX('{FACT}'[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf - InvD))", "#,0", False),
 }
 
 # =============================================================================

@@ -172,7 +172,19 @@ TABLES = {
         ('Carrier Name', 'SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])', None, 'Names'),
         ('Parent Name', 'SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])', None, 'Names'),
         ('Ocean Carrier Name', 'SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])', None, 'Names'),
-        ('Days Past Due', "DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)", '#,0', 'Aging'),
+        # Days a line is past its requested ship date, as of today (live). TODAY() - requested_date in days;
+        # BLANK when the line has no requested date (skips those rows). Date subtraction (not DATEDIFF) + blank
+        # short-circuit for speed over the line-grain fact. Positive = past due; filter past-due via a
+        # relative-date COLUMN filter on requested_date (is before today), NOT a measure filter.
+        ('Days Past Due', "VAR AsOf = TODAY() VAR ReqD = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))", '#,0', 'Aging'),
+        # SM Past Due Orders alias (same live as-of=TODAY() semantics). Hubble pins its as-of to a fixed Julian date;
+        # this measure is live, so it matches Hubble only on the day the report is run.
+        ('Days Past Due (SM)', "VAR AsOf = TODAY() VAR ReqD = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))", '#,0', 'Aging'),
+        # Latest invoice date on the line set (MAX over invoice_date).
+        ('Last Invoice Date', "MAX('fact_sales_order_freight'[invoice_date])", 'm/d/yyyy', 'Aging'),
+        # Days since the last invoice, live as-of=TODAY() (positive = days elapsed). Date subtraction + blank
+        # short-circuit; Hubble pins its as-of to a fixed Julian date, so this live measure matches only on run day.
+        ('Days Since Invoice', "VAR AsOf = TODAY() VAR InvD = MAX('fact_sales_order_freight'[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf - InvD))", '#,0', 'Aging'),
         ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
         # SOP620: adds the F41003 standard-UOM fallback (RELATED dim_uom_conversion) where the item-specific F41002 rate is blank — matches the query's F41002->F41003 cascade. Isolated: does NOT touch the base Ordered Tons.
         ('Ordered Tons (F41003)', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Volume'),
