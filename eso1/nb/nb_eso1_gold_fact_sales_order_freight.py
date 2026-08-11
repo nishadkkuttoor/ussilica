@@ -353,24 +353,30 @@ def build_fact():
               .withColumn("_alrn", F.row_number().over(_alw))
               .where(F.col("_alrn") == 1).drop("_alrn"))
 
-    # adjustment buckets — per-line SUM of ALUPRC (adjustment unit price) for each bucket predicate, collapsed to
-    # ONE row per line so the LEFT join can't fan the line grain out. ALUPRC is priced per ton, so on the fact each
-    # bucket sum is multiplied by ORDERED tons (below) into the adj_* $ columns — reproducing the report's
-    # per-adjustment amount (ALUPRC x tons), NOT the line extended price.
-    # Buckets are keyed on the adjustment print code ALAPRP1, with ALAST fallbacks for Misc Billing (PP*) and
-    # Freight Hide (FRTHIDE). Freight = FR1 only (FR2 is a separate freight print code, not in this bucket).
+    # adjustment buckets (updated SOP620 rule) — per-line COUNT of qualifying F4074 adjustments for each
+    # print-code / adjustment-type predicate, collapsed to ONE row per line so the LEFT join can't fan the
+    # line grain out. On the fact each count is multiplied by the LINE extended price (SDAEXP) into the adj_* $
+    # columns (below), reproducing the report's SUM(CASE WHEN <pred> THEN SDAEXP) at line grain — count-weighted,
+    # which equals a plain indicator for the normal single-adjustment line.
+    # Freight Hide gates FRTHIDE on the ALUOM x SDUOM pair, so FRTHIDE is counted per ALUOM (TM/TN/BG) here and
+    # combined with the line's SDUOM on the fact. Freight now includes FR1 + FR2.
     _aprp = F.trim(F.col("pricing_report_code_01"))            # ALAPRP1
     _atyp = F.trim(F.col("price_adjustment_type"))             # ALAST
+    _aluo = F.trim(F.col("uom_as_input"))                      # ALUOM
+    _hide = _atyp == "FRTHIDE"
     _FB_PREDS = {
-        "bkt_non_product":      _aprp == "NON",
-        "bkt_al_severance_tax": _aprp == "ALA",
-        "bkt_misc_billing":     (_aprp == "ACR") | (F.substring(_atyp, 1, 2) == "PP"),
-        "bkt_freight":          _aprp == "FR1",
-        "bkt_car_charges":      _aprp == "CAR",
-        "bkt_freight_hide":     _atyp == "FRTHIDE",
+        "n_non":     _aprp == "NON",
+        "n_ala":     _aprp == "ALA",
+        "n_car":     _aprp == "CAR",
+        "n_fr1":     _aprp == "FR1",
+        "n_fr2":     _aprp == "FR2",
+        "n_acrpp":   (_aprp == "ACR") | (F.substring(_atyp, 1, 2) == "PP"),
+        "n_hide_tm": _hide & (_aluo == "TM"),
+        "n_hide_tn": _hide & (_aluo == "TN"),
+        "n_hide_bg": _hide & (_aluo == "BG"),
     }
     f4074_buckets = (f4074.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "line_number")
-                     .agg(*[F.sum(F.when(_pred, F.col("amt_price_per_unit_02").cast("double")).otherwise(0.0)).alias(_name)
+                     .agg(*[F.sum(F.when(_pred, F.lit(1)).otherwise(0)).alias(_name)
                             for _name, _pred in _FB_PREDS.items()]))
 
     # F41002 UOM structure (UMUSTR) — read from the item's TN-conversion row (join
@@ -581,13 +587,16 @@ def build_fact():
         F.col("sd.sales_reporting_code_02").alias("major_prod_code"),
         F.col("sd.sales_reporting_code_04").alias("minor_prod_code"),
         F.col("al.freight_factor_value").alias("freight_factor_value"),
-        # per-line bucket match counts (intermediate — multiplied by extended_price below into adj_* $)
-        F.coalesce(F.col("fb.bkt_non_product"),      F.lit(0.0)).alias("bkt_non_product"),
-        F.coalesce(F.col("fb.bkt_al_severance_tax"), F.lit(0.0)).alias("bkt_al_severance_tax"),
-        F.coalesce(F.col("fb.bkt_misc_billing"),     F.lit(0.0)).alias("bkt_misc_billing"),
-        F.coalesce(F.col("fb.bkt_freight"),          F.lit(0.0)).alias("bkt_freight"),
-        F.coalesce(F.col("fb.bkt_car_charges"),      F.lit(0.0)).alias("bkt_car_charges"),
-        F.coalesce(F.col("fb.bkt_freight_hide"),     F.lit(0.0)).alias("bkt_freight_hide"),
+        # per-line F4074 adjustment match counts (intermediate — combined w/ extended_price + line predicates below)
+        F.coalesce(F.col("fb.n_non"),     F.lit(0)).alias("n_non"),
+        F.coalesce(F.col("fb.n_ala"),     F.lit(0)).alias("n_ala"),
+        F.coalesce(F.col("fb.n_car"),     F.lit(0)).alias("n_car"),
+        F.coalesce(F.col("fb.n_fr1"),     F.lit(0)).alias("n_fr1"),
+        F.coalesce(F.col("fb.n_fr2"),     F.lit(0)).alias("n_fr2"),
+        F.coalesce(F.col("fb.n_acrpp"),   F.lit(0)).alias("n_acrpp"),
+        F.coalesce(F.col("fb.n_hide_tm"), F.lit(0)).alias("n_hide_tm"),
+        F.coalesce(F.col("fb.n_hide_tn"), F.lit(0)).alias("n_hide_tn"),
+        F.coalesce(F.col("fb.n_hide_bg"), F.lit(0)).alias("n_hide_bg"),
         # ── denormalized booking / ocean (shipment grain) ──
         F.col("b11.seal_no").alias("seal_no"),
         F.col("b11.production_code").alias("production_code"),                # F5642B11 AK55PDCD
@@ -718,13 +727,35 @@ def build_fact():
           .withColumn("latest_delivery_date_key",         date_key(F.col("date_latest_delivery")))
           .withColumn("shift_factor_applied", F.coalesce(F.col("shift_factor_applied"), F.lit(SHIFT_FACTOR))))
 
-    # bucket $ = per-line SUM(ALUPRC) for the bucket * ORDERED tons (transaction_quantity * conversion_to_tons_rate).
-    # Ordered tons (SDUORG-based), NOT shipped tons — quantity_shipped (SDSOQS) is Silver-defective / 0 at status 620.
-    # Additive: no existing column is touched.
-    for _adj, _bkt in [("adj_non_product", "bkt_non_product"), ("adj_al_severance_tax", "bkt_al_severance_tax"),
-                       ("adj_misc_billing", "bkt_misc_billing"), ("adj_freight", "bkt_freight"),
-                       ("adj_car_charges", "bkt_car_charges"), ("adj_freight_hide", "bkt_freight_hide")]:
-        df = df.withColumn(_adj, F.col(_bkt) * F.coalesce(F.col("transaction_quantity") * F.col("conversion_to_tons_rate"), F.lit(0.0)))
+    # bucket $ (updated SOP620 rule) = LINE extended price (SDAEXP) attributed to each category:
+    #   adjustment-keyed parts -> extended_price * (count of matching F4074 adjustments)  [= SUM(CASE.. SDAEXP)]
+    #   line-keyed parts       -> extended_price once when the line itself qualifies (SDLNTY freight lines by
+    #                             3rd-item prefix / 2nd-item text / URCD) — tagged once, not x adjustment count.
+    # Freight Hide gates FRTHIDE on the ALUOM x SDUOM pair: SDUOM=BG->{TM,TN,BG}, SDUOM=TN->{TN}, SDUOM=TM->{TM}.
+    # Additive: no existing column is touched; extended_price / line attrs are read-only.
+    _ep   = F.coalesce(F.col("extended_price"), F.lit(0.0))
+    _isFL = F.trim(F.col("line_type")).isin("F", "FT")
+    _ai   = F.trim(F.col("third_item_number"))                         # SDAITM (full 3rd-item text)
+    _a3   = F.substring(_ai, 1, 3)                                      # LEFT(SDAITM,3)
+    _urcd = F.trim(F.col("user_reserved_code"))                        # SDURCD
+    _lu   = F.trim(F.col("uom"))                                        # SDUOM (line uom)
+    _fl_freight = _isFL & _a3.isin("BIL", "FRE", "FUE", "TRA")
+    _fl_ala     = _isFL & (_a3 == "ALA")
+    _fl_rail    = _isFL & (_a3 == "RAI")
+    _fl_hand    = _isFL & _a3.isin("HEA", "MIS", "PAL", "SHA", "WIR", "SHR")
+    _item_misc  = (~_isFL) & _ai.isin("MISC BILLING", "TRANSLOAD CHARGES", "BANKING FEE", "EXPEDITE FEE", "")
+    _urcd_np    = _urcd.isin("NP", "N3") & (~_isFL)
+    _n_hide = (F.when(_lu == "BG", F.col("n_hide_tm") + F.col("n_hide_tn") + F.col("n_hide_bg"))
+                .when(_lu == "TN", F.col("n_hide_tn"))
+                .when(_lu == "TM", F.col("n_hide_tm"))
+                .otherwise(F.lit(0)))
+    df = (df
+        .withColumn("adj_freight",          _ep * (F.col("n_fr1") + F.col("n_fr2")) + F.when(_fl_freight | _fl_rail, _ep).otherwise(0.0))
+        .withColumn("adj_al_severance_tax", _ep *  F.col("n_ala")                   + F.when(_fl_ala, _ep).otherwise(0.0))
+        .withColumn("adj_car_charges",      _ep *  F.col("n_car"))
+        .withColumn("adj_misc_billing",     _ep *  F.col("n_acrpp")                 + F.when(_item_misc | _fl_hand, _ep).otherwise(0.0))
+        .withColumn("adj_non_product",      _ep *  F.col("n_non")                   + F.when(_urcd_np, _ep).otherwise(0.0))
+        .withColumn("adj_freight_hide",     _ep *  _n_hide))
 
     w = Window.partitionBy("shipment_number").orderBy("order_number", "line_number")
     df = (df.withColumn("_rn", F.row_number().over(w))
