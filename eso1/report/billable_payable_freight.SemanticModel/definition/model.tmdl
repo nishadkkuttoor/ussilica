@@ -24,3 +24,4 @@ ref table dim_freight_handling_code
 ref table dim_uom_conversion
 ref table 'Second Item Filter'
 ref table 'Order Filter'
+ref table dim_company

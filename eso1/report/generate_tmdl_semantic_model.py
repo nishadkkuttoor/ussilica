@@ -172,6 +172,8 @@ TABLES = {
         ('Carrier Name', 'SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])', None, 'Names'),
         ('Parent Name', 'SELECTEDVALUE(dim_address_parent[address_number]) & " - " & SELECTEDVALUE(dim_address_parent[name_alpha])', None, 'Names'),
         ('Ocean Carrier Name', 'SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])', None, 'Names'),
+        # company domestic currency (F0010 CCCRCD via dim_company) — the report "DomesticCurrency" column
+        ('Company Currency', 'SELECTEDVALUE(dim_company[currency_code])', None, 'Company'),
         # Days a line is past its requested ship date, as of today (live). TODAY() - requested_date in days;
         # BLANK when the line has no requested date (skips those rows). Date subtraction (not DATEDIFF) + blank
         # short-circuit for speed over the line-grain fact. Positive = past due; filter past-due via a
@@ -185,6 +187,25 @@ TABLES = {
         # Days since the last invoice, live as-of=TODAY() (positive = days elapsed). Date subtraction + blank
         # short-circuit; Hubble pins its as-of to a fixed Julian date, so this live measure matches only on run day.
         ('Days Since Invoice', "VAR AsOf = TODAY() VAR InvD = MAX('fact_sales_order_freight'[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf - InvD))", '#,0', 'Aging'),
+        # NPO open-order aging (Daily Open Orders Report NPO Aging). Live as-of=TODAY(); base date = requested_date
+        # (always populated for open status-560 lines). Hubble pins as-of to a fixed Julian; ⚠ confirm the base date
+        # with the report owner (could be original_promised_date / actual_ship_date) and swap the column if needed.
+        # NPO aging as-of = current date (live daily report). Base date = requested_date (presentation-layer; this
+        # SQL has no aging/bucket calc — confirm base date against the report's field config). The captured query is
+        # pinned to a Julian run-date (126191); a live TODAY() matches only on that run day.
+        ('NPO Aging', "VAR AsOf = TODAY() VAR D = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(D), INT(AsOf - D))", '#,0', 'Aging'),
+        # NPO aging as-of ("Today" column) + 4 aging buckets = Order Qty gated by NPO Aging band (⤷ swap [Order Qty]
+        # for [Ordered Tons]/[Extended Price] if the buckets show tons/$). Bands partition: <=2 / 3-5 / 6-14 / >=15.
+        # anchored to the fact (MAX requested_date) like Days Past Due so it displays per-row in a Direct Lake table
+        # (a fact-less constant measure returns blank there); text output, always renders.
+        ('Today', 'VAR d = MAX(\'fact_sales_order_freight\'[requested_date]) RETURN IF(NOT ISBLANK(d), FORMAT(TODAY(),"MM-dd-yyyy"))', None, 'Aging'),
+        # per-line SUMX (correct at line AND subtotal/total). FORWARD aging d = requested_date - TODAY() (days UNTIL the
+        # requested date; negative = overdue), per the updated SOP query (SDDRQJ vs today+offset windows). Cumulative
+        # bands per the labels: <=2 / 3-5 / 6-14 / >=15; metric = transaction_quantity (SDUORG).
+        ('AGE of NPO Any To 2', "SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(NOT ISBLANK(a) && a <= 2, 'fact_sales_order_freight'[transaction_quantity]))", '#,0.00', 'Aging'),
+        ('AGE of NPO 3 To 5', "SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 3 && a <= 5, 'fact_sales_order_freight'[transaction_quantity]))", '#,0.00', 'Aging'),
+        ('AGE of NPO 6 To 14', "SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 6 && a <= 14, 'fact_sales_order_freight'[transaction_quantity]))", '#,0.00', 'Aging'),
+        ('AGE of NPO 15 To Any', "SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 15, 'fact_sales_order_freight'[transaction_quantity]))", '#,0.00', 'Aging'),
         ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
         # SOP620: adds the F41003 standard-UOM fallback (RELATED dim_uom_conversion) where the item-specific F41002 rate is blank — matches the query's F41002->F41003 cascade. Isolated: does NOT touch the base Ordered Tons.
         ('Ordered Tons (F41003)', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Volume'),
@@ -508,6 +529,18 @@ TABLES = {
 
       ],
     },
+    'dim_company': {   # physical Direct Lake dim (rpt) — F0010 company constants, keyed on company (built by nb_eso1_gold_dim_company)
+      "cols": [
+        ('company', 'string', False, None),                         # CCCO (key -> fact.company_key_order_no)
+        ('company_name', 'string', False, None),                    # CCNAME
+        ('currency_code', 'string', False, None),                   # CCCRCD — report DomesticCurrency
+        ('period_number_current', 'int64', False, None),            # CCPNC — company current fiscal period
+        ('fiscal_year_current', 'int64', False, None),              # CCDFF — company current fiscal year
+      ],
+      "measures": [
+
+      ],
+    },
 }
 
 # (from_table[MANY], from_col, to_table[ONE], to_col, is_active)
@@ -524,6 +557,7 @@ REL = [
     ('fact_sales_order_freight', 'uom', 'dim_uom_conversion', 'from_uom', True),   # std UOM->TN fallback (rpt), many:1
     ('fact_sales_order_freight', 'second_item_number', 'dim_second_item', 'second_item_number', True),   # physical exclusion dim, many:1
     ('fact_sales_order_freight', 'order_number', 'dim_order_number', 'order_number', True),   # physical order-whitelist dim, many:1
+    ('fact_sales_order_freight', 'company_key_order_no', 'dim_company', 'company', True),   # F0010 company constants (SDKCOO=CCCO), many:1
     ('fact_sales_commission', 'salesperson', 'dim_address_salesperson', 'address_number', True),
     ('fact_sales_commission', 'ship_to', 'dim_address_ship_to', 'address_number', True),
     ('fact_sales_commission', 'sold_to', 'dim_address_sold_to', 'address_number', True),

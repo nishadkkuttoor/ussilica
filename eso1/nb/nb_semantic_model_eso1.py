@@ -42,7 +42,8 @@ NEW_TABLES = ["fact_sales_order_freight", "fact_sales_commission", "dim_item",
               "dim_category_code_05",        # UDC 01/05 → category_code_05 description (built by nb_eso1_gold_dim_category_code_05)
               "dim_freight_handling_code",   # UDC 42/FR → freight_handling_code description (built by nb_eso1_gold_dim_freight_handling_code)
               "dim_second_item",             # distinct second_item_number + Included/Excluded flag (built by nb_eso1_gold_dim_second_item)
-              "dim_order_number"]            # distinct order_number + Included/Excluded flag per whitelist report (built by nb_eso1_gold_dim_order_number)
+              "dim_order_number",            # distinct order_number + Included/Excluded flag per whitelist report (built by nb_eso1_gold_dim_order_number)
+              "dim_company"]                 # F0010 company constants — currency / fiscal period / fiscal year (built by nb_eso1_gold_dim_company)
 RPT_TABLES = ["dim_address_ship_to", "dim_address_sold_to", "dim_address_carrier",
               "dim_address_parent", "dim_address_book_destination", "dim_address_salesperson",
               "dim_address_ocean_carrier",   # decodes fact.ocean_carrier (BA55OCCR) — Mak Export Orders
@@ -68,7 +69,8 @@ NEW_REQUIRED    = [f"{LAKEHOUSE}.rpt.fact_sales_order_freight",
                    f"{LAKEHOUSE}.rpt.dim_category_code_05",
                    f"{LAKEHOUSE}.rpt.dim_freight_handling_code",
                    f"{LAKEHOUSE}.rpt.dim_second_item",
-                   f"{LAKEHOUSE}.rpt.dim_order_number"]
+                   f"{LAKEHOUSE}.rpt.dim_order_number",
+                   f"{LAKEHOUSE}.rpt.dim_company"]
 REUSED_REQUIRED = [f"{LAKEHOUSE}.rpt.dim_address_book", f"{LAKEHOUSE}.rpt.dim_plant",
                    f"{LAKEHOUSE}.rpt.dim_mode_of_transport",
                    # reused F41003 std UOM→TN dim (built by nb_silver_to_gold_dim_f41003.py)
@@ -154,6 +156,7 @@ RELATIONSHIPS = [
     ("dim_uom_conversion", "from_uom", FACT, "uom", True),  # reused F41003 std UOM→TN dim (rpt); fact.uom → from_uom, many:1
     ("dim_second_item", "second_item_number", FACT, "second_item_number", True),  # physical exclusion dim (built by nb_eso1_gold_dim_second_item); fact.second_item_number -> dim, many:1
     ("dim_order_number", "order_number", FACT, "order_number", True),  # physical order-whitelist dim (built by nb_eso1_gold_dim_order_number); fact.order_number -> dim, many:1
+    ("dim_company", "company", FACT, "company_key_order_no", True),  # F0010 company constants (built by nb_eso1_gold_dim_company); fact.company_key_order_no (SDKCOO=CCCO) -> dim, many:1
     ("dim_item",            "item_number_short", FACT, "item_number_short", True),
     ("dim_plant",           "plant_code",        FACT, "branch_plant",     True),
     ("dim_mode_of_transport", "mot_code",        FACT, "mode_of_transport", True),  # UDC 00/TM code -> description
@@ -213,6 +216,12 @@ RELATIONSHIPS = [
 # 23 Days Past Due (SM)         #,0       (same expr as #22)                                                                             SM Past Due Orders alias; live as-of=TODAY() (Hubble pins a fixed as-of — matches only on run day)
 # 24 Last Invoice Date          m/d/yyyy  MAX(FACT[invoice_date])                                                                        Latest invoice date on the line set (Days Since Invoice report)
 # 25 Days Since Invoice         #,0       VAR AsOf=TODAY() VAR InvD=MAX(FACT[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf-InvD))   Days since last invoice, live as-of=TODAY()
+# 26 NPO Aging                   #,0       VAR AsOf=TODAY() VAR D=MAX(FACT[requested_date]) RETURN IF(NOT ISBLANK(D),INT(AsOf-D))        NPO aging; live as-of=TODAY() (base=requested_date, confirm)
+# 27 Today                       (text)    VAR d=MAX(FACT[requested_date]) RETURN IF(NOT ISBLANK(d), FORMAT(TODAY(),"MM-dd-yyyy"))       NPO as-of; fact-anchored so it renders in Direct Lake table
+# 28 AGE of NPO Any To 2         #,0.00    SUMX(FACT, per-line aging a=INT(TODAY()-requested_date); IF a<=2 -> transaction_quantity)       NPO aging bucket <=2 days (per-line; correct at subtotals)
+# 29 AGE of NPO 3 To 5           #,0.00    SUMX(FACT, per-line; IF a in 3..5 -> transaction_quantity)                                      NPO aging bucket 3-5 days (per-line)
+# 30 AGE of NPO 6 To 14          #,0.00    SUMX(FACT, per-line; IF a in 6..14 -> transaction_quantity)                                     NPO aging bucket 6-14 days (per-line)
+# 31 AGE of NPO 15 To Any        #,0.00    SUMX(FACT, per-line; IF a>=15 -> transaction_quantity)                                          NPO aging bucket 15+ days (per-line)
 #
 # NOTE — no date-role measures: there is no date dimension. To view $ by GL/invoice
 #   date, slice the fact's raw gl_date / invoice_date column on the visual.
@@ -299,6 +308,8 @@ MEASURES = {
     "Carrier Name": ("SELECTEDVALUE(dim_address_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_carrier[name_alpha])", None, False),
     "Parent Name":  ("SELECTEDVALUE(dim_address_parent[address_number]) & \" - \" & SELECTEDVALUE(dim_address_parent[name_alpha])",   None, False),
     "Ocean Carrier Name": ("SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])", None, False),
+    # company domestic currency (F0010 CCCRCD via dim_company) — the report "DomesticCurrency" column
+    "Company Currency": ("SELECTEDVALUE(dim_company[currency_code])", None, False),
     # days a line is past its requested date; live as-of = TODAY() (positive = past due). Date subtraction
     # (not DATEDIFF) + blank short-circuit for speed; filter past-due via a relative-date COLUMN filter on
     # requested_date (is before today), NOT a measure filter.
@@ -308,6 +319,18 @@ MEASURES = {
     # latest invoice date + days since it (Days Since Invoice report); live as-of=TODAY(), date-subtraction + blank guard
     "Last Invoice Date": (f"MAX('{FACT}'[invoice_date])", "m/d/yyyy", False),
     "Days Since Invoice": (f"VAR AsOf = TODAY() VAR InvD = MAX('{FACT}'[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf - InvD))", "#,0", False),
+    # NPO open-order aging (Daily Open Orders Report NPO Aging); live as-of=TODAY(), base=requested_date (⚠ confirm base date)
+    # NPO aging as-of = current date (live); base=requested_date (confirm). Captured query is pinned to Julian run-date 126191.
+    "NPO Aging": (f"VAR AsOf = TODAY() VAR D = MAX('{FACT}'[requested_date]) RETURN IF(NOT ISBLANK(D), INT(AsOf - D))", "#,0", False),
+    # NPO aging as-of ("Today") + 4 aging buckets = Order Qty gated by NPO Aging band (<=2 / 3-5 / 6-14 / >=15)
+    # anchored to the fact (like Days Past Due) so it renders per-row in a Direct Lake table; fact-less constant returns blank
+    "Today": (f'VAR d = MAX(\'{FACT}\'[requested_date]) RETURN IF(NOT ISBLANK(d), FORMAT(TODAY(),"MM-dd-yyyy"))', None, False),
+    # per-line SUMX (correct at all grains). FORWARD aging d = requested_date - TODAY() (days until requested; neg=overdue)
+    # per updated SOP query; cumulative bands <=2 / 3-5 / 6-14 / >=15; metric = transaction_quantity
+    "AGE of NPO Any To 2": (f"SUMX('{FACT}', VAR rd = '{FACT}'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(NOT ISBLANK(a) && a <= 2, '{FACT}'[transaction_quantity]))", "#,0.00", False),
+    "AGE of NPO 3 To 5": (f"SUMX('{FACT}', VAR rd = '{FACT}'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 3 && a <= 5, '{FACT}'[transaction_quantity]))", "#,0.00", False),
+    "AGE of NPO 6 To 14": (f"SUMX('{FACT}', VAR rd = '{FACT}'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 6 && a <= 14, '{FACT}'[transaction_quantity]))", "#,0.00", False),
+    "AGE of NPO 15 To Any": (f"SUMX('{FACT}', VAR rd = '{FACT}'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 15, '{FACT}'[transaction_quantity]))", "#,0.00", False),
 }
 
 # =============================================================================

@@ -3,122 +3,43 @@
 
 # ## nb_eso5_gold_fact_extended_sales_order_5
 #
-# **Gold `fact_extended_sales_order_5` processor** for Extended Sales Order 5 (Sandbox Load Report with
-# PO Details). Builds and continuously refreshes ONE table — `lh_jde_gold.rpt.fact_extended_sales_order_5` —
-# that serves the CORE report AND all FOUR Filter-Capture variations. There is deliberately NO second
-# fact table.
+# **Gold `fact_extended_sales_order_5` processor** — builds ONE table,
+# `lh_jde_gold.rpt.fact_extended_sales_order_5`, at F4211/F4311 LINE grain.
 #
-# ── THE FIVE REPORTS AND HOW ONE FACT SERVES THEM ──────────────────────────────────────────────
-# 1. hubble query.txt — "Sandbox Load Report with PO Details" (CORE)
-#      SBXLOADPOVIEW (F4211 SX / 00750 / <>TL / <>HOLADD) LEFT F554201T, SBXUSSSAND, F0101.
-# 2. Filter Capture/"...PO Details (New)"  — IDENTICAL query to the core (only the §5 date range
-#      differs, and §5 filters are not applied here). Needs nothing extra.
-# 3. Filter Capture/"...PO Details"        — a strict COLUMN SUBSET of the core with no SBXUSSSAND
-#      join; its SDLITM='FRT' / SDNXTR<'581' are §5 report filters. Needs nothing extra.
-# 4. Filter Capture/"...PO Details for HOLADD" — NEW ROWS. Its SBXLOADPOVIEWHOLADD view is a UNION of
-#      (a) the F4211 SX lines where SDLITM = 'HOLADD'  — precisely the rows the core view EXCLUDES, and
-#      (b) ORPHAN F4311 OX HOLADD purchase-order lines: PO lines with NO live (SDLTTR<>'980') SX HOLADD
-#          line on the same load, back-filled from the load's FRT line (VR01/AN8/LOFA/GLDATE/LTTR/
-#          NXTR/DOC) with UPRC=0, EXTAMT=0 and OXAMT/OXLTTR/OXNXTR taken from the PO line itself.
-#      ⚠ That "NO live (SDLTTR<>'980')" test is a STATUS filter, so it is NOT applied here — ALL OX HOLADD
-#          PO lines become rows and the test becomes the field `po_holadd_superseded` ('Y'/'N').
-#          The orphan set = `po_holadd_superseded = 'N'`, which the report filters on.
-# 5. Filter Capture/"SBX Load Reconciliation Report" — LOAD grain. Its SBXLOADDETAIL view is
-#      F4201 INNER F4211 aggregated to one row per load, pivoting the lines into SANDWEIGHT /
-#      EXTWEIGHT / MILES / LOFADET / WELLDET / ...PP / ...PB / FRTAMT / FSCAMT / SANDAMT / HOLAMT etc.
-#      It KEEPS the TL and HOLADD lines the core view drops, and reads four more F554201T columns
-#      (QCLGL1/2/3, QCFSTR3) plus the F4201 header attributes.
+# ── ROW POPULATION ──
+# The fact is the WHOLE of Silver F4211 UNION the WHOLE of Silver F4311. No row-selecting predicate is
+# applied anywhere: every value-selecting condition is carried as a COLUMN to be filtered downstream.
+# Each row is tagged with `row_class` — five mutually-exclusive classes, all CALCULATED (never filtered):
+#      'LINE'      F4211 line, line_type <> 'TL', item <> 'HOLADD'
+#      'HOLADD'    F4211 line, line_type <> 'TL', item  = 'HOLADD'
+#      'TEXT'      F4211 line, line_type  = 'TL'
+#      'PO_HOLADD' F4311 line, order_type = 'OX' AND item = 'HOLADD'
+#      'PO_OTHER'  every other F4311 line
+# ⚠ document_type is forced to 'SX' on PO rows so the UNION aligns with the sales load — document_type='SX'
+#   ALONE does NOT exclude purchase-order rows; row_class is what separates them. The PO's own type is in
+#   `po_order_type`.
 #
-# ── FILTERS: ZERO. NOT ONE.───────────────────────────────────────
-# The Gold layer applies NO report filter of any kind. There is no row-selecting predicate anywhere in
-# this notebook: the fact is the WHOLE of Silver F4211 UNION the WHOLE of Silver F4311, and EVERY filter
-# the five queries use is carried as a COLUMN for the Power BI report to filter on.
-#   F4211 leg  — no WHERE at all:
-#      SDDCTO='SX'        → the `document_type` column     (report filter)
-#      SDKCOO='00750'     → the `company` column           (report filter)
-#      SDLNTY<>'TL'       → row_class 'TEXT'               (report filter)
-#      SDLITM<>'HOLADD'   → row_class 'HOLADD'             (report filter)
-#   F4311 leg  — no WHERE at all (PO_LEG_UNFILTERED=True):
-#      PDDCTO='OX', PDKCOO='00750', PDLITM='HOLADD'        → row_class 'PO_HOLADD' / 'PO_OTHER'
-#      NOT EXISTS(live SX HOLADD)                          → the `po_holadd_superseded` field
-#   Per-instance report slicers — never were applied:
-#      ORDATE date range (all 5), SDLITM='FRT' + SDNXTR<'581' (base variation),
-#      Reconciliation SDDOCO='22815083' and SDLTTR<>'980'  → the report owns these
-#   The rate-source band F0101 `ABAT1 BETWEEN 'A '..'P ' OR 'R '..'ZZZ'` is a VALUE DEFINITION, not a
-#      filter — it says which address rows count as a rate source. It lives in a CASE inside the `lofa`
-#      aggregate, so it drops no row and an out-of-band facility gets a NULL rate.
-# ⚠ The five queries' WHERE clauses CONFLICT anyway (reports 1-3 drop TL & HOLADD lines; report 4
-#   REQUIRES HOLADD; report 5 KEEPS both). That conflict is the structural reason ONE fact can serve five
-#   reports only if the discrimination happens at REPORT level. `row_class` is how it does.
+# ── FILTER vs VALUE-DEFINITION ──
+# A predicate inside a correlated subquery / aggregate is the DEFINITION of the value it computes, not a
+# row filter: MAX(description) WHERE item='BOL' is what BOL IS; order_type='OX' is what makes the PO lookup
+# a PO lookup; order_type='SO' AND company='00400' is the SO-match; product_category='COM' is what the
+# shipped weight sums. Strip these and the columns do not become unfiltered — they become WRONG. They are
+# kept, relocated into a CASE inside an aggregate or a JOIN condition, so they drop no row.
 #
-# ── AND NO STATUS FILTERING AT ALL────────────────────────────────
-# NOT ONE status_code / last-status / next-status predicate filters a row anywhere in this notebook. The
-# status JOINS are all implemented and every status FIELD is stored, so the report owns the filtering:
-#      stored: last_status (SDLTTR) · next_status (SDNXTR) · ox_last_status (PDLTTR) · ox_next_status
-#              (PDNXTR) · load_last_status (recon CASE) · load_max_last_status (MXLTTR) ·
-#              load_min_last_status (MILTTR) · po_holadd_superseded · ox_amount_gross
-#      dropped: SDNXTR<'581', SDLTTR NOT IN ('980')   (report slicers)
-#      converted from FILTER → FIELD:
-#        · report 4's `NOT EXISTS(live SX HOLADD, SDLTTR<>'980')`  → `po_holadd_superseded` ('Y'/'N');
-#          every OX HOLADD PO line is now a row, and the orphan set is `po_holadd_superseded='N'`.
-#        · SXWEIGHT's `WHERE SDLTTR<>'980'` → a CONDITIONAL SUM (`SUM(CASE WHEN status<>'980' …)`), so the
-#          status decides whether a line CONTRIBUTES to the value, not whether the row exists.
-# Status inside a CASE (load_last_status, ox_amount) is a CALCULATION, not a filter — it drops no rows —
-# so it stays; but its inputs (load_max/min_last_status, ox_amount_gross) are stored too, so the report
-# can re-derive or override any of it.
+# ── STATUS ──
+# No status_code / last-status / next-status predicate filters a row; every status field is stored so the
+# consumer owns all status filtering. Two conditions that used to remove rows are now fields/values:
+#   • a live-HOLADD existence test  -> po_holadd_superseded ('Y'/'N')
+#   • a shipped-weight status guard -> a CONDITIONAL SUM (status decides CONTRIBUTION, not row existence)
 #
-# ⚠ WHAT IS *NOT* A FILTER — and therefore STAYS. A predicate inside a correlated subquery is the
-#   DEFINITION of the value it computes, not a row filter. `MAX(SDDSC1) WHERE SDLITM='BOL'` is what BOL
-#   *is*; `PDDCTO='OX'` is what makes the PO lookup a PO lookup; `SDDCTO='SO' AND SDCO='00400'` is the
-#   SO-match; `SDPRP1='COM'` is what SXWEIGHT sums. Strip these and the columns do not become unfiltered —
-#   they become WRONG. They are business logic and are kept exactly as the SQL states them.
-#
-# ── HOW THE FIVE ARE UNIFIED ───────────────────────────────────────────────────────────────────
-# The fact stays at LINE grain and its row population is what the five queries draw from:
-#      F4211 SX / 00750 lines (order-type + company APPLIED; TL / HOLADD kept, tagged by row_class)
-#    + the WHOLE of F4311     (no order-type / item predicate — PO_LEG_UNFILTERED)
-# Each row carries `row_class` — five MUTUALLY EXCLUSIVE classes, all CALCULATED, none filtered:
-#      'LINE'      F4211 line, <>TL, <>HOLADD      → reports 1, 2, 3   and 5
-#      'HOLADD'    F4211 line, <>TL,  =HOLADD      → report  4         and 5
-#      'TEXT'      F4211 line,  =TL                →                       5
-#      'PO_HOLADD' F4311 line, OX + HOLADD         → report  4
-#      'PO_OTHER'  every other F4311 line          → NO report reads it (carried for symmetry only)
-#   ALL reports  page filter : document_type='SX' AND company='00750'   [+ any status slicer they want]
-#   report 1/2/3 page filter : ... AND row_class = 'LINE'
-#   report 4     page filter : ... AND row_class IN ('HOLADD','PO_HOLADD')
-#                                  AND po_holadd_superseded = 'N'
-#   report 5     page filter : ... AND row_class IN ('LINE','HOLADD','TEXT')
-# ⚠ THE PAGE FILTER IS NOT OPTIONAL. The fact is a strict SUPERSET of every report — F4211(SX/00750) ∪ the
-#   WHOLE F4311. Without the filter the core report's SUM(total_amount) is not "slightly off": it is the sum
-#   of every SX/00750 sales line AND every purchase order line in the fact.
-# ⚠ NOTE `document_type` is forced to 'SX' on PO rows (the query hard-codes it so the UNION aligns with the
-#   sales load), so `document_type='SX'` ALONE does NOT exclude purchase-order rows — `row_class` is what
-#   separates them. The PO's own type is in `po_order_type`.
-# Report 5's per-load pivots are DAX measures over these same lines (SUM/MAX with a row filter on
-# item_number / product_category / sales_report_code_01) — that is why the line-level pivot inputs
-# (units_ordered, item_weight, product_category, sales_report_code_01, line_type) are now stored.
+# ── F0005 ──
+# F0005 (UDC 55/UP) is read inline for ONE build-time value: the vendor's plant MCU (DRSPHD), an input to
+# the SO-match. No F0005 column is stored on the fact.
 #
 # ── BUILD (BATCH) ──
 #   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
-#   • MANUAL_OVERWRITE = True → drop + rebuild; False → build only if the fact is missing (re-run to refresh).
-#   • ALL sources (F4211, F4311, F554201T, F0911, F43121, F0101, F4201) are read as STATIC snapshots —
-#     no CDF / foreachBatch / checkpoints / streams. Results are IDENTICAL to the previous streaming
-#     version's full-load seed (build_fact() is unchanged; only the incremental scaffolding was removed).
-#
-# JOINS (all LEFT/Outer):
-#   SBXLOADPOVIEW LEFT F554201T   : SDKCOO=QCKCOO, SDDOCO=QCDOCO, SDDCTO=QCDCTO
-#   SBXLOADPOVIEW LEFT SBXUSSSAND : SDDOCO=SDDOCO, SDDCTO=SDDCTO
-#   SBXLOADPOVIEW LEFT F0101(LOFA): LOFA (SDVEND) = ABAN8
-#   + SBXLOADDETAIL LEFT F4201    : SHKCOO=SDKCOO, SHDOCO=SDDOCO, SHDCTO=SDDCTO   (report 5 header)
-#
-# STAR SCHEMA: fact stores address FK codes (sold_to / ship_to / carrier / loading_facility). Names
-# resolve through the REUSED rpt.dim_address_book role views; the USS/plant flags (uss_plant_sand /
-# shipped_from / lofa_mcu) resolve through dim_uss_plant (F0005 55/UP, keyed by vendor=loading_facility)
-# — JOINED IN THE SEMANTIC MODEL, not here. Only ABURAT (rate) stays read from F0101.
-# NO DIRECT F0005 DEPENDENCY: Silver F0005 is never read here. The one build-time value still needed —
-# the vendor's plant MCU (DRSPHD), an input to the SBXUSSSAND SOORDERNO row-level match — is read from
-# the GOLD dim `dim_uss_plant`.  => run nb_eso5_gold_dim_uss_plant FIRST.
-# Calculations = N/A.
+#   • MANUAL_OVERWRITE = True -> drop + rebuild; False -> build only if the fact is missing.
+#   • all sources read as static snapshots — no CDF / checkpoints / streams.
 
 # ----------------------------------------------------------------------------
 # 1) CONFIG
@@ -140,19 +61,16 @@ MANUAL_OVERWRITE = True   # True = drop + rebuild from the full Silver snapshot;
 def sname(t): return "{}.{}.{}".format(SILVER_LH, SILVER_SCHEMA, t)
 def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 
-# TRUE ⇒ the notebook contains NO row-selecting predicate ANYWHERE: leg B takes the WHOLE of F4311, not
-# just the `PDDCTO='OX' AND PDLITM='HOLADD'` lines report 4 consumes. Those two conditions become the
-# `row_class` calculation instead ('PO_HOLADD' vs 'PO_OTHER'), and `item_number` (PDLITM) + `po_order_type`
-# (PDDCTO) are on every PO row, so the report filters to OX/HOLADD itself.
-# ⚠ VOLUME: the fact is then F4211 ∪ F4311 in full. The 'PO_OTHER' rows are carried for filtering symmetry;
-#   none of the five reports reads them. Set False to restore the OX/HOLADD predicate.
+# TRUE ⇒ NO row-selecting predicate anywhere: leg B takes the WHOLE of F4311, not just the
+# `order_type='OX' AND item='HOLADD'` lines. Those two conditions become the `row_class` calculation
+# instead ('PO_HOLADD' vs 'PO_OTHER'), and item_number (PDLITM) + po_order_type (PDDCTO) are on every PO
+# row so the consumer can filter to OX/HOLADD itself.
+# ⚠ VOLUME: the fact is then F4211 ∪ F4311 in full. Set False to restore the OX/HOLADD predicate.
 PO_LEG_UNFILTERED = True
 
-# ── report scaling ──────────────────────────────────────────────────────────────
-# RAW JDE integers carry implied decimals: qty /1000 (3 implied dec), rate ABURAT*0.01, and — in the HOLADD
-# variation only — SDUPRC/1000000 and SDAEXP/100. Those divisors are all implied-decimal decoding, which
-# SILVER HAS ALREADY DONE, so they all drop out here and the two queries' scaling agrees. Only the
-# BUSINESS factors survive: qty(COM) = units / 2000 (tons).
+# ── scaling ──────────────────────────────────────────────────────────────
+# RAW JDE integers carry implied decimals (qty /1000, rate ABURAT*0.01, etc.) — Silver HAS ALREADY DECODED
+# them, so those divisors drop out here. Only the BUSINESS factor survives: qty(COM) = units / 2000 (tons).
 RATE_FACTOR     = 1.0     # ABURAT already decoded
 TONS_DIVISOR    = 2000.0  # COM lines: units → tons
 
@@ -163,11 +81,9 @@ F554201T = "f554201t_sand_box_sales_order_qc_information"     # static (Sand PO 
 F0911    = "f0911_account_ledger"                             # static (Carrier PO GL Post flag)
 F43121   = "f43121_purchase_order_receiver_file"              # static (PO Receipt GL Date / GLPost doc)
 F0101    = "f0101_address_book_master"                        # static — LOFA rate (ABURAT) only
-F4201    = "f4201_sales_order_header_file"                    # static — report-5 header attrs (SHMCU/SHAN8/…)
-# NOTE: F0005 is NOT read here. Its 55/UP attributes live in the Gold dim below.
-
-# ── Gold READ (prerequisite dim — built by nb_eso5_gold_dim_uss_plant) ───────────
-DIM_USS_PLANT = "dim_uss_plant"
+F4201    = "f4201_sales_order_header_file"                    # static — sales-order header attrs (SHMCU/SHAN8/…)
+F0005    = "f0005_user_defined_code_values"                   # static — UDC 55/UP DRSPHD (SOORDERNO match MCU only)
+UDC_SYS, UDC_TYPE = "55", "UP"                                # DRSY='55' AND DRRT='UP' (vendor → plant MCU map)
 
 # ── Gold target BUILT here ──────────────────────────────────────────────────────
 FACT          = "fact_extended_sales_order_5"
@@ -197,23 +113,24 @@ def sk(*cols):
     )
 
 def load_scope_expr(kcoo_col, dcto_col, doco_col):
-    """The per-load scope key, STORED on the fact. Vestigial under the batch build — it was the CDC delete
-    scope in the previous streaming version; retained so the fact schema + semantic model are unchanged.
-    The trim + long cast normalise the key ("00750||SX ||1184310.0" -> "00750||SX||1184310") so it is stable."""
+    """The per-load scope key, STORED on the fact. Vestigial under the batch build — retained so the fact
+    schema is unchanged. The trim + long cast normalise the key
+    ("00750||SX ||1184310.0" -> "00750||SX||1184310") so it is stable."""
     return sk(F.trim(F.col(kcoo_col)), F.trim(F.col(dcto_col)), F.col(doco_col).cast("long"))
 
 def load_uss_plant_mcu():
-    """Gold dim_uss_plant → (vendor_number, lofa_mcu). The ONLY F0005-derived value the fact needs at
-    build time (the SOORDERNO SO-match MCU). Read from the DIM, never from Silver F0005."""
-    if not spark.catalog.tableExists(gname(DIM_USS_PLANT)):
-        raise RuntimeError(
-            f"{gname(DIM_USS_PLANT)} not found — run nb_eso5_gold_dim_uss_plant FIRST. "
-            "The fact needs its lofa_mcu (F0005 55/UP DRSPHD) for the SBXUSSSAND SOORDERNO match.")
-    # vendor_number is DOUBLE (it must match the Double fact FK for the Direct Lake relationship);
-    # the join below casts both sides to long so the comparison is exact.
-    return (spark.read.table(gname(DIM_USS_PLANT))
-            .select(F.col("vendor_number").alias("u_vend"),
-                    F.trim(F.col("lofa_mcu")).alias("u_mcu"))
+    """Vendor → plant MCU (DRSPHD) from Silver F0005 UDC 55/UP — the ONLY F0005-derived value the fact
+    needs at build time (the SO-match). Read INLINE from F0005:
+      vendor_number = TO_NUMBER(rtrim(DRKY)) ; lofa_mcu = trim(DRSPHD).
+    NO F0005 column is stored on the fact — only DRSPHD is consumed, inside the SO-match CASE."""
+    f0005 = (load_silver_table(F0005)
+             .where((F.trim(F.col("product_code"))       == UDC_SYS) &     # DRSY='55'
+                    (F.trim(F.col("user_defined_codes"))  == UDC_TYPE)))    # DRRT='UP'
+    # u_vend is DOUBLE; the m2f join casts both sides to long for an exact integer compare. dropDuplicates
+    # keeps one row per vendor — the 55/UP "one row per vendor" assumption.
+    return (f0005.select(
+                F.trim(F.col("user_defined_code")).cast("double").alias("u_vend"),   # DRKY (numeric vendor)
+                F.trim(F.col("special_handling_code")).alias("u_mcu"))               # DRSPHD (plant MCU)
             .where(F.col("u_vend").isNotNull())
             .dropDuplicates(["u_vend"]))
 
@@ -221,36 +138,33 @@ def load_uss_plant_mcu():
 # 2) FACT BUILDER
 # ----------------------------------------------------------------------------
 
-# FACT  fact_extended_sales_order_5  — ONE table, LINE grain, serving all five reports.
-#   Grain = one F4211 SX order line (any item, any line type) PLUS one row per orphan F4311 OX
-#   HOLADD PO line. `row_class` says which report(s) a row belongs to (see the header block).
-# Display columns STORED on the fact — the GROUP BY grain. FOUR display columns are deliberately NOT
-# stored (star schema — resolved via dimensions instead):
-#   loading_facility_name  → dim_address_loading_facility.name_alpha (reused dim_address_book, F0101)
-#   uss_plant_sand / shipped_from / lofa_mcu → dim_uss_plant.* (from F0005 55/UP, keyed by vendor)
+# FACT  fact_extended_sales_order_5  — ONE table, LINE grain.
+#   Grain = one F4211 order line (any item, any line type) PLUS one row per F4311 OX HOLADD PO line.
+#   `row_class` is the row discriminator.
+# Display columns STORED on the fact — the GROUP BY grain.
 FACT_CORE_COLS = [
     "load_number",          # SDDOCO
     "document_type",        # SDDCTO
     "company",              # SDKCOO
     "district",             # SDMCU
-    "sold_to",              # SDAN8  (FK → dim_address_sold_to)
-    "ship_to",              # SDSHAN (FK → dim_address_ship_to)
-    "carrier",              # SDCARS (FK → dim_address_carrier)
+    "sold_to",              # SDAN8
+    "ship_to",              # SDSHAN
+    "carrier",              # SDCARS
     "customer_po",          # SDVR01
     "sand_po_number",       # F554201T QCDS50
-    "uss_customer_po",      # SBXUSSSAND SOPONO
+    "uss_customer_po",      # SOPONO
     "item_number",          # SDLITM
     "item_description",     # SDDSC1
     "order_date",           # SDTRDJ
     "gl_date",              # SDDGL
-    "loading_facility",     # LOFA=SDVEND (FK → dim_address_loading_facility + dim_uss_plant)
-    "uss_match",            # SBXUSSSAND MATCHFLAG
-    "uss_so_order_no",      # SBXUSSSAND SOORDERNO
-    "uss_so_weight",        # SBXUSSSAND SOWEIGHT
-    "sbx_weight",           # SBXUSSSAND SXWEIGHT
-    "so_alt_bol_no",        # SBXUSSSAND SOALTBOLNO
-    "sand_ticket",          # SBXLOADPOVIEW SANDTKT
-    "bol",                  # SBXLOADPOVIEW BOL
+    "loading_facility",     # LOFA=SDVEND
+    "uss_match",            # MATCHFLAG
+    "uss_so_order_no",      # SOORDERNO
+    "uss_so_weight",        # SOWEIGHT
+    "sbx_weight",           # SXWEIGHT
+    "so_alt_bol_no",        # SOALTBOLNO
+    "sand_ticket",          # SANDTKT
+    "bol",                  # BOL
     "uom",                  # SDUOM
     "quantity",             # QTY (derived)
     "unit_price",           # SDUPRC
@@ -266,40 +180,37 @@ FACT_CORE_COLS = [
     "po_receipt_gl_date",   # F43121 GLDGJ
     "line_id",              # SDLNID
 ]
-# STATUS — every status field the five queries touch, stored so the REPORT can do all status filtering.
-# NO status predicate filters a row anywhere in this notebook. The three below are the ones
-# that used to BE filters and are now fields; last_status / next_status / ox_last_status / ox_next_status /
-# load_last_status are already in the lists above.
+# STATUS — every status field stored so the consumer can do all status filtering. NO status predicate
+# filters a row. last_status / next_status / ox_last_status / ox_next_status / load_last_status are
+# already in the lists above.
 FACT_STATUS_COLS = [
-    "next_status_num",       # numeric copy of next_status for the core report's SDNXTR<'581' page filter.
-                             # An integer column makes `next_status_num < 581` unambiguous in Direct Lake
+    "next_status_num",       # numeric copy of next_status for a `next_status_num < 581` page filter.
+                             # An integer column makes the comparison unambiguous in Direct Lake
                              # (calculated columns are forbidden, so the numeric form must be physical).
     "po_holadd_superseded",  # 'Y' ⇔ the load has a LIVE (last_status<>'980') SX HOLADD sales line.
-                             # WAS report 4's `NOT EXISTS(...)`.
-    "po_order_type",         # PDDCTO on a PO row (document_type is forced to 'SX' by the query); NULL on
-                             # F4211 rows. Lets the report filter the PO leg by its real document type.
-    "load_max_last_status",  # MXLTTR — recon view's per-load MAX(SDLTTR)  (input to load_last_status)
-    "load_min_last_status",  # MILTTR — recon view's per-load MIN(SDLTTR)  (input to load_last_status)
-    "ox_amount_gross",       # the F4311 OX money with NO item/status condition — lets the report override
+                             # WAS a `NOT EXISTS(...)` row filter.
+    "po_order_type",         # PDDCTO on a PO row (document_type is forced to 'SX'); NULL on F4211 rows.
+                             # Lets the consumer filter the PO leg by its real document type.
+    "load_max_last_status",  # MXLTTR — per-load MAX(SDLTTR)  (input to load_last_status)
+    "load_min_last_status",  # MILTTR — per-load MIN(SDLTTR)  (input to load_last_status)
+    "ox_amount_gross",       # the F4311 OX money with NO item/status condition — lets the consumer override
                              # ox_amount's baked-in `item='FRT' | (item='HOLADD' AND last_status<>'980')`
 ]
-# Added so the FOUR Filter-Capture variations can be served from these same rows.
 FACT_VARIATION_COLS = [
-    "row_class",            # LINE | HOLADD | TEXT | PO_HOLADD  — the per-report row filter
-    # report 5 (Reconciliation) pivot INPUTS — its SANDWEIGHT/EXTWEIGHT/MILES/LOFADET/WELLDET/...PP/
-    # ...PB/FRTAMT/FSCAMT/SANDAMT/HOLAMT are DAX SUMs of these, filtered by item/category.
-    "line_type",            # SDLNTY  ('TL' = the text lines the core view drops)
+    "row_class",            # LINE | HOLADD | TEXT | PO_HOLADD  — the row discriminator
+    # per-load pivot INPUTS — summed/filtered by item/category downstream
+    "line_type",            # SDLNTY  ('TL' = text lines)
     "product_category",     # SDPRP1  ('COM' sand, 'FRT' freight)
-    "sales_report_code_01", # SDSRP1  ('352' → SANDAMT)
+    "sales_report_code_01", # SDSRP1
     "units_ordered",        # SDUORG  — RAW decoded units (quantity above is the COM→tons version)
-    "item_weight",          # SDITWT  → EXTWEIGHT
-    "load_last_status",     # report 5's per-load SDLTTR CASE (see _load_last_status)
-    # report 5 F554201T columns beyond QCDS50
+    "item_weight",          # SDITWT
+    "load_last_status",     # per-load SDLTTR CASE (see _load_aggregates)
+    # F554201T columns beyond QCDS50
     "leg_1",                # QCLGL1
     "leg_2",                # QCLGL2
     "leg_3",                # QCLGL3
     "qc_string_3",          # QCFSTR3
-    # report 5 groups by the F4201 HEADER attributes, which need not equal the line's own values
+    # F4201 HEADER attributes, which need not equal the line's own values
     "header_district",      # SHMCU
     "header_sold_to",       # SHAN8
     "header_ship_to",       # SHSHAN
@@ -323,27 +234,23 @@ def _pad25(c):
 
 
 # ── the two row legs ────────────────────────────────────────────────────────────
-# Both legs are projected into ONE common intermediate schema so the whole downstream join chain
-# (BOL / SANDTKT / OX / F43121 / F0911 / F554201T / SBXUSSSAND / SXWEIGHT / F0101 / F4201) is written
-# once and applied to both. Leg-B's PO-side OX values ride along as _pox_* and win in the final select.
+# Both legs are projected into ONE common intermediate schema so the whole downstream join chain is
+# written once and applied to both. Leg-B's PO-side OX values ride along as _pox_* and win in the final
+# select.
 _LEG_COLS = ["l_kcoo", "l_doco", "l_dcto", "l_mcu", "l_an8", "l_shan", "l_cars", "l_vr01",
              "l_litm", "l_dsc1", "l_uom", "l_uorg", "l_itwt", "l_prp1", "l_srp1", "l_lnty",
              "l_trdj", "l_vend", "l_uprc", "l_aexp", "l_dgl", "l_lttr", "l_nxtr", "l_doc", "l_lnid",
              "row_class", "po_holadd_superseded", "l_po_dcto", "_pox_lttr", "_pox_nxtr", "_pox_amt"]
 
 def _f4211_lines(f4211):
-    """Leg A — the F4211 sales-order lines. NO FILTER OF ANY KIND. This leg is
-    the WHOLE of Silver F4211; every predicate the five queries put in a WHERE is carried as a COLUMN and
-    filtered in the Power BI report instead:
-        SDDCTO='SX'      -> the `document_type` column   (report filter)
-        SDKCOO='00750'   -> the `company` column         (report filter)
-        SDLNTY<>'TL'     -> row_class 'TEXT'             (report filter)
-        SDLITM<>'HOLADD' -> row_class 'HOLADD'           (report filter)
-    The last two could never have been applied anyway: they CONFLICT across the five reports (1-3 drop TL
-    and HOLADD, 4 REQUIRES HOLADD, 5 keeps both). That conflict is the structural reason one fact can serve
-    five reports only if the discrimination happens at report level — which is exactly what `row_class` is.
-    ⚠ With this leg unfiltered, the SO-match / `_load_aggregates` / OX helpers now read the SAME population
-    they always needed: the SO leg lives on the SDDCTO='SO' AND SDCO='00400' rows that an SX filter removes."""
+    """Leg A — the F4211 sales-order lines. NO FILTER OF ANY KIND: the WHOLE of Silver F4211; every
+    value-selecting predicate is carried as a COLUMN:
+        SDDCTO='SX'      -> the `document_type` column
+        SDKCOO='00750'   -> the `company` column
+        SDLNTY<>'TL'     -> row_class 'TEXT'
+        SDLITM<>'HOLADD' -> row_class 'HOLADD'
+    ⚠ With this leg unfiltered, the SO-match / `_load_aggregates` / OX helpers read the SAME population they
+    always needed: the SO leg lives on the SDDCTO='SO' AND SDCO='00400' rows that an SX filter removes."""
     sd = f4211
     row_class = (F.when(F.trim(F.col("line_type")) == "TL", F.lit("TEXT"))
                   .when(F.trim(F.col("identifier_second_item")) == "HOLADD", F.lit("HOLADD"))
@@ -382,20 +289,18 @@ def _f4211_lines(f4211):
         F.lit(None).cast("double").alias("_pox_amt"))
 
 def _po_lines(f4311, la):
-    """Leg B — the F4311 purchase-order lines. Report 4's second UNION branch is the OX HOLADD ones; with
-    PO_LEG_UNFILTERED (the default) this leg takes the WHOLE table and `row_class` classifies each row
-    instead, so the notebook holds NO row-selecting predicate at all:
-        row_class = 'PO_HOLADD'  ⇔  PDDCTO='OX' AND PDLITM='HOLADD'   → report 4
-                    'PO_OTHER'   ⇔  every other purchase-order line   → no report reads it
+    """Leg B — the F4311 purchase-order lines. With PO_LEG_UNFILTERED (the default) this leg takes the
+    WHOLE table and `row_class` classifies each row, so the notebook holds NO row-selecting predicate:
+        row_class = 'PO_HOLADD'  ⇔  PDDCTO='OX' AND PDLITM='HOLADD'
+                    'PO_OTHER'   ⇔  every other purchase-order line
     Sales-side attributes are back-filled from the load's FRT sales line, and UPRC/EXTAMT are forced to 0
-    — the money is on OXAMT. The back-fill and the
-    ex-NOT-EXISTS flag both come from `la` (_load_aggregates), so this leg reads F4211 not at all; a PO line
-    with no SX load behind it simply gets NULLs.
+    — the money is on OXAMT. The back-fill and the ex-NOT-EXISTS flag both come from `la`
+    (_load_aggregates), so this leg reads F4211 not at all; a PO line with no SX load behind it gets NULLs.
 
-    ⚠ The `NOT EXISTS(live SX HOLADD, SDLTTR<>'980')` is GONE — a status test that decided whether a
-    row EXISTS. Every HOLADD PO line is a row now, and the test is a FIELD:
+    ⚠ The `NOT EXISTS(live SX HOLADD, SDLTTR<>'980')` is GONE — a status test that decided whether a row
+    EXISTS. Every HOLADD PO line is a row now, and the test is a FIELD:
         po_holadd_superseded = 'Y'  ⇔  the load already carries a live SX HOLADD sales line
-    The orphan set is exactly `po_holadd_superseded = 'N'`, which report 4 filters on.
+    The orphan set is exactly `po_holadd_superseded = 'N'`.
 
     ⚠ `document_type` is forced to 'SX' on every row here — the query hard-codes `'SX' DCTO` so the UNION
     lines up with the sales load. The PO's OWN document type is kept in `po_order_type` (PDDCTO)."""
@@ -435,8 +340,7 @@ def _po_lines(f4311, la):
         F.col("_fr_doc").alias("l_doc"),
         F.col("pd.line_number").cast("double").alias("l_lnid"),        # PDLNID
         # `PDDCTO='OX' AND PDLITM='HOLADD'` — the predicate for this UNION branch. With
-        # PO_LEG_UNFILTERED it is no longer a filter: it CLASSIFIES the row. Only 'PO_HOLADD' rows feed
-        # report 4; 'PO_OTHER' is every other purchase-order line, carried but read by no report.
+        # PO_LEG_UNFILTERED it is no longer a filter: it CLASSIFIES the row into 'PO_HOLADD' vs 'PO_OTHER'.
         F.when((F.trim(F.col("pd.order_type")) == "OX") &
                (F.trim(F.col("pd.identifier_2nd_item")) == "HOLADD"), F.lit("PO_HOLADD"))
          .otherwise(F.lit("PO_OTHER")).alias("row_class"),
@@ -450,34 +354,34 @@ def _po_lines(f4311, la):
 
 
 def _load_aggregates(f4211):
-    """EVERY per-load value the five queries compute with a correlated subquery, in ONE pass over F4211.
+    """EVERY per-load value computed with a correlated subquery, in ONE pass over F4211.
 
     ⚠ THE POINT OF THIS FUNCTION: not one of the source predicates (SDLITM='BOL' / 'SANDTKTNBR' / 'HOLADD'
     / 'FRT', SDPRP1='COM', SDLTTR<>'980', SDDCTO='SX') appears in a WHERE. Every one is a CASE inside an
     aggregate, so it decides whether a line CONTRIBUTES TO A VALUE — never whether a row SURVIVES. No row
     is filtered out of anything. That is the difference between a calculation (kept: it IS the business
-    logic) and a filter (gone: it belongs to the report).
+    logic) and a filter (gone).
 
     Grain (kcoo, doco, dcto) — the group key carries the order type and company, so an SX/00750 row reads
-    exactly the values the `SDDCTO='SX' AND SDKCOO='00750'` subqueries produce, with no
-    constant hard-coded anywhere."""
+    exactly the values the `SDDCTO='SX' AND SDKCOO='00750'` subqueries produce, with no constant hard-coded
+    anywhere."""
     item = F.trim(F.col("identifier_second_item"))
     lttr = F.trim(F.col("status_code_last"))
     return (f4211.groupBy(F.trim(F.col("company_key_order_no")).alias("_la_kcoo"),
                           F.col("document_order_invoice_e").alias("_la_doco"),
                           F.trim(F.col("order_type")).alias("_la_dcto"))
             .agg(
-                # SBXLOADPOVIEW: BOL / SANDTKT  (were `WHERE SDLITM = 'BOL' / 'SANDTKTNBR'`)
+                # BOL / SANDTKT  (were `WHERE SDLITM = 'BOL' / 'SANDTKTNBR'`)
                 F.max(F.when(item == "BOL", F.col("description_line_01"))).alias("bol"),
                 F.max(F.when(item == "SANDTKTNBR", F.col("description_line_01"))).alias("sand_ticket"),
-                # SBXUSSSAND's M row = the load's SANDTKTNBR line (its vendor drives the 55/UP plant match)
+                # the load's SANDTKTNBR line (its vendor drives the 55/UP plant match)
                 F.max(F.when(item == "SANDTKTNBR", F.col("primary_last_vendor_no"))).alias("_st_vend"),
                 # SXWEIGHT  (was `WHERE SDDCTO='SX' AND SDPRP1='COM' AND SDLTTR<>'980'`)
                 F.sum(F.when((F.trim(F.col("purchasing_report_code_01")) == "COM") & (lttr != "980"),
                              F.col("units_transaction_qty"))).alias("sbx_weight"),
-                # report 4's `NOT EXISTS(live SX HOLADD, SDLTTR<>'980')` → a FIELD, not a row filter
+                # `NOT EXISTS(live SX HOLADD, SDLTTR<>'980')` → a FIELD, not a row filter
                 F.max(F.when((item == "HOLADD") & (lttr != "980"), F.lit("Y"))).alias("_live_holadd"),
-                # report 4 leg B back-fills its sales-side attributes from the load's FRT line
+                # leg B back-fills its sales-side attributes from the load's FRT line
                 F.max(F.when(item == "FRT", F.col("reference_01"))).alias("_fr_vr01"),
                 F.max(F.when(item == "FRT", F.col("address_number"))).alias("_fr_an8"),
                 F.max(F.when(item == "FRT", F.col("primary_last_vendor_no"))).alias("_fr_vend"),
@@ -485,7 +389,7 @@ def _load_aggregates(f4211):
                 F.max(F.when(item == "FRT", lttr)).alias("_fr_lttr"),
                 F.max(F.when(item == "FRT", F.trim(F.col("status_code_next")))).alias("_fr_nxtr"),
                 F.max(F.when(item == "FRT", F.col("doc_voucher_invoice_e"))).alias("_fr_doc"),
-                # report 5's per-load SDLTTR CASE + its two inputs (all three stored on the fact)
+                # per-load SDLTTR CASE + its two inputs (all three stored on the fact)
                 F.max(lttr).alias("load_max_last_status"),                                  # MXLTTR
                 F.min(lttr).alias("load_min_last_status"),                                  # MILTTR
                 F.max(F.when((item != "HOLADD") & (F.col("amount_extended_price") != 0),
@@ -504,9 +408,9 @@ def build_fact():
     f0911  = load_silver_table(F0911)
     f43121 = load_silver_table(F43121)
     ab     = load_silver_table(F0101)
-    f4201  = load_silver_table(F4201)         # report-5 header
+    f4201  = load_silver_table(F4201)         # sales-order header
 
-    # ── normalize the order/load key type ACROSS tables (bug fix 2026-07-21) ─────────────────────
+    # ── normalize the order/load key type ACROSS tables ─────────────────────
     # SDDOCO / PDDOCO / PRDOCO are the SAME JDE data item (DOCO), but Silver can land them with
     # DIFFERENT physical types per table (e.g. F4311 as string, F4211/F43121 as decimal). A cross-table
     # equality JOIN on document_order_invoice_e then SILENTLY MISSES — invisible for leg A (all F4211),
@@ -584,10 +488,10 @@ def build_fact():
                                 (F.col("_gl_kco") == "00750"), F.col("_gl_post")))
                     .alias("carrier_po_gl_post_flag")))
 
-    # ── SBXUSSSAND — the load's SANDTKTNBR line (from `la`) INNER F554201T on (kcoo, doco, dcto).
+    # ── the load's SANDTKTNBR line (from `la`) INNER F554201T on (kcoo, doco, dcto).
     #    The `M.SDDCTO='SX' AND M.SDLITM='SANDTKTNBR' AND M.SDKCOO='00750'` conditions need no WHERE here: the
     #    item condition is already the CASE inside `la`, and the order type + company are the join keys. ──
-    plant = load_uss_plant_mcu()   # F0005 55/UP DRSPHD, from the GOLD dim — never Silver F0005
+    plant = load_uss_plant_mcu()   # F0005 55/UP DRSPHD (vendor → plant MCU), read inline from Silver F0005
     m2f = (la.alias("la")
            .join(qcv.alias("qc"),
                  (F.col("la._la_kcoo") == F.col("qc.qc_kcoo")) &
@@ -625,9 +529,7 @@ def build_fact():
                        # SOWEIGHT — sum secondary qty over matched SO 'S' lines (decoded; no /1000)
                        F.sum(F.when(F.col("s.so_lnty") == "S", F.col("s.so_sqor"))).alias("uss_so_weight")))
 
-    # F0101 loading-facility lookup (LOFA = ABAN8): RATE only. The NAME (ABALPH) resolves via the
-    # reused dim_address_loading_facility relationship; F0101 is read here ONLY for ABURAT (the rate),
-    # which the reused dim_address_book does not carry (`user_reserved_amount` absent).
+    # F0101 loading-facility lookup (LOFA = ABAN8): read here ONLY for ABURAT (the rate).
     #
     # The rate source is `SELECT … FROM F0101 WHERE ABAT1 BETWEEN 'A '..'P ' OR 'R '..'ZZZ'` — a
     # search-type band that says WHICH address-book rows COUNT AS a rate source (it excludes the 'Q'
@@ -635,8 +537,7 @@ def build_fact():
     # INSIDE THE AGGREGATE. Deleting it would not make the rate "unfiltered", it would make it WRONG —
     # a 'Q'-band facility would start reporting a rate that should be blank. As a CASE it drops nothing:
     # every address_number keeps its group, and an out-of-band facility simply yields a NULL rate.
-    # (`address_type_01` is on the reused `dim_address_loading_facility` if the report ever wants to see
-    #  or override the band.)  ABAT1 = address_type_01, rpad to 3 to mirror the padded 'A  '/'P  '/'ZZZ'.
+    # ABAT1 = address_type_01, rpad to 3 to mirror the padded 'A  '/'P  '/'ZZZ'.
     _at = F.rpad(F.rtrim(F.col("address_type_01")), 3, " ")
     _is_rate_source = (((_at >= F.lit("A  ")) & (_at <= F.lit("P  "))) |
                        ((_at >= F.lit("R  ")) & (_at <= F.lit("ZZZ"))))
@@ -644,8 +545,8 @@ def build_fact():
             .agg(F.first(F.when(_is_rate_source, F.col("user_reserved_amount")),
                          ignorenulls=True).alias("_aburat")))
 
-    # F4201 sales-order HEADER — report 5 groups by SHMCU/SHAN8/SHSHAN/SHCARS/SHVR01/SHTRDJ, which are
-    # header values and need not equal the line's own.
+    # F4201 sales-order HEADER — SHMCU/SHAN8/SHSHAN/SHCARS/SHVR01/SHTRDJ are header values and need not
+    # equal the line's own.
     hdr = (f4201.select(
                 F.trim(F.col("company_key_order_no")).alias("h_kcoo"),          # SHKCOO
                 F.col("document_order_invoice_e").alias("h_doco"),              # SHDOCO
@@ -660,15 +561,13 @@ def build_fact():
 
     # ── derivations on the common line ──────────────────────────────────────────────
     # QTY = DECODE(SDPRP1,'COM',(SDUORG/1000)/2000, SDUORG/1000) — Silver is decoded, so only the
-    # COM→tons factor survives. PO_HOLADD rows have no SDPRP1, so they take the plain-units branch,
-    # which is what report 4's `pduorg / 1000` reduces to.
+    # COM→tons factor survives. PO_HOLADD rows have no SDPRP1, so they take the plain-units branch.
     qty = F.when(F.col("l_prp1") == "COM", F.col("l_uorg") / F.lit(TONS_DIVISOR)).otherwise(F.col("l_uorg"))
     gl_date = F.coalesce(F.col("l_dgl"), F.to_date(F.lit("1900-01-01")))
-    # OXAMT — the core query charges it to the FRT line; the HOLADD variation charges it to a live
-    # HOLADD line (SDLTTR<>'980'); a PO_HOLADD row carries its own PDAEXP. Union of the three rules.
-    # This is a CASE (a calculation), not a filter — no row is dropped. But it does BAKE IN a status rule,
-    # so `ox_amount_gross` below exposes the same money with NO item/status condition, letting the report
-    # own the status decision entirely (`last_status` is on the row).
+    # OXAMT — charged to the FRT line, OR to a live HOLADD line (SDLTTR<>'980'), OR a PO_HOLADD row carries
+    # its own PDAEXP. Union of the three rules. This is a CASE (a calculation), not a filter — no row is
+    # dropped. But it BAKES IN a status rule, so `ox_amount_gross` below exposes the same money with NO
+    # item/status condition, letting the consumer own the status decision (`last_status` is on the row).
     _is_po_row = F.col("row_class").isin("PO_HOLADD", "PO_OTHER")
     ox_amount = (F.when(_is_po_row, F.coalesce(F.col("_pox_amt"), F.lit(0.0)))
                   .when(F.col("l_litm") == "FRT", F.coalesce(F.col("_ox_amt"), F.lit(0.0)))
@@ -677,9 +576,9 @@ def build_fact():
                   .otherwise(F.lit(0.0)))
     ox_amount_gross = F.coalesce(F.col("_pox_amt"), F.col("_ox_amt"), F.lit(0.0))
 
-    # ── assemble: base LEFT (per-load aggregates, OX, F43121, F0911, F554201T, SBXUSSSAND, F0101, F4201) ──
+    # ── assemble: base LEFT (per-load aggregates, OX, F43121, F0911, F554201T, SO-match, F0101, F4201) ──
     # `la` carries bol / sand_ticket / sbx_weight / load_last_status(+MX,MI) / the leg-B back-fill / the
-    # ex-NOT-EXISTS flag — one join now replaces the old bol + sandtkt + sxw + lls joins.
+    # ex-NOT-EXISTS flag.
     j = (base.alias("sd")
          .join(la, (F.col("sd.l_kcoo") == F.col("_la_kcoo")) &
                    (F.col("sd.l_doco") == F.col("_la_doco")) &
@@ -703,7 +602,7 @@ def build_fact():
          .join(lofa, F.col("sd.l_vend") == F.col("ab_an8"), "left")            # join #3 (LOFA=ABAN8)
          .join(hdr, (F.col("sd.l_kcoo") == F.col("h_kcoo")) &
                     (F.col("sd.l_doco") == F.col("h_doco")) &
-                    (F.col("sd.l_dcto") == F.col("h_dcto")), "left"))   # report-5 header
+                    (F.col("sd.l_dcto") == F.col("h_dcto")), "left"))   # header
 
     sel = j.select(
         # ── degenerate identifiers ──
@@ -719,7 +618,7 @@ def build_fact():
         # ── degenerate attributes ──
         F.col("sd.l_vr01").alias("customer_po"),                    # SDVR01
         F.col("sand_po_number"),                                    # F554201T QCDS50
-        F.col("uss_customer_po"),                                   # SBXUSSSAND SOPONO
+        F.col("uss_customer_po"),                                   # SOPONO
         F.col("sd.l_litm").alias("item_number"),                    # SDLITM
         F.col("sd.l_dsc1").alias("item_description"),               # SDDSC1
         F.col("sd.l_trdj").alias("order_date"),                     # SDTRDJ
@@ -733,7 +632,7 @@ def build_fact():
         F.col("sd.l_aexp").alias("total_amount"),                   # SDAEXP (0 on PO_HOLADD)
         F.col("sd.l_lttr").alias("last_status"),                    # SDLTTR
         F.col("sd.l_nxtr").alias("next_status"),                    # SDNXTR
-        F.col("sd.l_nxtr").cast("int").alias("next_status_num"),     # SDNXTR as int — core report SDNXTR<'581'
+        F.col("sd.l_nxtr").cast("int").alias("next_status_num"),     # SDNXTR as int
         F.col("sd.l_doc").cast("long").alias("invoice_number"),     # SDDOC (int64)
         # OX status — an orphan PO row reports ITS OWN PDLTTR/PDNXTR, not the load-level MAX
         F.coalesce(F.col("sd._pox_lttr"), F.col("_ox_lttr")).alias("ox_last_status"),
@@ -766,7 +665,7 @@ def build_fact():
         F.col("sd.l_itwt").alias("item_weight"),                    # SDITWT
         F.col("sd.po_holadd_superseded"),                           # ex-NOT EXISTS (status → field)
         F.col("sd.l_po_dcto").alias("po_order_type"),                # PDDCTO (PO rows only)
-        F.col("load_last_status"),                                  # report-5 per-load SDLTTR CASE
+        F.col("load_last_status"),                                  # per-load SDLTTR CASE
         F.col("load_max_last_status"), F.col("load_min_last_status"),   # MXLTTR / MILTTR (the CASE inputs)
         F.col("leg_1"), F.col("leg_2"), F.col("leg_3"), F.col("qc_string_3"),
         F.col("header_district"), F.col("header_sold_to"), F.col("header_ship_to"),
@@ -792,12 +691,10 @@ def build_fact():
 # 3) FACT SOURCES
 # ----------------------------------------------------------------------------
 
-# Declares each Silver source and how it relates to the F4211 spine. This fact's join graph is rich
-# (SBXLOADPOVIEW/SBXLOADDETAIL/SBXUSSSAND legs) and applied
+# Declares each Silver source and how it relates to the F4211 spine. The join graph is applied
 # inside build_fact() / _f4211_lines() / _po_lines() / _load_aggregates(), so join_pairs are [] here (the
 # joins are not simple FK pairs); the list documents the source inventory and drives the RUN source
-# preflight. join: spine=F4211 SX driver, union=F4311 PO leg (contributes rows), static=lookup. The Gold
-# prerequisite dim_uss_plant is validated separately by load_uss_plant_mcu().
+# preflight. join: spine=F4211 SX driver, union=F4311 PO leg (contributes rows), static=lookup.
 FACT_SOURCES = [
     {"silver": F4211,    "join": "spine",  "join_pairs": []},   # SX order-line driver; LINE/HOLADD/TEXT rows
     {"silver": F4311,    "join": "union",  "join_pairs": []},   # OX PO lines; PO_HOLADD/PO_OTHER rows + OX status/amount
@@ -805,7 +702,8 @@ FACT_SOURCES = [
     {"silver": F0911,    "join": "static", "join_pairs": []},   # Carrier PO GL Post flag
     {"silver": F43121,   "join": "static", "join_pairs": []},   # PO Receipt GL Date / GLPost doc
     {"silver": F0101,    "join": "static", "join_pairs": []},   # LOFA rate ABURAT
-    {"silver": F4201,    "join": "static", "join_pairs": []},   # report-5 load header attrs
+    {"silver": F4201,    "join": "static", "join_pairs": []},   # sales-order header attrs
+    {"silver": F0005,    "join": "static", "join_pairs": []},   # UDC 55/UP DRSPHD — SOORDERNO match MCU
 ]
 
 # ----------------------------------------------------------------------------
@@ -814,15 +712,12 @@ FACT_SOURCES = [
 
 spark.sql("CREATE SCHEMA IF NOT EXISTS {}.{}".format(GOLD_LH, GOLD_SCHEMA))
 
-# preflight — confirm every declared Silver source exists before building (the Gold dim_uss_plant is
-# checked by load_uss_plant_mcu()).
+# preflight — confirm every declared Silver source exists before building.
 for _s in FACT_SOURCES:
     print("  source {:<40s} {}".format(_s["silver"],
                                        "OK" if spark.catalog.tableExists(sname(_s["silver"])) else "MISSING"))
 
 # BATCH BUILD — read the full Silver snapshot, run build_fact() once, overwrite the fact.
-#   Address dims are REUSED (rpt.dim_address_book role views); dim_uss_plant is built by
-#   nb_eso5_gold_dim_uss_plant (PREREQUISITE — read for the SOORDERNO match MCU).
 _run_start = time.time()
 if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(FACT)):
     print("== FULL LOAD ==")
