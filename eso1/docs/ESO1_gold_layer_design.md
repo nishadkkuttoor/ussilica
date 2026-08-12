@@ -12,18 +12,14 @@
 > buckets; F4074 is a line×adjustment relation, so it belongs on its own fact — this **reverses** the earlier v2.1 design
 > that collapsed F4074 to one `row_number`-picked row on the freight fact (§4.2/§4.4/§4.5 below are now historical for the
 > F4074 parts).
-> - **NEW notebook `nb_eso1_gold_fact_price_adjustment.py` → `rpt.fact_price_adjustment`.** Grain = **one row per order
->   line × F4074 adjustment** (LEFT — a line with no adjustment yields ONE row, adjustment cols null). **SELF-CONTAINED** —
->   it rebuilds the order-line context from **Silver F4211 (∪ F42119)** with the SAME derivations as the order-line fact
->   (same `sales_order_line_key`, F41002 TN-conversion via `build_uom_cascade`, F49211 deferred flag), then LEFT-joins
->   Silver **F4074**. **No dependency on any Gold fact — no run-order constraint.** **NO ALAST whitelist** (each report
->   page-filters ALAST/print-code).
->   25 cols: keys (`price_adjustment_key`, `sales_order_line_key`) + line context (`extended_price` / `transaction_quantity`
->   / `conversion_to_tons_rate` / `ordered_tons` / `second`+`third_item_number` / `line_type` / `gl_class` / `uom` /
->   `deferred_entries_flag`) + F4074 detail (`price_adjustment_type`=ALAST, `adj_print_code`=ALAPRP1, `adj_unit_price`=ALUPRC,
->   `adj_uom`=ALUOM, `adj_based_on_value`=ALBSDVAL, `adj_gl_class`=ALGLC, `adj_factor_value`=ALFVTR) + derived
->   (`ordered_tons` = qty×rate; **`adj_amount`** = ALUPRC×ordered_tons; **`is_line_primary`** = 'Y' on exactly ONE row per
->   line so line-level buckets never fan out).
+> - **NEW notebook `nb_eso1_gold_fact_price_adjustment.py` → `rpt.fact_price_adjustment`.** Grain = **one row per F4074
+>   adjustment**. **F4074-ONLY** — it reads **Silver F4074 alone** (no F4211/F41002/F49211, no line context stored); the
+>   line values the buckets need come from the order-line fact via the relationship (RELATED in the measures). **No Gold-fact
+>   dependency, no run-order constraint.** **NO ALAST whitelist** (each report page-filters). **9 cols**: `price_adjustment_key`,
+>   `sales_order_line_key` (= the order-line fact's `sk(KCOO|DCTO|DOCO|LNID)`, built from F4074's own ALKCOO/ALDCTO/ALDOCO/ALLNID),
+>   `price_adjustment_type`=ALAST, `adj_print_code`=ALAPRP1, `adj_unit_price`=ALUPRC, `adj_uom`=ALUOM, `adj_based_on_value`=ALBSDVAL,
+>   `adj_gl_class`=ALGLC, `adj_factor_value`=ALFVTR. ⚡ **This is the lean design** (2026-08-12, after the initial 25-col
+>   line×adjustment draft) — it removes the duplicated line context to minimize CU + storage; the ETL is just "read F4074".
 > - **FREIGHT FACT stripped of ALL price-adjustment logic** — removed the `row_number` F4074 pick (`f4074w`), the per-line
 >   bucket counts (`f4074_buckets`), the 6 `adj_*` bucket columns, the picked-adjustment display cols
 >   (`price_adjustment_type` / `price_adjustment_print_code` / `freight_factor_value` / `adj_gl_class` /
@@ -37,13 +33,16 @@
 >   fact_sales_order_freight[sales_order_line_key]`** (many:1, single-direction — every line dim reachable through the
 >   order-line fact) + **11 measures** (display folder "Price Adjustment"). Generator wiring check OK =
 >   **20 tables / 22 relationships / 72 measures**.
-> - **The 11 measures** (`SUMX(FILTER(...))`, `||` not `IN{}`): line-level over `is_line_primary="Y"` — **Total Tons** =
->   Σ`ordered_tons`; **Product Price** = Σ`extended_price` where line NOT freight (`line_type`∉{F,FT}); **Price Per Ton** =
->   `DIVIDE([Product Price],[Total Tons])`; **Deferred Revenue** = Σ`extended_price` where `deferred_entries_flag`≠"" (UDDEFF);
->   **Freight** = Σ`extended_price` where `line_type`∈{F,FT} & `LEFT(third_item,3)`∈{BIL,FRE,FUE,TRA}; **Car Charges** = same
->   but `LEFT(third_item,3)`="RAI". Adjustment-level (Σ`adj_amount`) — **Non Product** (`adj_print_code`="NON"), **AL
->   Severance Tax** ("ALA"), **Misc Billing** ("ACR" ‖ `LEFT(ALAST,2)`="PP"), **Freight Hide** (ALAST="FRTHIDE"), **Dryer
->   Freight Charge** (ALAST="EPDELFRT").
+> - **The 11 measures — all homed on `fact_price_adjustment` (so the order-line fact's own measures are untouched).**
+>   **5 line-level** buckets compute over the **order-line fact directly** (one row per line, all lines): **Total Tons** =
+>   `SUMX(freight, transaction_quantity*COALESCE(conversion_to_tons_rate,0))`; **Product Price** = Σ freight `extended_price`
+>   where `line_type`∉{F,FT}; **Price Per Ton** = `DIVIDE([Product Price],[Total Tons])`; **Deferred Revenue** = Σ freight
+>   `extended_price` where `deferred_entries_flag`≠""; **Freight**/`Car Charges` = Σ freight `extended_price` where `line_type`∈{F,FT}
+>   & `LEFT(third_item,3)`∈{BIL,FRE,FUE,TRA} / ="RAI". **5 adjustment-level** buckets iterate the F4074 rows and pull the line's
+>   tons via **RELATED**: `SUMX(FILTER(padj,<code>), adj_unit_price × COALESCE(RELATED(freight[transaction_quantity]),0) ×
+>   COALESCE(RELATED(freight[conversion_to_tons_rate]),0))` — **Non Product** (`adj_print_code`="NON"), **AL Severance Tax**
+>   ("ALA"), **Misc Billing** ("ACR" ‖ `LEFT(ALAST,2)`="PP"), **Freight Hide** (ALAST="FRTHIDE"), **Dryer Freight Charge**
+>   (ALAST="EPDELFRT"). No `adj_amount`/`ordered_tons`/`is_line_primary` stored — all computed in DAX.
 > - **Isolation verified** — grep of every report `visual.json`: NO visual binds any removed column or measure; all 76
 >   report field refs resolve; every existing report renders unchanged.
 > - ⚠ Open assumptions (all one-line filter swaps once validated vs a compare report): Product Price disjoint (F/FT

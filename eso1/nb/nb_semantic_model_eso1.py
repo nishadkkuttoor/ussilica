@@ -381,21 +381,27 @@ COMM_MEASURES = {
     "Salesperson Name": ("SELECTEDVALUE(dim_address_salesperson[address_number]) & \" - \" & SELECTEDVALUE(dim_address_salesperson[name_alpha])", None, False),
 }
 
-# ── PRICE ADJUSTMENT MEASURE CATALOG — fact_price_adjustment (order-line × F4074 adjustment) ──
-# Line-level buckets sum extended_price / ordered_tons over is_line_primary='Y' (ONE row/line, no fan-out);
-# adjustment buckets sum adj_amount (= ALUPRC × ordered_tons) per F4074 row, classified by ALAPRP1 / ALAST.
+# ── PRICE ADJUSTMENT MEASURE CATALOG — homed on fact_price_adjustment (F4074-only fact) ──
+# Line-level buckets compute over the order-line fact directly (one row per line, all lines). Adjustment
+# buckets iterate the F4074 rows and pull the line's ordered tons via RELATED (many:1 to the order-line
+# fact) — so no line data is stored on this fact and the order-line fact is untouched.
 PADJ_MEASURES = {
-    "Total Tons":       (f"SUMX(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[is_line_primary] = \"Y\"), '{PADJ_FACT}'[ordered_tons])", "#,0.00", False),
-    "Product Price":    (f"SUMX(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[is_line_primary] = \"Y\" && NOT(TRIM('{PADJ_FACT}'[line_type]) = \"F\" || TRIM('{PADJ_FACT}'[line_type]) = \"FT\")), '{PADJ_FACT}'[extended_price])", "\\$#,0.00", False),
+    # line-level buckets — over the order-line fact directly
+    "Total Tons":       (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
+    "Product Price":    (f"SUMX(FILTER('{FACT}', NOT(TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\")), '{FACT}'[extended_price])", "\\$#,0.00", False),
     "Price Per Ton":    ("DIVIDE([Product Price], [Total Tons])", "\\$#,0.00", False),
-    "Deferred Revenue": (f"SUMX(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[is_line_primary] = \"Y\" && TRIM('{PADJ_FACT}'[deferred_entries_flag]) <> \"\"), '{PADJ_FACT}'[extended_price])", "\\$#,0.00", False),
-    "Freight":          (f"SUMX(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[is_line_primary] = \"Y\" && (TRIM('{PADJ_FACT}'[line_type]) = \"F\" || TRIM('{PADJ_FACT}'[line_type]) = \"FT\") && (LEFT(TRIM('{PADJ_FACT}'[third_item_number]), 3) = \"BIL\" || LEFT(TRIM('{PADJ_FACT}'[third_item_number]), 3) = \"FRE\" || LEFT(TRIM('{PADJ_FACT}'[third_item_number]), 3) = \"FUE\" || LEFT(TRIM('{PADJ_FACT}'[third_item_number]), 3) = \"TRA\")), '{PADJ_FACT}'[extended_price])", "\\$#,0.00", False),
-    "Car Charges":      (f"SUMX(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[is_line_primary] = \"Y\" && (TRIM('{PADJ_FACT}'[line_type]) = \"F\" || TRIM('{PADJ_FACT}'[line_type]) = \"FT\") && LEFT(TRIM('{PADJ_FACT}'[third_item_number]), 3) = \"RAI\"), '{PADJ_FACT}'[extended_price])", "\\$#,0.00", False),
-    "Non Product":      (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"NON\"), '{PADJ_FACT}'[adj_amount])", "\\$#,0.00", False),
-    "AL Severance Tax": (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"ALA\"), '{PADJ_FACT}'[adj_amount])", "\\$#,0.00", False),
-    "Misc Billing":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"ACR\" || LEFT(TRIM('{PADJ_FACT}'[price_adjustment_type]), 2) = \"PP\"), '{PADJ_FACT}'[adj_amount])", "\\$#,0.00", False),
-    "Freight Hide":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTHIDE\"), '{PADJ_FACT}'[adj_amount])", "\\$#,0.00", False),
-    "Dryer Freight Charge": (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"EPDELFRT\"), '{PADJ_FACT}'[adj_amount])", "\\$#,0.00", False),
+    "Deferred Revenue": (f"SUMX(FILTER('{FACT}', TRIM('{FACT}'[deferred_entries_flag]) <> \"\"), '{FACT}'[extended_price])", "\\$#,0.00", False),
+    "Freight":          (f"SUMX(FILTER('{FACT}', (TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\") && (LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"BIL\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"FRE\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"FUE\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"TRA\")), '{FACT}'[extended_price])", "\\$#,0.00", False),
+    "Car Charges":      (f"SUMX(FILTER('{FACT}', (TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\") && LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"RAI\"), '{FACT}'[extended_price])", "\\$#,0.00", False),
+    # adjustment-level buckets — per F4074 row: ALUPRC × the line's ordered tons (RELATED)
+    "Non Product":      (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"NON\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
+    "AL Severance Tax": (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"ALA\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
+    "Misc Billing":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"ACR\" || LEFT(TRIM('{PADJ_FACT}'[price_adjustment_type]), 2) = \"PP\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
+    "Freight Hide":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTHIDE\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
+    "Dryer Freight Charge": (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"EPDELFRT\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
+    # line-level sales amounts over the order-line fact (SOP reports' SUM(SDAEXP)=RC13/RC4, SUM(SDECST)=RC17)
+    "Sales Amount":   (f"SUM('{FACT}'[extended_price])", "\\$#,0.00", False),
+    "Extended Cost":  (f"SUM('{FACT}'[extended_cost])", "\\$#,0.00", False),
 }
 
 with connect_semantic_model(dataset=MODEL, readonly=False) as tom:

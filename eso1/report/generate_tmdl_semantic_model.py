@@ -288,27 +288,12 @@ TABLES = {
       ],
     },
     'fact_price_adjustment': {
-      # order-line × F4074 price-adjustment grain (LEFT: a line with no adjustment -> ONE row, adj cols NULL).
-      # Relates many:1 to fact_sales_order_freight on sales_order_line_key -> all line dims are reachable.
-      # is_line_primary='Y' marks ONE row/line so line-level buckets don't fan out; adj_amount = ALUPRC × ordered_tons.
+      # F4074 price-adjustment grain (one row per adjustment). F4074-ONLY — no line context stored. Relates
+      # many:1 to fact_sales_order_freight on sales_order_line_key; the adjustment buckets read the line's
+      # ordered tons via RELATED, and the line-level buckets compute over the order-line fact directly.
       "cols": [
         ('price_adjustment_key', 'string', True, None),
         ('sales_order_line_key', 'string', True, None),
-        ('company_key_order_no', 'string', True, None),
-        ('order_type', 'string', False, None),
-        ('order_number', 'int64', False, None),
-        ('line_number', 'double', False, None),
-        ('second_item_number', 'string', False, None),
-        ('third_item_number', 'string', True, None),
-        ('line_type', 'string', False, None),
-        ('gl_class', 'string', False, None),
-        ('uom', 'string', False, None),
-        ('deferred_entries_flag', 'string', False, None),
-        ('extended_price', 'double', True, None),
-        ('transaction_quantity', 'double', True, None),
-        ('conversion_to_tons_rate', 'double', True, None),
-        ('ordered_tons', 'double', True, None),
-        ('is_line_primary', 'string', True, None),
         ('price_adjustment_type', 'string', False, None),     # ALAST
         ('adj_print_code', 'string', False, None),            # ALAPRP1
         ('adj_unit_price', 'double', True, None),             # ALUPRC
@@ -316,22 +301,24 @@ TABLES = {
         ('adj_based_on_value', 'double', True, None),         # ALBSDVAL
         ('adj_gl_class', 'string', False, None),              # ALGLC
         ('adj_factor_value', 'double', True, None),           # ALFVTR
-        ('adj_amount', 'double', True, None),                 # ALUPRC × ordered_tons (per-adjustment bucket money)
       ],
       "measures": [
-        # ── line-level buckets (counted ONCE per line via is_line_primary) ──
-        ('Total Tons', "SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = \"Y\"), 'fact_price_adjustment'[ordered_tons])", '#,0.00', 'Price Adjustment'),
-        ('Product Price', "SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = \"Y\" && NOT(TRIM('fact_price_adjustment'[line_type]) = \"F\" || TRIM('fact_price_adjustment'[line_type]) = \"FT\")), 'fact_price_adjustment'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
+        # ── line-level buckets — computed over the order-line fact directly (one row per line, all lines) ──
+        ('Total Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Price Adjustment'),
+        ('Product Price', "SUMX(FILTER('fact_sales_order_freight', NOT(TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\")), 'fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
         ('Price Per Ton', "DIVIDE([Product Price], [Total Tons])", '\\$#,0.00', 'Price Adjustment'),
-        ('Deferred Revenue', "SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = \"Y\" && TRIM('fact_price_adjustment'[deferred_entries_flag]) <> \"\"), 'fact_price_adjustment'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
-        ('Freight', "SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = \"Y\" && (TRIM('fact_price_adjustment'[line_type]) = \"F\" || TRIM('fact_price_adjustment'[line_type]) = \"FT\") && (LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = \"BIL\" || LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = \"FRE\" || LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = \"FUE\" || LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = \"TRA\")), 'fact_price_adjustment'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
-        ('Car Charges', "SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = \"Y\" && (TRIM('fact_price_adjustment'[line_type]) = \"F\" || TRIM('fact_price_adjustment'[line_type]) = \"FT\") && LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = \"RAI\"), 'fact_price_adjustment'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
-        # ── adjustment-level buckets (per F4074 row: ALUPRC × ordered_tons) ──
-        ('Non Product', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"NON\"), 'fact_price_adjustment'[adj_amount])", '\\$#,0.00', 'Price Adjustment'),
-        ('AL Severance Tax', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"ALA\"), 'fact_price_adjustment'[adj_amount])", '\\$#,0.00', 'Price Adjustment'),
-        ('Misc Billing', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"ACR\" || LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = \"PP\"), 'fact_price_adjustment'[adj_amount])", '\\$#,0.00', 'Price Adjustment'),
-        ('Freight Hide', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTHIDE\"), 'fact_price_adjustment'[adj_amount])", '\\$#,0.00', 'Price Adjustment'),
-        ('Dryer Freight Charge', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"EPDELFRT\"), 'fact_price_adjustment'[adj_amount])", '\\$#,0.00', 'Price Adjustment'),
+        ('Deferred Revenue', "SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[deferred_entries_flag]) <> \"\"), 'fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
+        ('Freight', "SUMX(FILTER('fact_sales_order_freight', (TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\") && (LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = \"BIL\" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = \"FRE\" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = \"FUE\" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = \"TRA\")), 'fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
+        ('Car Charges', "SUMX(FILTER('fact_sales_order_freight', (TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\") && LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = \"RAI\"), 'fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
+        # ── adjustment-level buckets — per F4074 row: ALUPRC × the line's ordered tons (RELATED to the order-line fact) ──
+        ('Non Product', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"NON\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
+        ('AL Severance Tax', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"ALA\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
+        ('Misc Billing', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"ACR\" || LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = \"PP\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
+        ('Freight Hide', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTHIDE\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
+        ('Dryer Freight Charge', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"EPDELFRT\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
+        # ── line-level sales amounts over the order-line fact (SOP reports' SUM(SDAEXP)=RC13/RC4, SUM(SDECST)=RC17) ──
+        ('Sales Amount', "SUM('fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
+        ('Extended Cost', "SUM('fact_sales_order_freight'[extended_cost])", '\\$#,0.00', 'Price Adjustment'),
       ],
     },
     'dim_item': {

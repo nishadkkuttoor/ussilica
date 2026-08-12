@@ -99,11 +99,12 @@ once with `MANUAL_OVERWRITE=True`** (full rebuild), confirm healthy, then **set 
 > `nb_eso1_gold_dim_item` before `nb_eso1_gold_fact_sales_order_freight`, and `nb_eso1_gold_dim_category_code_10` before
 > `nb_eso1_gold_fact_sales_commission`. Across subsystems the four are otherwise independent.
 >
-> **v2.17 — `nb_eso1_gold_fact_price_adjustment` is SELF-CONTAINED (Silver-only, no fact dependency).** The new
-> price-adjustment fact (order line × F4074 adjustment) rebuilds its line context from Silver F4211 (∪ F42119) with the
-> same derivations as the freight fact, so it has **no run-order constraint** with the freight fact. Both facts still need
-> a `MANUAL_OVERWRITE=True` rebuild (freight fact to materialize the F4074/adjustment removal — row-count-neutral;
-> `fact_price_adjustment` to build the new table), then redeploy the semantic model → flip both back to `False`.
+> **v2.17 — `nb_eso1_gold_fact_price_adjustment` is F4074-ONLY (reads Silver F4074 alone; no fact dependency).** It stores
+> just the F4074 detail + the order-line key; line values come from the order-line fact via the relationship (RELATED in
+> the measures), so nothing is duplicated. ETL = "read F4074, project, key" — minimal CU + storage, no run-order constraint.
+> Both facts still need a one-time `MANUAL_OVERWRITE=True` rebuild (freight fact to materialize the earlier F4074/adjustment
+> removal — row-count-neutral; `fact_price_adjustment` to build the new table), then redeploy the semantic model → flip both
+> back to `False`. ⚠ Verify once that the padj keys join the freight keys (same JDE KCOO/DCTO/DOCO/LNID).
 
 > **Section layout (matches ESO4/ESO5).** Facts: `1) CONFIG · 2) FACT BUILDER · 3) FACT SOURCES · 4) RUN`. Dims:
 > `1) CONFIG · 2) DIM BUILDER · 3) RUN`. Each RUN = `CREATE SCHEMA IF NOT EXISTS` → preflight → `build_*()` once →

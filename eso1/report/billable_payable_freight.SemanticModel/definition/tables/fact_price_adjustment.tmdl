@@ -1,12 +1,12 @@
 table fact_price_adjustment
 	lineageTag: c1a4401c-abc0-5b2d-962d-36bcf574f807
 
-	measure 'Total Tons' = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = "Y"), 'fact_price_adjustment'[ordered_tons])
+	measure 'Total Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))
 		formatString: #,0.00
 		displayFolder: Price Adjustment
 		lineageTag: f5af3782-2b89-571b-b06a-db95f262566a
 
-	measure 'Product Price' = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = "Y" && NOT(TRIM('fact_price_adjustment'[line_type]) = "F" || TRIM('fact_price_adjustment'[line_type]) = "FT")), 'fact_price_adjustment'[extended_price])
+	measure 'Product Price' = SUMX(FILTER('fact_sales_order_freight', NOT(TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT")), 'fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: 82b231f4-ce01-5fda-83ba-d1e22d799086
@@ -16,45 +16,55 @@ table fact_price_adjustment
 		displayFolder: Price Adjustment
 		lineageTag: e0010b32-d04e-5ade-8f2c-d876f5452a89
 
-	measure 'Deferred Revenue' = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = "Y" && TRIM('fact_price_adjustment'[deferred_entries_flag]) <> ""), 'fact_price_adjustment'[extended_price])
+	measure 'Deferred Revenue' = SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[deferred_entries_flag]) <> ""), 'fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: a148102f-f077-5f99-ad83-dc8c7493ca26
 
-	measure 'Freight' = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = "Y" && (TRIM('fact_price_adjustment'[line_type]) = "F" || TRIM('fact_price_adjustment'[line_type]) = "FT") && (LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = "BIL" || LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = "FRE" || LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = "FUE" || LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = "TRA")), 'fact_price_adjustment'[extended_price])
+	measure 'Freight' = SUMX(FILTER('fact_sales_order_freight', (TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT") && (LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "BIL" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "FRE" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "FUE" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "TRA")), 'fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: dc0a079e-7595-5a37-a896-98c5511c98a4
 
-	measure 'Car Charges' = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[is_line_primary] = "Y" && (TRIM('fact_price_adjustment'[line_type]) = "F" || TRIM('fact_price_adjustment'[line_type]) = "FT") && LEFT(TRIM('fact_price_adjustment'[third_item_number]), 3) = "RAI"), 'fact_price_adjustment'[extended_price])
+	measure 'Car Charges' = SUMX(FILTER('fact_sales_order_freight', (TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT") && LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "RAI"), 'fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: d869e38b-69b7-5823-9865-fe80e270912d
 
-	measure 'Non Product' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = "NON"), 'fact_price_adjustment'[adj_amount])
+	measure 'Non Product' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = "NON"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: 3c4db27e-2532-5e10-b3f0-6c3d254f9fc7
 
-	measure 'AL Severance Tax' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = "ALA"), 'fact_price_adjustment'[adj_amount])
+	measure 'AL Severance Tax' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = "ALA"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: 2a74283d-11f1-5e4d-93cf-f746ab22cfe1
 
-	measure 'Misc Billing' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = "ACR" || LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = "PP"), 'fact_price_adjustment'[adj_amount])
+	measure 'Misc Billing' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = "ACR" || LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = "PP"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: fe33913b-5715-57ee-a387-372f94f2f6b1
 
-	measure 'Freight Hide' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTHIDE"), 'fact_price_adjustment'[adj_amount])
+	measure 'Freight Hide' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTHIDE"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: 4201fa63-1d27-5483-8426-d12810ec706d
 
-	measure 'Dryer Freight Charge' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = "EPDELFRT"), 'fact_price_adjustment'[adj_amount])
+	measure 'Dryer Freight Charge' = SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = "EPDELFRT"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: b0535f60-37d4-5a6c-afbb-e5f05a43b256
+
+	measure 'Sales Amount' = SUM('fact_sales_order_freight'[extended_price])
+		formatString: \$#,0.00
+		displayFolder: Price Adjustment
+		lineageTag: 899f0241-dbca-56c5-8053-7df158e1b90a
+
+	measure 'Extended Cost' = SUM('fact_sales_order_freight'[extended_cost])
+		formatString: \$#,0.00
+		displayFolder: Price Adjustment
+		lineageTag: a88c7ef2-08ce-54cc-9784-508a28d47a31
 
 	column price_adjustment_key
 		dataType: string
@@ -69,103 +79,6 @@ table fact_price_adjustment
 		summarizeBy: none
 		sourceColumn: sales_order_line_key
 		lineageTag: 33029767-7ef7-54f7-8027-eeeb278d72b7
-
-	column company_key_order_no
-		dataType: string
-		isHidden
-		summarizeBy: none
-		sourceColumn: company_key_order_no
-		lineageTag: e4924beb-8306-5a14-93db-1fddf677f850
-
-	column order_type
-		dataType: string
-		summarizeBy: none
-		sourceColumn: order_type
-		lineageTag: 530fa802-f70a-586e-bb4a-d0d2ea9a7999
-
-	column order_number
-		dataType: int64
-		summarizeBy: none
-		sourceColumn: order_number
-		lineageTag: 3c0ffc5c-6806-51cd-b949-753907ba78ab
-
-	column line_number
-		dataType: double
-		summarizeBy: none
-		sourceColumn: line_number
-		lineageTag: 98115581-8745-5468-9a52-bee08c66da7d
-
-	column second_item_number
-		dataType: string
-		summarizeBy: none
-		sourceColumn: second_item_number
-		lineageTag: 699583aa-9c0b-5f4b-9e3b-03fb3e038218
-
-	column third_item_number
-		dataType: string
-		isHidden
-		summarizeBy: none
-		sourceColumn: third_item_number
-		lineageTag: 95f3a667-f7f5-5736-a1d6-4facdf19d532
-
-	column line_type
-		dataType: string
-		summarizeBy: none
-		sourceColumn: line_type
-		lineageTag: 82ffa573-0c16-585a-9cb0-ec8d08135305
-
-	column gl_class
-		dataType: string
-		summarizeBy: none
-		sourceColumn: gl_class
-		lineageTag: 0edb4c63-74a7-5dad-8302-d840ecfd986b
-
-	column uom
-		dataType: string
-		summarizeBy: none
-		sourceColumn: uom
-		lineageTag: 77f25361-fade-5e04-8d33-ef51b378ae66
-
-	column deferred_entries_flag
-		dataType: string
-		summarizeBy: none
-		sourceColumn: deferred_entries_flag
-		lineageTag: f6a88f11-1e85-5ddc-8af8-bed2514f87eb
-
-	column extended_price
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: extended_price
-		lineageTag: 93d35487-9600-53b4-aa9a-6d13a9bcab13
-
-	column transaction_quantity
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: transaction_quantity
-		lineageTag: 273ef760-515a-5b39-aa4a-80bd9b69ee04
-
-	column conversion_to_tons_rate
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: conversion_to_tons_rate
-		lineageTag: a73a94ee-e3da-5cb3-b2ce-e9551a7d7dcc
-
-	column ordered_tons
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: ordered_tons
-		lineageTag: 296cf7d3-18d2-5c69-a23d-926fd931abe1
-
-	column is_line_primary
-		dataType: string
-		isHidden
-		summarizeBy: none
-		sourceColumn: is_line_primary
-		lineageTag: 0b40caab-3610-55ad-a32f-2784f2cf8bc1
 
 	column price_adjustment_type
 		dataType: string
@@ -211,13 +124,6 @@ table fact_price_adjustment
 		summarizeBy: none
 		sourceColumn: adj_factor_value
 		lineageTag: a2940ff6-102a-5e62-bfc7-fcf42fafda61
-
-	column adj_amount
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: adj_amount
-		lineageTag: b180f86e-e8fe-589c-b500-04d506fedd12
 
 	partition fact_price_adjustment = entity
 		mode: directLake

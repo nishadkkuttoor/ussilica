@@ -56,7 +56,7 @@ lh_jde_gold.rpt
 | Fact | Grain | Serves | Driver / key sources | Columns |
 |---|---|---|---|---|
 | **fact_sales_order_freight** | sales-order line (`KCOO+DCTO+DOCO+LNID`) | the 106 non-commission variations + master | F4211 ∪ F42119; F4201, F0101 ×3, F0116, F5642B01/11, F4101, F41002, F4941, F4981, **F4106, F5549002, F03012, F49211** (**F4074 removed v2.17** — price-adjustment logic moved to `fact_price_adjustment`) | line grain; **price-adjustment cols removed v2.17** (row-count-neutral) |
-| **fact_price_adjustment** | order line × F4074 adjustment (LEFT; a line w/ no adjustment = 1 row) | SOP-family bucket reports (SOP0006/7/8/0025, SOP000x 577/580/620, BP Freight, CL National Accounts) | **Silver-only, self-contained**: F4211 ∪ F42119 + F41002 + F49211 + **F4074** | **25 cols; new 2026-08-12 (v2.17)** |
+| **fact_price_adjustment** | F4074 adjustment (one row per adjustment) | SOP-family bucket reports (SOP0006/7/8/0025, SOP000x 577/580/620, BP Freight, CL National Accounts) | **Silver F4074 only** (line values pulled from the freight fact via the relationship / RELATED) | **9 cols; new 2026-08-12 (v2.17)** |
 | **fact_sales_commission** | sales line × commission record (`KCOO+DCTO+DOCO+LNID+CMLN`, CMLN nullable) | SOP0027 Commission | **F4211∪F42119 driver** + **LEFT F42005** + F4201 + F0101 (flipped 2026-07-24) | **44 biz + 2 keys = 46 stored** |
 | **dim_category_code_10** | UDC 01/10 (ABAC10 code → description) | SOP0027 Commission | F0005 (batch) | 2 cols; new 2026-07-25 |
 
