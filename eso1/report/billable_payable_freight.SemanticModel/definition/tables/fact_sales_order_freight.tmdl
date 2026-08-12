@@ -479,6 +479,13 @@ table fact_sales_order_freight
 		sourceColumn: missing_conversion_flag
 		lineageTag: af578b27-2a60-5a51-873f-4eef38eb8f98
 
+	column item_uom_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: item_uom_key
+		lineageTag: a3fbcce9-b2d2-53e9-9375-7ce0928367ce
+
 	column quantity_shipped
 		dataType: double
 		summarizeBy: none

@@ -78,7 +78,7 @@ may be SQL-endpoint-only):
 | `nb_eso1_gold_dim_item` (Step 2a) | — | **no reused-dimension preflight** (builds only `dim_item` from F4101) |
 | `nb_eso1_gold_dim_category_code_10` (Step 2c) | — | **no reused-dimension preflight**; builds only `dim_category_code_10` from F0005 (soft — absent F0005 is a warning, not fatal) |
 | `nb_eso1_gold_fact_sales_commission` (Step 2d) | preflight before build | **aborts** if `dim_address_book`/`dim_plant` missing; also requires **F4211 (driver)** + **F42005** in Silver |
-| `nb_semantic_model_eso1` (Step 5) | preflight before model bind | **aborts** (base dims + new tables incl. `fact_sales_commission`, `dim_category_code_10`; role views → warn only) |
+| `nb_semantic_model_eso1` (Step 5) | preflight before model bind | **aborts** (base dims + new tables incl. `fact_sales_commission`, `dim_category_code_10`, **`fact_price_adjustment`**, **`dim_uom_conversion` (F41003 Tier-B)**, **`dim_uom_conversion_item` (F41002 Tier-A, built by `nb_silver_to_gold_dim_uom_conversion_item`)**; role views → warn only) |
 | `nb_validate_gold_eso1` (Step 3) | §0 health + fact↔dim RI | logged **pass/fail** (incl. role-view subset consistency) — ⚠ **freight fact only** (commission not yet covered) |
 | `nb_maintenance_gold_eso1` (Step 7) | read-only status | reused dims **never** OPTIMIZE/VACUUM'd; flags `⚠ STALE` > 7 days — ⚠ owns **freight fact + `dim_item` only** (commission tables not yet listed) |
 
@@ -103,8 +103,13 @@ once with `MANUAL_OVERWRITE=True`** (full rebuild), confirm healthy, then **set 
 > just the F4074 detail + the order-line key; line values come from the order-line fact via the relationship (RELATED in
 > the measures), so nothing is duplicated. ETL = "read F4074, project, key" — minimal CU + storage, no run-order constraint.
 > Both facts still need a one-time `MANUAL_OVERWRITE=True` rebuild (freight fact to materialize the earlier F4074/adjustment
-> removal — row-count-neutral; `fact_price_adjustment` to build the new table), then redeploy the semantic model → flip both
-> back to `False`. ⚠ Verify once that the padj keys join the freight keys (same JDE KCOO/DCTO/DOCO/LNID).
+> removal **+ the new `item_uom_key` column** — row-count-neutral; `fact_price_adjustment` to build the new table), then
+> redeploy the semantic model → flip both back to `False`. ⚠ Verify once that the padj keys join the freight keys (same JDE
+> KCOO/DCTO/DOCO/LNID), and that `item_uom_key` joins `dim_uom_conversion_item` (0 unmatched).
+>
+> **v2.17 tons cascade** — run **`nb_silver_to_gold_dim_uom_conversion_item`** (builds `rpt.dim_uom_conversion_item`, F41002
+> Tier-A) alongside the existing `dim_uom_conversion` (F41003 Tier-B) **before the semantic model binds** (Step 5). `Total Tons`
+> uses the 2-tier `RELATED` cascade over both dims; `Ordered Tons` is left F41002-only (BvP numbers preserved).
 
 > **Section layout (matches ESO4/ESO5).** Facts: `1) CONFIG · 2) FACT BUILDER · 3) FACT SOURCES · 4) RUN`. Dims:
 > `1) CONFIG · 2) DIM BUILDER · 3) RUN`. Each RUN = `CREATE SCHEMA IF NOT EXISTS` → preflight → `build_*()` once →

@@ -1,0 +1,35 @@
+table dim_uom_conversion_item
+	lineageTag: 9ba99eaa-88b8-5038-ae75-0378f553eb01
+
+	column item_uom_key
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: item_uom_key
+		lineageTag: 0c147bd1-756b-5bb5-aa9d-7358eafbbb84
+
+	column identifier_short_item
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: identifier_short_item
+		lineageTag: 08dfc4a4-4599-50f9-b6f3-9d661295e1b8
+
+	column from_uom
+		dataType: string
+		summarizeBy: none
+		sourceColumn: from_uom
+		lineageTag: 6012023f-be0a-56be-b016-d17da95aba6c
+
+	column conv_factor
+		dataType: double
+		summarizeBy: none
+		sourceColumn: conv_factor
+		lineageTag: 6b88e935-782c-529c-ac44-9cd8b6dc98d5
+
+	partition dim_uom_conversion_item = entity
+		mode: directLake
+		source
+			entityName: dim_uom_conversion_item
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+

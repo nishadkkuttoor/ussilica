@@ -1,7 +1,7 @@
 table fact_price_adjustment
 	lineageTag: c1a4401c-abc0-5b2d-962d-36bcf574f807
 
-	measure 'Total Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))
+	measure 'Total Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE(IF(TRIM('fact_sales_order_freight'[uom]) = "TN", 1.0), RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))
 		formatString: #,0.00
 		displayFolder: Price Adjustment
 		lineageTag: f5af3782-2b89-571b-b06a-db95f262566a

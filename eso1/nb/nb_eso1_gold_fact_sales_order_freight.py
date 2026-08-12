@@ -211,7 +211,7 @@ FACT_BUSINESS_COLS = [
     "ship_year_week",
     # ── item / uom ──
     "second_item_number", "third_item_number", "line_type", "uom", "uom_primary", "uom_pricing",
-    "conversion_to_tons_rate", "missing_conversion_flag",
+    "conversion_to_tons_rate", "missing_conversion_flag", "item_uom_key",
     # ── filter-only attributes ──
     "uom_structure", "payment_terms",   # UMUSTR (F41002) / SDPTC (F4211)
     # ── measures / numerics (line grain) ──
@@ -494,6 +494,8 @@ def build_fact():
         F.col("sd.uom_pricing").alias("uom_pricing"),
         conv_rate.alias("conversion_to_tons_rate"),
         F.when(conv_rate.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
+        # item+uom key -> dim_uom_conversion_item[item_uom_key] (F41002 item-specific Tier-A tons conversion)
+        F.concat_ws("|", F.col("sd.identifier_short_item"), F.trim(F.col("sd.uom_as_input"))).alias("item_uom_key"),
         F.col("us.uom_structure").alias("uom_structure"),                       # UMUSTR (F41002)
         F.col("sd.payment_terms_code_01").alias("payment_terms"),               # SDPTC (F4211)
         # ── measures / numerics (line grain) ──

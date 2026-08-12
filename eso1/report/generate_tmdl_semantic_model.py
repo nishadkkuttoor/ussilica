@@ -71,6 +71,7 @@ TABLES = {
         ('uom', 'string', False, None),
         ('conversion_to_tons_rate', 'double', True, None),
         ('missing_conversion_flag', 'string', False, None),
+        ('item_uom_key', 'string', True, None),   # -> dim_uom_conversion_item[item_uom_key] (F41002 Tier-A tons conv)
         ('quantity_shipped', 'double', False, None),
         ('quantity_shipped_tons', 'double', False, None),
         ('price_per_unit', 'double', False, None),
@@ -304,7 +305,8 @@ TABLES = {
       ],
       "measures": [
         # ── line-level buckets — computed over the order-line fact directly (one row per line, all lines) ──
-        ('Total Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Price Adjustment'),
+        # tons via the UOM->TN cascade: Tier0 (uom=TN ->1) -> TierA (F41002 item dim) -> TierB (F41003 std dim) -> 0
+        ('Total Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE(IF(TRIM('fact_sales_order_freight'[uom]) = \"TN\", 1.0), RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Price Adjustment'),
         ('Product Price', "SUMX(FILTER('fact_sales_order_freight', NOT(TRIM('fact_sales_order_freight'[line_type]) = \"F\" || TRIM('fact_sales_order_freight'[line_type]) = \"FT\")), 'fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
         ('Price Per Ton', "DIVIDE([Product Price], [Total Tons])", '\\$#,0.00', 'Price Adjustment'),
         ('Deferred Revenue', "SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[deferred_entries_flag]) <> \"\"), 'fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
@@ -516,6 +518,17 @@ TABLES = {
 
       ],
     },
+    'dim_uom_conversion_item': {   # F41002 item-specific UOM->TN dim (lh_jde_gold.rpt); Tier-A tons conv keyed on item_uom_key (built by nb_silver_to_gold_dim_uom_conversion_item)
+      "cols": [
+        ('item_uom_key', 'string', True, None),           # PK — joins fact_sales_order_freight.item_uom_key (item_number_short|uom)
+        ('identifier_short_item', 'int64', False, None),  # SDITM (F41002 UMITM)
+        ('from_uom', 'string', False, None),              # source UOM (SDUOM)
+        ('conv_factor', 'double', False, None),           # item-specific UOM->TN factor (fwd UMRUM='TN', rev 1/factor)
+      ],
+      "measures": [
+
+      ],
+    },
     'dim_second_item': {   # physical Direct Lake dim (rpt) — distinct second_item_number + one Included/Excluded flag per Ottawa variation (built by nb_eso1_gold_dim_second_item)
       "cols": [
         ('second_item_number', 'string', False, None),
@@ -567,6 +580,7 @@ REL = [
     ('fact_sales_order_freight', 'destination_port', 'dim_address_book_destination', 'address_number', True),
     ('fact_sales_order_freight', 'ocean_carrier', 'dim_address_ocean_carrier', 'address_number', True),
     ('fact_sales_order_freight', 'uom', 'dim_uom_conversion', 'from_uom', True),   # std UOM->TN fallback (rpt), many:1
+    ('fact_sales_order_freight', 'item_uom_key', 'dim_uom_conversion_item', 'item_uom_key', True),   # F41002 item-specific UOM->TN (Tier A), many:1
     ('fact_sales_order_freight', 'second_item_number', 'dim_second_item', 'second_item_number', True),   # physical exclusion dim, many:1
     ('fact_sales_order_freight', 'order_number', 'dim_order_number', 'order_number', True),   # physical order-whitelist dim, many:1
     ('fact_sales_order_freight', 'company_key_order_no', 'dim_company', 'company', True),   # F0010 company constants (SDKCOO=CCCO), many:1
