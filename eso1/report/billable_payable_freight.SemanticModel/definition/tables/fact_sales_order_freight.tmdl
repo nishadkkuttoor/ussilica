@@ -171,21 +171,6 @@ table fact_sales_order_freight
 		displayFolder: Volume
 		lineageTag: 2c04dbae-acbb-5617-9262-1ad19053f004
 
-	measure 'Product Price' = SUM('fact_sales_order_freight'[extended_price])
-		formatString: \$#,0.00
-		displayFolder: Pricing
-		lineageTag: e798cec8-e286-5a35-ba25-d0f46e19dad1
-
-	measure 'Price Per Ton' = DIVIDE([Product Price], [Quantity Shipped Tons])
-		formatString: \$#,0.00
-		displayFolder: Pricing
-		lineageTag: 55fd1a5f-0405-5f4a-9828-da3f4ebb19f1
-
-	measure 'Price Per Ton (Ordered)' = DIVIDE([Product Price], [Ordered Tons])
-		formatString: \$#,0.00
-		displayFolder: Pricing
-		lineageTag: a7cca466-cde9-5bad-95d6-0d4c42c6c263
-
 	measure 'Short Ship Shipped Qty' = SUM('fact_sales_order_freight'[quantity_shipped])
 		formatString: #,0.00
 		displayFolder: Short Ship
@@ -275,36 +260,6 @@ table fact_sales_order_freight
 		formatString: #,0
 		displayFolder: Ottawa Buckets
 		lineageTag: 041e4e75-e3b7-524f-b45d-2255ffbdc26c
-
-	measure 'Non Product' = SUM('fact_sales_order_freight'[adj_non_product])
-		formatString: \$#,0.00
-		displayFolder: SOP620 Adjustments
-		lineageTag: e79682b1-c4c5-5dbb-abc2-06d2a02e9bce
-
-	measure 'AL Severance Tax' = SUM('fact_sales_order_freight'[adj_al_severance_tax])
-		formatString: \$#,0.00
-		displayFolder: SOP620 Adjustments
-		lineageTag: 7290ee46-3fb0-5b4c-bbae-a2e72e08a4dc
-
-	measure 'Misc Billing' = SUM('fact_sales_order_freight'[adj_misc_billing])
-		formatString: \$#,0.00
-		displayFolder: SOP620 Adjustments
-		lineageTag: 0c98c47f-d067-536a-a6af-214a59e86684
-
-	measure 'Freight' = SUM('fact_sales_order_freight'[adj_freight])
-		formatString: \$#,0.00
-		displayFolder: SOP620 Adjustments
-		lineageTag: d570f680-0af7-572e-a4c2-d1638c556113
-
-	measure 'Car Charges' = SUM('fact_sales_order_freight'[adj_car_charges])
-		formatString: \$#,0.00
-		displayFolder: SOP620 Adjustments
-		lineageTag: 685d2e98-a3f8-52ed-8608-a93fa33d631d
-
-	measure 'Freight Hide' = SUM('fact_sales_order_freight'[adj_freight_hide])
-		formatString: \$#,0.00
-		displayFolder: SOP620 Adjustments
-		lineageTag: 5b325885-578a-5a7a-b845-19e044a43f9b
 
 	column sales_order_line_key
 		dataType: string
@@ -559,31 +514,6 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: minor_prod_code
 		lineageTag: a649aa96-b377-5a6c-ba5d-5977e5799243
-
-	column freight_factor_value
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: freight_factor_value
-		lineageTag: e73e11b3-8b75-5a2a-b17c-4418119c21ff
-
-	column price_adjustment_type
-		dataType: string
-		summarizeBy: none
-		sourceColumn: price_adjustment_type
-		lineageTag: 8999b7c4-0705-5f88-a40b-15a09f9a1de7
-
-	column adj_uom
-		dataType: string
-		summarizeBy: none
-		sourceColumn: adj_uom
-		lineageTag: ce405959-7063-517c-812b-37fed030a8b7
-
-	column adj_based_on_value
-		dataType: double
-		summarizeBy: none
-		sourceColumn: adj_based_on_value
-		lineageTag: 62ec6c97-acd1-5ec2-b1e7-a1cf62e6f221
 
 	column price_adjustment_schedule
 		dataType: string
@@ -943,48 +873,6 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: pricing_issue_remark
 		lineageTag: 0462c972-2fa1-56dc-b31f-ecebc7c3cd5d
-
-	column adj_non_product
-		dataType: double
-		summarizeBy: sum
-		sourceColumn: adj_non_product
-		formatString: \$#,0.00
-		lineageTag: 41708f5a-5752-5352-824d-ee6d4053ce2f
-
-	column adj_al_severance_tax
-		dataType: double
-		summarizeBy: sum
-		sourceColumn: adj_al_severance_tax
-		formatString: \$#,0.00
-		lineageTag: 0457d610-97e9-56b6-b8f8-c06866130730
-
-	column adj_misc_billing
-		dataType: double
-		summarizeBy: sum
-		sourceColumn: adj_misc_billing
-		formatString: \$#,0.00
-		lineageTag: 2d18ee9f-8240-5ede-8629-bf35b1d7430e
-
-	column adj_freight
-		dataType: double
-		summarizeBy: sum
-		sourceColumn: adj_freight
-		formatString: \$#,0.00
-		lineageTag: a324bc13-5e29-5580-bb1c-430430148238
-
-	column adj_car_charges
-		dataType: double
-		summarizeBy: sum
-		sourceColumn: adj_car_charges
-		formatString: \$#,0.00
-		lineageTag: d6ccab86-7278-5f37-84a7-7d2b1afaf2a8
-
-	column adj_freight_hide
-		dataType: double
-		summarizeBy: sum
-		sourceColumn: adj_freight_hide
-		formatString: \$#,0.00
-		lineageTag: 4d536e62-2f1f-531c-b145-a9a2286475ea
 
 	partition fact_sales_order_freight = entity
 		mode: directLake

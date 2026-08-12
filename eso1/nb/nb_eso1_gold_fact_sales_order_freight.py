@@ -6,10 +6,7 @@
 # **Gold `fact_sales_order_freight` processor** for Extended Sales Order 1 (Billable v
 # Payable Freight). Builds ONE table — `lh_jde_gold.rpt.fact_sales_order_freight`
 # (order-line grain; freight denormalized) — from the Silver sales-order detail (F4211),
-# freight-audit (F4981) and their supporting sources. The fact and `dim_item` run as
-# independent jobs (own table, own overwrite switch). Relates to the REUSED dims
-# (`rpt.dim_address_book` role views, `rpt.dim_plant`) and to `dim_item` — those are
-# NOT touched here.
+# freight-audit (F4981) and their supporting sources.
 #
 # ── BUILD (BATCH) ─────────────────────────
 #   • read the full Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
@@ -48,13 +45,12 @@ F0101    = "f0101_address_book_master"
 F4101    = "f4101_item_master"
 F41002   = "f41002_item_units_of_measure_conversion_factors"
 # F41003 (standard UoM conversion) is not sourced here — this notebook uses F41002 item-specific
-# conversion only; the standard-UoM fallback is handled downstream in the semantic model.
-F4074    = "f4074_price_adjustment_ledger_file"
+# conversion only.
 F4981    = "f4981_freight_audit_history"
 F5642B01 = "f5642b01_custom_sales_order_entry_screen_header"
 F5642B11 = "f5642b11_custom_sales_order_entry_screen_detail"
 F4941    = "f4941_shipment_routing_steps"
-# ── residual-gap sources (close remaining structural gaps in the notebook) ──
+# ── additional sources ──
 F4106    = "f4106_item_base_price_file"           # item base price (has_effective_price flag)
 F5549002 = "f5549002_mxp_bol_interface_detail"    # BOL interface weigh-ticket weights
 F03012   = "f03012_customer_master_by_line_of_business"  # sold-to LOB category (AIAC05)
@@ -216,17 +212,12 @@ FACT_BUSINESS_COLS = [
     # ── item / uom ──
     "second_item_number", "third_item_number", "line_type", "uom", "uom_primary", "uom_pricing",
     "conversion_to_tons_rate", "missing_conversion_flag",
-    # ── filter-only attributes (denormalized for Power BI slicers) ──
-    # standard_industry_code / search_type removed — served by dim_address_ship_to
-    # [standard_industry_code] / [address_type_01] via the ship_to relationship.
-    # category_code_05 (ABAC05) / category_code_14 (ABAC14) removed — served by
-    # dim_address_ship_to[category_code_05] / [category_code_14] via the ship_to relationship.
-    "price_adjustment_type", "price_adjustment_print_code",
-    "uom_structure", "payment_terms",   # item_segment_04 (IMSEG4) moved to dim_item
+    # ── filter-only attributes ──
+    "uom_structure", "payment_terms",   # UMUSTR (F41002) / SDPTC (F4211)
     # ── measures / numerics (line grain) ──
     "quantity_shipped", "quantity_shipped_tons", "primary_quantity_ordered",
     "transaction_quantity", "price_per_unit", "unit_price_primary", "price_quantity_shipped",
-    "major_prod_code", "minor_prod_code", "freight_factor_value",
+    "major_prod_code", "minor_prod_code",
     # ── denormalized booking / ocean (shipment grain) ──
     "seal_no", "production_code", "production_ship_notes", "booking_no", "booking_status", "destination_port",
     "no_of_container", "ocean_del_terms", "vessel_name",
@@ -240,30 +231,18 @@ FACT_BUSINESS_COLS = [
     "extended_price", "extended_cost", "currency_code",              # SDAEXP / SDECST / SDBCRC (F4211)
     "backorder_qty", "cancelled_qty", "qty_to_date", "open_qty",     # SDSOBK / SDSOCN / SDQTYT / SDUOPN
     "line_description_1", "line_description_2", "date_updated",       # SDDSC1 / SDDSC2 / SDUPMJ (line, not item)
-    # address_rate (ABURAT) removed — served by dim_address_ship_to[address_rate] via the ship_to relationship.
-    # sold_to_name / sold_to_search_type removed — served by dim_address_sold_to[name_alpha] /
-    # [address_type_01] via the bill_to relationship.
-    # sold_to_category_05 / sold_to_category_10 (ABAC05 / ABAC10) removed — served by
-    # dim_address_sold_to[category_code_05] / [category_code_10] via the bill_to relationship.
-    # ship_to_city/state/zip/address_1/address_2/country removed — served by dim_address_ship_to
-    # [city]/[state]/[zip_code_postal]/[address_line_01]/[address_line_02]/[country] via the ship_to
-    # relationship (both fact and dim source these F0116 fields at the same latest-effective grain).
     # ── additional display columns ──
     "zone_number", "line_hold",                                     # SDZON / SDHOLD (LINE hold ≠ header hold_orders_code)
     "is_ocean_route", "route_container_count",                      # F4941 RSMOT='OCE' flag / SUM(RSNCTR)
     "gross_weight", "catch_weight", "max_weight",                   # F5549002 BOL weigh-ticket weights (MIGRWT/MICTWT/MIMXWT)
     "has_effective_price",                                          # F4106 base-price existence
     "pricing_issue_remark",                                        # derived: 'Unit Price Zero' / 'No effective price'
-    # ── adjustment buckets (per-line F4074 ALUPRC-sum × shipped tons) ──
-    "adj_non_product", "adj_al_severance_tax", "adj_misc_billing",
-    "adj_freight", "adj_car_charges", "adj_freight_hide",
     "pull_signal", "reference_02", "reference_03", "vendor_number", # deferred F4211 display (SDPSIG/SDVR02/SDVR03/SDVEND)
     "price_adjustment_schedule", "user_reserved_code", "price_override_code",  # SDASN / SDURCD / SDPROV
     "user_id", "lot_number", "serial_number", "location", "sales_reporting_code_05",  # SDUSER/SDLOTN/SDSERN/SDLOCN/SDSRP5
     "sold_to_lob_category_05", "deferred_entries_flag",             # F03012 AIAC05 (sold-to LOB) / F49211 UDDEFF (SO-tag)
     # ── remaining niche display source-columns ──
     "related_po_so_number", "time_of_day", "original_promised_date",  # SDRORN/SDTDAY/SHOPDJ
-    "adj_gl_class", "adj_based_on_value", "adj_uom", "adj_factor_value",                    # F4074 ALGLC/ALBSDVAL/ALUOM/ALFVTR
     "voyage_number", "loading_port", "ocean_carrier",                                       # F5642B01 ocean-booking
     "booking_reference_1", "booking_reference_2", "booking_reference_3", "date_latest_pickup",
     "order_reference", "routing_notes", "equipment_type", "inland_delterms", "incoterms",   # F5642B01
@@ -319,7 +298,7 @@ def build_fact():
     f4201 = load_silver_table(F4201)
     f0101 = load_silver_table(F0101)
     b01   = load_silver_table(F5642B01); b11 = load_silver_table(F5642B11)
-    f4074 = load_silver_table(F4074); f4941 = load_silver_table(F4941)
+    f4941 = load_silver_table(F4941)
     f41002 = load_silver_table(F41002)
     f5549002 = load_silver_table(F5549002)                 # BOL interface weigh-ticket weights
     f03012 = load_silver_table(F03012); f49211 = load_silver_table(F49211)  # sold-to LOB cat / SO-line tag flag
@@ -332,53 +311,6 @@ def build_fact():
 
     sd = f4211   # business WHERE filters removed — fact carries all rows
 
-    # F4074 price-adjustment ledger — ONE actual row per order line (no GROUP BY /
-    # aggregation): a deterministic row_number pick keeps a real ALAST/ALUPRC value while
-    # guaranteeing the line grain, so the fact stays one row per sales_order_line_key.
-    #   • price_adjustment_type -> ALAST as-is (e.g. "A03", "FRTHIDE")
-    #   • freight_factor_value  -> ALUPRC as-is
-    _alw = (Window.partitionBy("company_key_order_no", "document_order_invoice_e",
-                               "order_type", "line_number")
-            .orderBy(F.col("price_adjustment_type").asc_nulls_last()))
-    f4074w = (f4074.select(
-                  F.col("company_key_order_no"), F.col("document_order_invoice_e"),
-                  F.col("order_type"), F.col("line_number"),
-                  F.trim(F.col("price_adjustment_type")).alias("price_adjustment_type"),
-                  F.trim(F.col("pricing_report_code_01")).alias("price_adjustment_print_code"),  # ALAPRP1
-                  F.col("amt_price_per_unit_02").cast("double").alias("freight_factor_value"),
-                  F.col("gl_class").alias("adj_gl_class"),                   # ALGLC
-                  F.col("based_on_value").alias("adj_based_on_value"),       # ALBSDVAL
-                  F.trim(F.col("uom_as_input")).alias("adj_uom"),           # ALUOM
-                  F.col("factor_value").alias("adj_factor_value"))           # ALFVTR
-              .withColumn("_alrn", F.row_number().over(_alw))
-              .where(F.col("_alrn") == 1).drop("_alrn"))
-
-    # adjustment buckets (updated SOP620 rule) — per-line COUNT of qualifying F4074 adjustments for each
-    # print-code / adjustment-type predicate, collapsed to ONE row per line so the LEFT join can't fan the
-    # line grain out. On the fact each count is multiplied by the LINE extended price (SDAEXP) into the adj_* $
-    # columns (below), reproducing the report's SUM(CASE WHEN <pred> THEN SDAEXP) at line grain — count-weighted,
-    # which equals a plain indicator for the normal single-adjustment line.
-    # Freight Hide gates FRTHIDE on the ALUOM x SDUOM pair, so FRTHIDE is counted per ALUOM (TM/TN/BG) here and
-    # combined with the line's SDUOM on the fact. Freight now includes FR1 + FR2.
-    _aprp = F.trim(F.col("pricing_report_code_01"))            # ALAPRP1
-    _atyp = F.trim(F.col("price_adjustment_type"))             # ALAST
-    _aluo = F.trim(F.col("uom_as_input"))                      # ALUOM
-    _hide = _atyp == "FRTHIDE"
-    _FB_PREDS = {
-        "n_non":     _aprp == "NON",
-        "n_ala":     _aprp == "ALA",
-        "n_car":     _aprp == "CAR",
-        "n_fr1":     _aprp == "FR1",
-        "n_fr2":     _aprp == "FR2",
-        "n_acrpp":   (_aprp == "ACR") | (F.substring(_atyp, 1, 2) == "PP"),
-        "n_hide_tm": _hide & (_aluo == "TM"),
-        "n_hide_tn": _hide & (_aluo == "TN"),
-        "n_hide_bg": _hide & (_aluo == "BG"),
-    }
-    f4074_buckets = (f4074.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "line_number")
-                     .agg(*[F.sum(F.when(_pred, F.lit(1)).otherwise(0)).alias(_name)
-                            for _name, _pred in _FB_PREDS.items()]))
-
     # F41002 UOM structure (UMUSTR) — read from the item's TN-conversion row (join
     # UMITM=SDITM AND UMRUM='TN' AND UMUM=SDUOM). Without the related_uom='TN' gate the
     # (item, uom) key matches multiple F41002 rows → an arbitrary/non-TN uom_structure + a pre-dedup
@@ -389,8 +321,8 @@ def build_fact():
                        F.col("uom_structure").alias("uom_structure"))
                .dropDuplicates(["us_itm", "us_uom"]))
     # F4941 shipment routing → route_number + ocean-mode / container count. is_ocean_route='Y' if ANY
-    # routing step is OCE (RSMOT='OCE'); route_container_count = SUM(RSNCTR) over OCE steps ONLY — matches the
-    # export report's RSMOT='OCE' join, so non-ocean legs of a shipment are excluded from the container count.
+    # routing step is OCE (RSMOT='OCE'); route_container_count = SUM(RSNCTR) over OCE steps ONLY, so
+    # non-ocean legs of a shipment are excluded from the container count.
     route = (f4941.groupBy("shipment_number").agg(
                  F.first("route_number", ignorenulls=True).alias("route_number"),
                  F.coalesce(F.max(F.when(F.trim(F.col("mode_of_transport")) == "OCE", F.lit("Y"))),
@@ -475,16 +407,6 @@ def build_fact():
          .join(conv_item.alias("ci"),
                (F.col("ci.itm") == F.col("sd.identifier_short_item")) &
                (F.col("ci.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left")
-         .join(f4074w.alias("al"),
-               (F.col("al.company_key_order_no") == F.col("sd.company_key_order_no")) &
-               (F.col("al.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
-               (F.col("al.order_type") == F.col("sd.order_type")) &
-               (F.col("al.line_number") == F.col("sd.line_number")), "left")
-         .join(f4074_buckets.alias("fb"),                              # per-line bucket ALUPRC sums (1 row/line, no fan-out)
-               (F.col("fb.company_key_order_no") == F.col("sd.company_key_order_no")) &
-               (F.col("fb.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
-               (F.col("fb.order_type") == F.col("sd.order_type")) &
-               (F.col("fb.line_number") == F.col("sd.line_number")), "left")
          .join(route.alias("rt"), F.col("sd.shipment_number") == F.col("rt.shipment_number"), "left")
          .join(freight.alias("fr"), F.col("sd.shipment_number") == F.col("fr.shipment_number"), "left")
          .join(wt.alias("wt"),                                                                                # F5549002 BOL weigh-ticket weights (one row/line)
@@ -572,14 +494,8 @@ def build_fact():
         F.col("sd.uom_pricing").alias("uom_pricing"),
         conv_rate.alias("conversion_to_tons_rate"),
         F.when(conv_rate.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
-        # ── filter-only attributes (Power BI slicers) ──
-        F.col("al.price_adjustment_type").alias("price_adjustment_type"),       # ALAST (F4074, actual)
-        F.col("al.price_adjustment_print_code").alias("price_adjustment_print_code"),  # ALAPRP1 (F4074, actual)
-        # standard_industry_code (ABSIC) / search_type (ABAT1) / category_code_05 (ABAC05) /
-        # category_code_14 (ABAC14) dropped — resolved via dim_address_ship_to
         F.col("us.uom_structure").alias("uom_structure"),                       # UMUSTR (F41002)
         F.col("sd.payment_terms_code_01").alias("payment_terms"),               # SDPTC (F4211)
-        # item_segment_04 (IMSEG4) moved to dim_item — resolved via item_number_short relationship
         # ── measures / numerics (line grain) ──
         F.col("sd.units_quantity_shipped").alias("quantity_shipped"),
         F.col("sd.units_primary_qty_order").alias("primary_quantity_ordered"),
@@ -588,24 +504,13 @@ def build_fact():
         F.col("sd.uom_ent_up").alias("unit_price_primary"),                  # SDAPUM — unit price in primary/entered UOM (≠ price_per_unit SDUPRC)
         F.col("sd.sales_reporting_code_02").alias("major_prod_code"),
         F.col("sd.sales_reporting_code_04").alias("minor_prod_code"),
-        F.col("al.freight_factor_value").alias("freight_factor_value"),
-        # per-line F4074 adjustment match counts (intermediate — combined w/ extended_price + line predicates below)
-        F.coalesce(F.col("fb.n_non"),     F.lit(0)).alias("n_non"),
-        F.coalesce(F.col("fb.n_ala"),     F.lit(0)).alias("n_ala"),
-        F.coalesce(F.col("fb.n_car"),     F.lit(0)).alias("n_car"),
-        F.coalesce(F.col("fb.n_fr1"),     F.lit(0)).alias("n_fr1"),
-        F.coalesce(F.col("fb.n_fr2"),     F.lit(0)).alias("n_fr2"),
-        F.coalesce(F.col("fb.n_acrpp"),   F.lit(0)).alias("n_acrpp"),
-        F.coalesce(F.col("fb.n_hide_tm"), F.lit(0)).alias("n_hide_tm"),
-        F.coalesce(F.col("fb.n_hide_tn"), F.lit(0)).alias("n_hide_tn"),
-        F.coalesce(F.col("fb.n_hide_bg"), F.lit(0)).alias("n_hide_bg"),
         # ── denormalized booking / ocean (shipment grain) ──
         F.col("b11.seal_no").alias("seal_no"),
         F.col("b11.production_code").alias("production_code"),                # F5642B11 AK55PDCD
         F.col("b11.production_ship_notes").alias("production_ship_notes"),    # F5642B11 AK55PDSHNT
         F.col("b01.booking_no").alias("booking_no"),
         F.col("b01.booking_status").alias("booking_status"),       # F5642B01 BA55BKSTAT
-        F.col("b01.destination_port").alias("destination_port"),   # FK -> dim_address_book_destination[address_number]
+        F.col("b01.destination_port").alias("destination_port"),   # F5642B01 destination point
         F.col("b01.no_of_container").alias("no_of_container"),
         F.col("b01.ocean_del_terms").alias("ocean_del_terms"),
         F.col("b01.vessel_name").alias("vessel_name"),
@@ -634,11 +539,6 @@ def build_fact():
         F.col("sd.description_line_01").alias("line_description_1"),          # SDDSC1 (the LINE's text, not item_name)
         F.col("sd.description_line_02").alias("line_description_2"),          # SDDSC2
         F.col("sd.date_updated").alias("date_updated"),                      # SDUPMJ
-        # address_rate (ABURAT, ship-to) dropped — resolved via dim_address_ship_to[address_rate]
-        # sold_to_name (ABALPH) / sold_to_search_type (ABAT1) / sold_to_category_05 (ABAC05) /
-        # sold_to_category_10 (ABAC10) dropped — resolved via dim_address_sold_to
-        # ship_to_city/state/zip/address_1/address_2/country dropped — resolved via dim_address_ship_to
-        # (both sourced F0116 ALCTY1/ALADDS/ALADDZ/ALADD1/ALADD2/ALCTR at latest-effective grain)
         # ── additional display columns ──
         F.col("sd.zone_number").alias("zone_number"),                        # SDZON
         F.col("sd.hold_orders_code").alias("line_hold"),                     # SDHOLD LINE hold — ≠ header hold_orders_code (sh)
@@ -665,10 +565,6 @@ def build_fact():
         F.col("sd.related_po_so_number").alias("related_po_so_number"),      # SDRORN
         F.col("sd.time_of_day").alias("time_of_day"),                        # SDTDAY
         F.col("sh.date_original_promisde").alias("original_promised_date"),  # SHOPDJ — distinct header date
-        F.col("al.adj_gl_class").alias("adj_gl_class"),                      # F4074 ALGLC
-        F.col("al.adj_based_on_value").alias("adj_based_on_value"),          # F4074 ALBSDVAL
-        F.col("al.adj_uom").alias("adj_uom"),                                # F4074 ALUOM
-        F.col("al.adj_factor_value").alias("adj_factor_value"),              # F4074 ALFVTR
         F.col("b01.voyage_number").alias("voyage_number"),                   # F5642B01 BA55VONO
         F.col("b01.loading_port").alias("loading_port"),                     # F5642B01 BA55LODP
         F.col("b01.ocean_carrier").alias("ocean_carrier"),                   # F5642B01 BA55OCCR
@@ -730,36 +626,6 @@ def build_fact():
           .withColumn("latest_delivery_date_key",         date_key(F.col("date_latest_delivery")))
           .withColumn("shift_factor_applied", F.coalesce(F.col("shift_factor_applied"), F.lit(SHIFT_FACTOR))))
 
-    # bucket $ (updated SOP620 rule) = LINE extended price (SDAEXP) attributed to each category:
-    #   adjustment-keyed parts -> extended_price * (count of matching F4074 adjustments)  [= SUM(CASE.. SDAEXP)]
-    #   line-keyed parts       -> extended_price once when the line itself qualifies (SDLNTY freight lines by
-    #                             3rd-item prefix / 2nd-item text / URCD) — tagged once, not x adjustment count.
-    # Freight Hide gates FRTHIDE on the ALUOM x SDUOM pair: SDUOM=BG->{TM,TN,BG}, SDUOM=TN->{TN}, SDUOM=TM->{TM}.
-    # Additive: no existing column is touched; extended_price / line attrs are read-only.
-    _ep   = F.coalesce(F.col("extended_price"), F.lit(0.0))
-    _isFL = F.trim(F.col("line_type")).isin("F", "FT")
-    _ai   = F.trim(F.col("third_item_number"))                         # SDAITM (full 3rd-item text)
-    _a3   = F.substring(_ai, 1, 3)                                      # LEFT(SDAITM,3)
-    _urcd = F.trim(F.col("user_reserved_code"))                        # SDURCD
-    _lu   = F.trim(F.col("uom"))                                        # SDUOM (line uom)
-    _fl_freight = _isFL & _a3.isin("BIL", "FRE", "FUE", "TRA")
-    _fl_ala     = _isFL & (_a3 == "ALA")
-    _fl_rail    = _isFL & (_a3 == "RAI")
-    _fl_hand    = _isFL & _a3.isin("HEA", "MIS", "PAL", "SHA", "WIR", "SHR")
-    _item_misc  = (~_isFL) & _ai.isin("MISC BILLING", "TRANSLOAD CHARGES", "BANKING FEE", "EXPEDITE FEE", "")
-    _urcd_np    = _urcd.isin("NP", "N3") & (~_isFL)
-    _n_hide = (F.when(_lu == "BG", F.col("n_hide_tm") + F.col("n_hide_tn") + F.col("n_hide_bg"))
-                .when(_lu == "TN", F.col("n_hide_tn"))
-                .when(_lu == "TM", F.col("n_hide_tm"))
-                .otherwise(F.lit(0)))
-    df = (df
-        .withColumn("adj_freight",          _ep * (F.col("n_fr1") + F.col("n_fr2")) + F.when(_fl_freight | _fl_rail, _ep).otherwise(0.0))
-        .withColumn("adj_al_severance_tax", _ep *  F.col("n_ala")                   + F.when(_fl_ala, _ep).otherwise(0.0))
-        .withColumn("adj_car_charges",      _ep *  F.col("n_car"))
-        .withColumn("adj_misc_billing",     _ep *  F.col("n_acrpp")                 + F.when(_item_misc | _fl_hand, _ep).otherwise(0.0))
-        .withColumn("adj_non_product",      _ep *  F.col("n_non")                   + F.when(_urcd_np, _ep).otherwise(0.0))
-        .withColumn("adj_freight_hide",     _ep *  _n_hide))
-
     w = Window.partitionBy("shipment_number").orderBy("order_number", "line_number")
     df = (df.withColumn("_rn", F.row_number().over(w))
             .withColumn("is_primary_shipment_line",
@@ -797,15 +663,13 @@ def build_fact():
 # helpers build_uom_cascades / transform_freight_buckets / _add_effective_price_flag), so join_pairs
 # are [] here — the joins are not simple FK pairs. The list documents the source inventory and drives
 # the RUN source preflight.  join: spine=F4211 order-line driver, union=F42119 history (optional),
-# static=lookup / denormalized attribute source. The REUSED rpt address/plant dims and dim_item are
-# read-only — not built or checked here.
+# static=lookup / denormalized attribute source.
 FACT_SOURCES = [
     {"silver": F4211,    "join": "spine",  "join_pairs": []},                    # SX order-line driver (grain)
     {"silver": F42119,   "join": "union",  "join_pairs": [], "optional": True},  # Sales Order History — unioned via _load_optional if present
     {"silver": F4201,    "join": "static", "join_pairs": []},                    # order header (hold / delivery instr / price-eff / orig-promise)
-    {"silver": F0101,    "join": "static", "join_pairs": []},                    # destination address dedup only (_dest_ab); all ship-to/sold-to attrs now via dim_address_*
+    {"silver": F0101,    "join": "static", "join_pairs": []},                    # destination address dedup only (_dest_ab)
     {"silver": F41002,   "join": "static", "join_pairs": []},                    # UoM->TN conversion + UMUSTR structure
-    {"silver": F4074,    "join": "static", "join_pairs": []},                    # price-adjustment ledger (ALAST / ALUPRC / ALGLC / ALBSDVAL / ALUOM / ALFVTR)
     {"silver": F4941,    "join": "static", "join_pairs": []},                    # shipment routing (route_number / OCE flag / container count)
     {"silver": F4981,    "join": "static", "join_pairs": []},                    # freight-audit buckets (billable / payable / total) at shipment grain
     {"silver": F5642B01, "join": "static", "join_pairs": []},                    # ocean booking header (booking / vessel / voyage / ports / refs / pickup-delivery dates)
@@ -833,8 +697,7 @@ for _s in FACT_SOURCES:
 # ── BATCH BUILD — read the full Silver snapshot, run build_fact() ONCE, overwrite the fact.
 #   MANUAL_OVERWRITE = True  -> drop + rebuild from the full Silver snapshot.
 #   MANUAL_OVERWRITE = False -> build only if the fact is missing (re-run to refresh).
-#   Plain overwrite (no Gold CDF). Address dims are REUSED
-#   (rpt.dim_address_book role views) + rpt.dim_plant.
+#   Plain overwrite (no Gold CDF).
 _run_start = time.time()
 if MANUAL_OVERWRITE or not spark.catalog.tableExists(gname(FACT)):
     print("== FULL LOAD ==")

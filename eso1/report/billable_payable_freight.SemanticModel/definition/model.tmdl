@@ -8,6 +8,7 @@ model Model
 
 ref table fact_sales_order_freight
 ref table fact_sales_commission
+ref table fact_price_adjustment
 ref table dim_item
 ref table dim_address_ship_to
 ref table dim_address_sold_to
