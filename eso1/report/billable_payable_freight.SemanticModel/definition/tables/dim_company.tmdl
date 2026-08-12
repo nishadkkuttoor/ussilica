@@ -1,0 +1,40 @@
+table dim_company
+	lineageTag: d3b7d5d9-0657-5d00-9957-6d1fd23761f4
+
+	column company
+		dataType: string
+		summarizeBy: none
+		sourceColumn: company
+		lineageTag: 955a0468-a6b6-5b29-b348-7f2c11ffc888
+
+	column company_name
+		dataType: string
+		summarizeBy: none
+		sourceColumn: company_name
+		lineageTag: f35a4685-574a-5b3d-9c29-53a2a87120bf
+
+	column currency_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: currency_code
+		lineageTag: 83ced3e8-277f-5c77-a1bb-dadcb38972c4
+
+	column period_number_current
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: period_number_current
+		lineageTag: c42fc8ea-6055-5ccf-92bf-178d75bd41d8
+
+	column fiscal_year_current
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: fiscal_year_current
+		lineageTag: d2f7f386-1471-515a-a309-75514621a1a9
+
+	partition dim_company = entity
+		mode: directLake
+		source
+			entityName: dim_company
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+

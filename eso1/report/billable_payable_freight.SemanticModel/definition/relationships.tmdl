@@ -46,6 +46,10 @@ relationship 16ec58f6-002a-5fa4-8631-205d5adacf99
 	fromColumn: fact_sales_order_freight.order_number
 	toColumn: 'Order Filter'.order_number
 
+relationship 5af96694-df0a-553c-9214-77b285b465f2
+	fromColumn: fact_sales_order_freight.company_key_order_no
+	toColumn: dim_company.company
+
 relationship a6e0bf2a-d28f-559d-8fa4-ef3a5cfc113b
 	fromColumn: fact_sales_commission.salesperson
 	toColumn: dim_address_salesperson.address_number

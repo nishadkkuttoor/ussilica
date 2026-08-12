@@ -103,10 +103,58 @@ table fact_sales_order_freight
 		displayFolder: Names
 		lineageTag: 9a20d7ee-8359-562f-b14a-889a4de33f77
 
-	measure 'Days Past Due' = DATEDIFF(MAX('fact_sales_order_freight'[requested_date]), TODAY(), DAY)
+	measure 'Company Currency' = SELECTEDVALUE(dim_company[currency_code])
+		displayFolder: Company
+		lineageTag: d73bd217-5440-50d9-8aa1-98e753490b34
+
+	measure 'Days Past Due' = VAR AsOf = TODAY() VAR ReqD = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))
 		formatString: #,0
 		displayFolder: Aging
 		lineageTag: c858c685-6699-5fcf-813e-21f9d693408b
+
+	measure 'Days Past Due (SM)' = VAR AsOf = TODAY() VAR ReqD = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))
+		formatString: #,0
+		displayFolder: Aging
+		lineageTag: 3d8f6de1-f86d-5171-9d05-83713b39776f
+
+	measure 'Last Invoice Date' = MAX('fact_sales_order_freight'[invoice_date])
+		formatString: m/d/yyyy
+		displayFolder: Aging
+		lineageTag: 13942e9c-5b91-5540-bafa-98f92df4ad08
+
+	measure 'Days Since Invoice' = VAR AsOf = TODAY() VAR InvD = MAX('fact_sales_order_freight'[invoice_date]) RETURN IF(NOT ISBLANK(InvD), INT(AsOf - InvD))
+		formatString: #,0
+		displayFolder: Aging
+		lineageTag: 5e890b50-34a1-58e1-bf11-4d725a90a408
+
+	measure 'NPO Aging' = VAR AsOf = TODAY() VAR D = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(D), INT(AsOf - D))
+		formatString: #,0
+		displayFolder: Aging
+		lineageTag: 3621250f-7c0f-55c6-b79e-d22b064a169a
+
+	measure 'Today' = VAR d = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(d), FORMAT(TODAY(),"MM-dd-yyyy"))
+		displayFolder: Aging
+		lineageTag: 0fa9bf76-ef96-5a8b-ba4e-e334bddc2f72
+
+	measure 'AGE of NPO Any To 2' = SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(NOT ISBLANK(a) && a <= 2, 'fact_sales_order_freight'[transaction_quantity]))
+		formatString: #,0.00
+		displayFolder: Aging
+		lineageTag: c73b4ce0-dcaa-54a5-bc6d-145b8ea929ef
+
+	measure 'AGE of NPO 3 To 5' = SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 3 && a <= 5, 'fact_sales_order_freight'[transaction_quantity]))
+		formatString: #,0.00
+		displayFolder: Aging
+		lineageTag: 18f0849f-9415-510e-9357-d15a0e705d84
+
+	measure 'AGE of NPO 6 To 14' = SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 6 && a <= 14, 'fact_sales_order_freight'[transaction_quantity]))
+		formatString: #,0.00
+		displayFolder: Aging
+		lineageTag: 4f150cf9-a7a2-5971-be7f-356d04232b1f
+
+	measure 'AGE of NPO 15 To Any' = SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 15, 'fact_sales_order_freight'[transaction_quantity]))
+		formatString: #,0.00
+		displayFolder: Aging
+		lineageTag: 084751e8-b505-5656-89c8-10511bcb0b8b
 
 	measure 'Ordered Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))
 		formatString: #,0.00

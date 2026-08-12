@@ -228,7 +228,7 @@ FACT_BUSINESS_COLS = [
     "transaction_quantity", "price_per_unit", "unit_price_primary", "price_quantity_shipped",
     "major_prod_code", "minor_prod_code", "freight_factor_value",
     # ── denormalized booking / ocean (shipment grain) ──
-    "seal_no", "production_code", "production_ship_notes", "booking_no", "destination_port",
+    "seal_no", "production_code", "production_ship_notes", "booking_no", "booking_status", "destination_port",
     "no_of_container", "ocean_del_terms", "vessel_name",
     # ── denormalized freight location + buckets (shipment grain) ──
     "freight_city", "freight_state", "freight_zip",
@@ -389,13 +389,14 @@ def build_fact():
                        F.col("uom_structure").alias("uom_structure"))
                .dropDuplicates(["us_itm", "us_uom"]))
     # F4941 shipment routing → route_number + ocean-mode / container count. is_ocean_route='Y' if ANY
-    # routing step is OCE (filter RSMOT='OCE'); route_container_count =
-    # SUM(RSNCTR). Kept as page-filterable attributes — no report filter applied.
+    # routing step is OCE (RSMOT='OCE'); route_container_count = SUM(RSNCTR) over OCE steps ONLY — matches the
+    # export report's RSMOT='OCE' join, so non-ocean legs of a shipment are excluded from the container count.
     route = (f4941.groupBy("shipment_number").agg(
                  F.first("route_number", ignorenulls=True).alias("route_number"),
                  F.coalesce(F.max(F.when(F.trim(F.col("mode_of_transport")) == "OCE", F.lit("Y"))),
                             F.lit("N")).alias("is_ocean_route"),
-                 F.round(F.sum(F.col("number_of_containers").cast("double")), 0).alias("route_container_count")))
+                 F.round(F.sum(F.when(F.trim(F.col("mode_of_transport")) == "OCE",
+                                      F.col("number_of_containers").cast("double")).otherwise(0.0)), 0).alias("route_container_count")))  # RSNCTR summed over OCE steps ONLY (matches report RSMOT='OCE')
     freight = transform_freight_buckets()
 
     # BOL weigh-ticket weights (F5549002) collapsed to ONE row per order line (gross/catch/max), so the
@@ -428,6 +429,7 @@ def build_fact():
     b01 = b01.join(_dest_ab, F.col("destination_port") == F.col("_dest_an8"), "left_semi")
     b01d = (b01.groupBy("company_key_order_no", "document_order_invoice_e", "order_type", "shipment_number")
                .agg(F.first("booking_no",           ignorenulls=True).alias("booking_no"),
+                    F.first("bookingstatus",         ignorenulls=True).alias("booking_status"),   # BA55BKSTAT
                     F.first("destination_port",      ignorenulls=True).alias("destination_port"),
                     F.first("no_of_container",       ignorenulls=True).alias("no_of_container"),
                     F.first("ocean_del_terms",       ignorenulls=True).alias("ocean_del_terms"),
@@ -602,6 +604,7 @@ def build_fact():
         F.col("b11.production_code").alias("production_code"),                # F5642B11 AK55PDCD
         F.col("b11.production_ship_notes").alias("production_ship_notes"),    # F5642B11 AK55PDSHNT
         F.col("b01.booking_no").alias("booking_no"),
+        F.col("b01.booking_status").alias("booking_status"),       # F5642B01 BA55BKSTAT
         F.col("b01.destination_port").alias("destination_port"),   # FK -> dim_address_book_destination[address_number]
         F.col("b01.no_of_container").alias("no_of_container"),
         F.col("b01.ocean_del_terms").alias("ocean_del_terms"),

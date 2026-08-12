@@ -3,34 +3,26 @@
 
 # ## nb_eso5_gold_dim_uss_plant
 #
-# **Gold `dim_uss_plant` processor** for Extended Sales Order 5 (Sandbox Load Report with PO Details).
-# Builds ONE table — `lh_jde_gold.rpt.dim_uss_plant` — from the Silver user-defined-code values
-# (F0005), UDC system **55 / type UP**.
+# **Gold `dim_uss_plant` processor** — builds ONE table, `lh_jde_gold.rpt.dim_uss_plant`, from the Silver
+# user-defined-code values (F0005), UDC system **55 / type UP**.
 #
-# This dim carries the loading-facility (vendor) USS/plant attributes the report role-plays, keyed by
-# `vendor_number` (F0005 DRKY, numeric). The fact `fact_extended_sales_order_5` stores the loading-facility FK
-# (LOFA = SDVEND = the vendor) and NEVER reads Silver F0005; this dim resolves the three flags
-# derived from DRSPHD, joined in the semantic model (fact.loading_facility -> dim.vendor_number):
+# Keyed by `vendor_number` (F0005 DRKY, numeric). Carries the three USS/plant flags derived from DRSPHD:
 #   uss_plant_sand  = USSSAND        : 1 < DRSPHD < 9000 -> 'Y' else 'N'
 #   shipped_from    = PLANTTRANSLOAD : DRSPHD > 9000 -> 'TRANSLOAD'; 1 < x < 9000 -> 'PLANT'; else '3RDPARTY'
 #   lofa_mcu        = LOFAPLANTMCU   : raw DRSPHD (special-handling code)
-# `lofa_mcu` is ALSO read by the fact notebook (from THIS Gold table, not F0005) as the build-time input
-# to the SBXUSSSAND SOORDERNO match => RUN THIS NOTEBOOK BEFORE nb_eso5_gold_fact_extended_sales_order_5.
 #
 # BATCH build — one full F0005 snapshot -> UDC-filtered Type-1 dim:
 #   • read the full F0005 snapshot, run build_dim_uss_plant() ONCE, overwrite the dim.
 #   • MANUAL_OVERWRITE = True -> drop + rebuild; False -> build only if the dim is missing (re-run to refresh).
-#   • no CDF / foreachBatch / checkpoints / streams. Result is identical to the previous streaming full-load seed.
-# UDC 55/UP — the core query uses it FOUR times (SOORDERNO, USSSAND,
-# LOFAPLANTMCU, PLANTTRANSLOAD):
+#   • no CDF / checkpoints / streams.
+# UDC 55/UP filter that pins every mapping:
 #     select F0005.drsphd from prodctl.F0005
 #     where  F0005.drsy = '55' and F0005.drrt = 'UP'
 #            and TO_Number(rtrim(F0005.drky, ' ')) = M.sdvend
-# which pins every mapping this notebook makes:
-#     DRSY  = '55'                     -> product_code          (UDC system)
-#     DRRT  = 'UP'                     -> user_defined_codes    (UDC type)
-#     DRKY  = numeric vendor number    -> user_defined_code     -> the dim PK `vendor_number`
-#                                         (trim + numeric cast, mirroring TO_Number(rtrim(...)))
+#     DRSY  = '55'                        -> product_code          (UDC system)
+#     DRRT  = 'UP'                        -> user_defined_codes    (UDC type)
+#     DRKY  = numeric vendor number       -> user_defined_code     -> the dim PK `vendor_number`
+#                                            (trim + numeric cast, mirroring TO_Number(rtrim(...)))
 #     DRSPHD= the plant/business-unit MCU -> special_handling_code -> `lofa_mcu`
 
 # ----------------------------------------------------------------------------
@@ -76,14 +68,11 @@ def load_silver_table(table_name):
 # transform filters product_code/user_defined_codes FIRST, then keys on trim(user_defined_code) cast
 # to the numeric vendor (TO_NUMBER(rtrim(F0005.drky)) = M.sdvend).
 #
-# ⚠ KEY TYPE = DOUBLE, NOT long. Direct Lake requires the dim PK and the fact FK to have the SAME
-# physical type. The fact's `loading_facility` is F4211 `primary_last_vendor_no` — a JDE numeric that
-# lands as Double — and the reused rpt.dim_address_book keys on `address_number` (Double) for the same
-# reason. Casting DRKY to long here yields Int64 and Fabric rejects the relationship:
-#   "data types of Direct Lake relationship between FK 'fact...'[loading_facility](Double) and
-#    PK 'dim_uss_plant'[vendor_number](Int64) are incompatible".
+# ⚠ KEY TYPE = DOUBLE, NOT long. Direct Lake requires the PK and the related FK to have the SAME physical
+# type; the vendor is a JDE numeric that lands as Double. Casting DRKY to long yields Int64, which Direct
+# Lake rejects for the relationship ("data types ... are incompatible").
 DIM_KEY      = "vendor_number"
-DIM_KEY_TYPE = "double"          # MUST match fact.loading_facility (Double) — see note above
+DIM_KEY_TYPE = "double"          # MUST match the related FK (Double) — see note above
 
 def build_dim_uss_plant():
     f0005 = (load_silver_table(F0005)
