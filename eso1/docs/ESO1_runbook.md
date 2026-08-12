@@ -1,9 +1,9 @@
 # ESO1 — Billable v Payable Freight + SOP0027 Commission · End-to-End Procedure (Runbook)
 
 Step-by-step build/deploy/operate procedure for the ESO1 reports on Microsoft Fabric.
-**Two facts + BATCH full-snapshot overwrite + REUSED conformed dimensions.** Grounded in the
+**Three facts + BATCH full-snapshot overwrite + REUSED conformed dimensions.** Grounded in the
 notebooks under `nb/`, the model/report under `report/`, and the full design in
-`docs/ESO1_gold_layer_design.md` (v2.16 — batch). Order: **verify reused dims → run the four Gold builders (batch overwrite) →
+`docs/ESO1_gold_layer_design.md` (v2.17 — batch; `fact_price_adjustment` added). Order: **verify reused dims → run the five Gold builders (batch overwrite) →
 validate → semantic model → report → maintain → deploy → operate**.
 
 > **Two report subsystems, one shared Gold star (design v2.16).** ESO1 serves two Power BI reports off conformed
@@ -98,6 +98,13 @@ once with `MANUAL_OVERWRITE=True`** (full rebuild), confirm healthy, then **set 
 > **Build order within a subsystem: dims before the fact.** The fact preflights its dims. So on a first build run
 > `nb_eso1_gold_dim_item` before `nb_eso1_gold_fact_sales_order_freight`, and `nb_eso1_gold_dim_category_code_10` before
 > `nb_eso1_gold_fact_sales_commission`. Across subsystems the four are otherwise independent.
+>
+> **v2.17 — `nb_eso1_gold_fact_price_adjustment` is F4074-ONLY (reads Silver F4074 alone; no fact dependency).** It stores
+> just the F4074 detail + the order-line key; line values come from the order-line fact via the relationship (RELATED in
+> the measures), so nothing is duplicated. ETL = "read F4074, project, key" — minimal CU + storage, no run-order constraint.
+> Both facts still need a one-time `MANUAL_OVERWRITE=True` rebuild (freight fact to materialize the earlier F4074/adjustment
+> removal — row-count-neutral; `fact_price_adjustment` to build the new table), then redeploy the semantic model → flip both
+> back to `False`. ⚠ Verify once that the padj keys join the freight keys (same JDE KCOO/DCTO/DOCO/LNID).
 
 > **Section layout (matches ESO4/ESO5).** Facts: `1) CONFIG · 2) FACT BUILDER · 3) FACT SOURCES · 4) RUN`. Dims:
 > `1) CONFIG · 2) DIM BUILDER · 3) RUN`. Each RUN = `CREATE SCHEMA IF NOT EXISTS` → preflight → `build_*()` once →

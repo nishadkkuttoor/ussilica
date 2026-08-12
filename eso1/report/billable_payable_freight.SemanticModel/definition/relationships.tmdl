@@ -82,3 +82,7 @@ relationship 87947e4c-9ef6-5eea-b61b-79395e4d8a87
 	fromColumn: fact_sales_order_freight.freight_handling_code
 	toColumn: dim_freight_handling_code.freight_handling_code
 
+relationship 83e86733-607e-53f4-b043-32dc3ab21da7
+	fromColumn: fact_price_adjustment.sales_order_line_key
+	toColumn: fact_sales_order_freight.sales_order_line_key
+

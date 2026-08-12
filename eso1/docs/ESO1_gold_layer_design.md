@@ -3,7 +3,54 @@
 **Report:** Billable v Payable Freight · **Stakeholder:** Allison Stadnick · **Audience:** Logistics / Supply Chain
 **Platform:** Microsoft Fabric (F64) · **Lakehouse:** `lh_jde_gold` · **Schema:** `eso1` (Extended Sales Order 1)
 **Sources:** `lh_jde_silver.jde.*` (already fully decoded — Julian→date, implied decimals resolved, snake_case; read as **static batch snapshots** — **`SILVER_SCHEMA = "jde"` (2026-07-26; was `SRC_SCHEMA = "jde_cdc"`)**; same schema as ESO4/ESO5. No CDF required — see §5/§6.)
-**Date:** 2026-07-26 · **Version:** 2.16 (**ALL FOUR Gold notebooks converted STREAMING→BATCH** + restructured to the ESO4/ESO5 section layout — no CDF/foreachBatch/checkpoints/streams; `MANUAL_OVERWRITE` full-snapshot rebuild; results proven identical to the old full-load seed. See §5/§6. Prior 2.15: **`fact_sales_commission` flipped to F4211-driven** — matches the SOP0027 query; non-commissioned lines now appear, orphan F42005 commissions drop; resolves open item D1. See §4.6. Prior 2.14: **NO date dimension — `dim_date` DROPPED.** Prior 2.12: **+22 residual-gap columns** on the freight fact. Prior 2.11: `fact_sales_commission` §4.6. Prior 2.10: `next_status_num` + `total_freight`.)
+**Date:** 2026-08-12 · **Version:** 2.17 (**PRICE-ADJUSTMENT logic pulled OUT of the freight fact into a new `fact_price_adjustment` (order-line × F4074 grain); 11 bucket measures + a many:1 relationship; freight fact row-count-neutral — see the v2.17 block below.** Prior 2.16: **ALL FOUR Gold notebooks converted STREAMING→BATCH** + restructured to the ESO4/ESO5 section layout — no CDF/foreachBatch/checkpoints/streams; `MANUAL_OVERWRITE` full-snapshot rebuild; results proven identical to the old full-load seed. See §5/§6. Prior 2.15: **`fact_sales_commission` flipped to F4211-driven** — matches the SOP0027 query; non-commissioned lines now appear, orphan F42005 commissions drop; resolves open item D1. See §4.6. Prior 2.14: **NO date dimension — `dim_date` DROPPED.** Prior 2.12: **+22 residual-gap columns** on the freight fact. Prior 2.11: `fact_sales_commission` §4.6. Prior 2.10: `next_status_num` + `total_freight`.)
+
+> **v2.17 (2026-08-12) — PRICE-ADJUSTMENT logic MOVED OUT of the freight fact into a new `fact_price_adjustment`.**
+> Per user direction ("remove the Price Adjustment logic from the main fact; create a separate `fact_price_adjustment`;
+> isolate all price-adjustment logic there; don't affect existing reports"). The SOP-family bucket reports
+> (SOP0006/0007/0008/0025, SOP000x 577/580/620, BP Freight, CL National Accounts) pivot F4074 adjustments into money
+> buckets; F4074 is a line×adjustment relation, so it belongs on its own fact — this **reverses** the earlier v2.1 design
+> that collapsed F4074 to one `row_number`-picked row on the freight fact (§4.2/§4.4/§4.5 below are now historical for the
+> F4074 parts).
+> - **NEW notebook `nb_eso1_gold_fact_price_adjustment.py` → `rpt.fact_price_adjustment`.** Grain = **one row per F4074
+>   adjustment**. **F4074-ONLY** — it reads **Silver F4074 alone** (no F4211/F41002/F49211, no line context stored); the
+>   line values the buckets need come from the order-line fact via the relationship (RELATED in the measures). **No Gold-fact
+>   dependency, no run-order constraint.** **NO ALAST whitelist** (each report page-filters). **9 cols**: `price_adjustment_key`,
+>   `sales_order_line_key` (= the order-line fact's `sk(KCOO|DCTO|DOCO|LNID)`, built from F4074's own ALKCOO/ALDCTO/ALDOCO/ALLNID),
+>   `price_adjustment_type`=ALAST, `adj_print_code`=ALAPRP1, `adj_unit_price`=ALUPRC, `adj_uom`=ALUOM, `adj_based_on_value`=ALBSDVAL,
+>   `adj_gl_class`=ALGLC, `adj_factor_value`=ALFVTR. ⚡ **This is the lean design** (2026-08-12, after the initial 25-col
+>   line×adjustment draft) — it removes the duplicated line context to minimize CU + storage; the ETL is just "read F4074".
+> - **FREIGHT FACT stripped of ALL price-adjustment logic** — removed the `row_number` F4074 pick (`f4074w`), the per-line
+>   bucket counts (`f4074_buckets`), the 6 `adj_*` bucket columns, the picked-adjustment display cols
+>   (`price_adjustment_type` / `price_adjustment_print_code` / `freight_factor_value` / `adj_gl_class` /
+>   `adj_based_on_value` / `adj_uom` / `adj_factor_value`), both LEFT joins, and the **F4074 source**. **ROW-COUNT NEUTRAL**
+>   (both removed joins were pre-aggregated 1:1-per-line → no fan-out); AST-verified, no residual refs. ⚠ The F4211 *line*
+>   attrs `price_adjustment_schedule` (SDASN) / `user_reserved_code` (SDURCD) / `price_override_code` (SDPROV) STAY on the
+>   freight fact (they are not F4074).
+> - **Semantic model (generator + TMDL twin + runtime, all synced):** removed the 9 freight-fact bucket measures (Product
+>   Price, Price Per Ton, Price Per Ton (Ordered), Non Product, AL Severance Tax, Misc Billing, Freight, Car Charges,
+>   Freight Hide); added the `fact_price_adjustment` table + **relationship `fact_price_adjustment[sales_order_line_key] →
+>   fact_sales_order_freight[sales_order_line_key]`** (many:1, single-direction — every line dim reachable through the
+>   order-line fact) + **11 measures** (display folder "Price Adjustment"). Generator wiring check OK =
+>   **20 tables / 22 relationships / 72 measures**.
+> - **The 11 measures — all homed on `fact_price_adjustment` (so the order-line fact's own measures are untouched).**
+>   **5 line-level** buckets compute over the **order-line fact directly** (one row per line, all lines): **Total Tons** =
+>   `SUMX(freight, transaction_quantity*COALESCE(conversion_to_tons_rate,0))`; **Product Price** = Σ freight `extended_price`
+>   where `line_type`∉{F,FT}; **Price Per Ton** = `DIVIDE([Product Price],[Total Tons])`; **Deferred Revenue** = Σ freight
+>   `extended_price` where `deferred_entries_flag`≠""; **Freight**/`Car Charges` = Σ freight `extended_price` where `line_type`∈{F,FT}
+>   & `LEFT(third_item,3)`∈{BIL,FRE,FUE,TRA} / ="RAI". **5 adjustment-level** buckets iterate the F4074 rows and pull the line's
+>   tons via **RELATED**: `SUMX(FILTER(padj,<code>), adj_unit_price × COALESCE(RELATED(freight[transaction_quantity]),0) ×
+>   COALESCE(RELATED(freight[conversion_to_tons_rate]),0))` — **Non Product** (`adj_print_code`="NON"), **AL Severance Tax**
+>   ("ALA"), **Misc Billing** ("ACR" ‖ `LEFT(ALAST,2)`="PP"), **Freight Hide** (ALAST="FRTHIDE"), **Dryer Freight Charge**
+>   (ALAST="EPDELFRT"). No `adj_amount`/`ordered_tons`/`is_line_primary` stored — all computed in DAX.
+> - **Isolation verified** — grep of every report `visual.json`: NO visual binds any removed column or measure; all 76
+>   report field refs resolve; every existing report renders unchanged.
+> - ⚠ Open assumptions (all one-line filter swaps once validated vs a compare report): Product Price disjoint (F/FT
+>   handling-prefix lines unbucketed); Freight Hide not yet UOM-gated (ALUOM×SDUOM); AL Sev/Non Product/Misc keyed on
+>   ALAPRP1 not ALAST; Deferred Revenue (UDDEFF) + Dryer Freight (EPDELFRT) are user-chosen, unvalidated vs data.
+> - NOT YET RUN on Fabric: both facts need a `MANUAL_OVERWRITE=True` rebuild (independent order — the freight fact to
+>   materialize the removal, `fact_price_adjustment` to build the new table), then redeploy the semantic model and flip
+>   both back to `False`.
 
 > **v2.16 (2026-07-26) — STREAMING → BATCH (all four Gold notebooks), no results change.** Per user direction ("match the
 > ESO4 notebook structure; replace streaming with ESO4's execution pattern; don't change logic/data types/schema/results"),

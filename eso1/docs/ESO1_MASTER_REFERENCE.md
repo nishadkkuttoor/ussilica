@@ -51,15 +51,16 @@ lh_jde_gold.rpt
 
 ---
 
-## 3. The two facts
+## 3. The facts
 
 | Fact | Grain | Serves | Driver / key sources | Columns |
 |---|---|---|---|---|
-| **fact_sales_order_freight** | sales-order line (`KCOO+DCTO+DOCO+LNID`) | the 106 non-commission variations + master | F4211 ∪ F42119; F4201, F0101 ×3, F0116, F5642B01/11, F4101, F41002, F4074, F4941, F4981, **F4106, F5549002, F03012, F49211** | **162 biz + 2 keys = 164 stored** (v2.15) |
+| **fact_sales_order_freight** | sales-order line (`KCOO+DCTO+DOCO+LNID`) | the 106 non-commission variations + master | F4211 ∪ F42119; F4201, F0101 ×3, F0116, F5642B01/11, F4101, F41002, F4941, F4981, **F4106, F5549002, F03012, F49211** (**F4074 removed v2.17** — price-adjustment logic moved to `fact_price_adjustment`) | line grain; **price-adjustment cols removed v2.17** (row-count-neutral) |
+| **fact_price_adjustment** | F4074 adjustment (one row per adjustment) | SOP-family bucket reports (SOP0006/7/8/0025, SOP000x 577/580/620, BP Freight, CL National Accounts) | **Silver F4074 only** (line values pulled from the freight fact via the relationship / RELATED) | **9 cols; new 2026-08-12 (v2.17)** |
 | **fact_sales_commission** | sales line × commission record (`KCOO+DCTO+DOCO+LNID+CMLN`, CMLN nullable) | SOP0027 Commission | **F4211∪F42119 driver** + **LEFT F42005** + F4201 + F0101 (flipped 2026-07-24) | **44 biz + 2 keys = 46 stored** |
 | **dim_category_code_10** | UDC 01/10 (ABAC10 code → description) | SOP0027 Commission | F0005 (batch) | 2 cols; new 2026-07-25 |
 
-Both relate to the reused dims on natural keys; no surrogate keys; each build is a deterministic full-snapshot overwrite (rerun-safe).
+All relate to the reused dims on natural keys (`fact_price_adjustment` relates **many:1 to `fact_sales_order_freight`** on `sales_order_line_key`, so every line dim is reachable, and the 11 bucket measures live on it); no surrogate keys; each build is a deterministic full-snapshot overwrite (rerun-safe). `fact_price_adjustment` is **self-contained** — it rebuilds the line context from Silver (same derivations as the freight fact), so the two facts have **no run-order dependency**.
 
 ### Why two facts (the grain boundary — decided 2026-07-22, kept)
 You split a fact by **grain**, never by filter. The 106 sales-line reports differ only by WHERE → one fact. SOP0027's
@@ -89,7 +90,7 @@ Every table/join/column/measure the 107 variations reference is now on the fact 
 | M5 F5549002 weights | `gross_weight` / `catch_weight` / `max_weight` + DAX weight measures |
 | M6 next-status range filters | `next_status_num` (physical INT copy) |
 | deferred display (SDPSIG/SDVR02/03/SDVEND/SDASN/SDURCD/SDPROV/SDUSER/lot/serial/location/SDSRP5/SDRORN/SDTDAY) | 14 F4211 cols + `original_promised_date` (SHOPDJ) + `related_address_3` (ABAN83) |
-| F4074 adj detail (ALGLC/ALBSDVAL/ALUOM/ALFVTR) | `adj_gl_class` / `adj_based_on_value` / `adj_uom` / `adj_factor_value` |
+| F4074 adj detail (ALAST/ALAPRP1/ALUPRC/ALGLC/ALBSDVAL/ALUOM/ALFVTR) | **moved to `fact_price_adjustment` v2.17** — `price_adjustment_type` / `adj_print_code` / `adj_unit_price` / `adj_gl_class` / `adj_based_on_value` / `adj_uom` / `adj_factor_value` (per-adjustment grain, no longer the single `row_number` pick on the freight fact) |
 | extended ocean-booking (BA55VONO/LODP/OCCR/REF1-3/BADLPU) | `voyage_number` / `loading_port` / `ocean_carrier` / `booking_reference_1-3` / `date_latest_pickup` |
 | F03012 AIAC05 / F49211 UDDEFF | `sold_to_lob_category_05` / `deferred_entries_flag` |
 | SOP0027 Commission (was OUT OF SCOPE) | **fact_sales_commission** (second fact) |
