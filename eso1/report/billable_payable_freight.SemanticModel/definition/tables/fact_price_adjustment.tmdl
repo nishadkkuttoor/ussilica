@@ -56,6 +56,11 @@ table fact_price_adjustment
 		displayFolder: Price Adjustment
 		lineageTag: b0535f60-37d4-5a6c-afbb-e5f05a43b256
 
+	measure 'Adj Product Price' = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && (LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = "PP" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "A03" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "CASLB" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTHIDE" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTTAXN" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTTAXY" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "COLPALN" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "COLPALT" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "ALST")), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0) * IF(TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTHIDE", -1, 1))
+		formatString: \$#,0.00
+		displayFolder: Price Adjustment
+		lineageTag: abd4861e-7dab-5984-b584-7385f73ca64c
+
 	measure 'Sales Amount' = SUM('fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment

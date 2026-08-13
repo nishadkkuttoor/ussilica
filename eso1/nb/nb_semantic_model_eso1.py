@@ -260,12 +260,14 @@ MEASURES = {
     "Freight Shipments": (f"DISTINCTCOUNT('{FACT}'[shipment_number])", "#,0", False),
     # order-line measures (line grain — plain SUM is correct)
     "Order Lines":            (f"COUNTROWS('{FACT}')", "#,0", False),
-    "Quantity Shipped Tons":  (f"SUM('{FACT}'[quantity_shipped_tons])", "#,0.00", False),
+    "Quantity Shipped Tons":  (f"SUMX('{FACT}', '{FACT}'[quantity_shipped] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
+    "Quantity Shipped":       (f"SUM('{FACT}'[quantity_shipped])", "#,0.00", False),
+    "Price QTY Shipped":      (f"SUMX('{FACT}', '{FACT}'[quantity_shipped] * IF(TRIM('{FACT}'[uom]) = TRIM('{FACT}'[unit_price_primary]), 1, DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], '{FACT}'[item_number_short] & \"|\" & TRIM('{FACT}'[unit_price_primary])))))", "#,0.00", False),
     # ordered quantity (SDUORG) converted to tons; conversion_to_tons_rate = TN passthrough + F41002 factor,
     # NULL -> 0 tons (matches Hubble's THEN 0). Same rate the fact uses for quantity_shipped_tons.
-    "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
+    "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
     # SOP620: F41003 standard-UOM fallback (RELATED dim_uom_conversion) where F41002 rate is blank; isolated from base Ordered Tons
-    "Ordered Tons (F41003)":  (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
+    "Ordered Tons (F41003)":  (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
     # F4941 shipment container count (SUM(RSNCTR)) — per-shipment value, dedup across a shipment's lines
     # (never a raw SUM). Serves 04a Export Open Orders ReportColumn2.
     "Container Count":        (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[route_container_count])))", "#,0", False),
@@ -406,6 +408,7 @@ PADJ_MEASURES = {
     "Misc Billing":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"ACR\" || LEFT(TRIM('{PADJ_FACT}'[price_adjustment_type]), 2) = \"PP\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
     "Freight Hide":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTHIDE\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
     "Dryer Freight Charge": (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"EPDELFRT\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
+    "Adj Product Price":    (f"SUMX(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[adj_based_on_value] <> 0 && (LEFT(TRIM('{PADJ_FACT}'[price_adjustment_type]), 2) = \"PP\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"A03\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"CASLB\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTHIDE\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTTAXN\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTTAXY\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"COLPALN\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"COLPALT\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"ALST\")), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0) * IF(TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTHIDE\", -1, 1))", "\\$#,0.00", False),
     # line-level sales amounts over the order-line fact (SOP reports' SUM(SDAEXP)=RC13/RC4, SUM(SDECST)=RC17)
     "Sales Amount":   (f"SUM('{FACT}'[extended_price])", "\\$#,0.00", False),
     "Extended Cost":  (f"SUM('{FACT}'[extended_cost])", "\\$#,0.00", False),
