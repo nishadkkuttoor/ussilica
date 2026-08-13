@@ -81,6 +81,11 @@ table fact_sales_order_freight
 		displayFolder: Freight
 		lineageTag: 496d25de-487f-580f-95a6-998ece751644
 
+	measure 'BP Freight Amount' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[total_freight]) * MAX('fact_sales_order_freight'[shift_factor_applied])))
+		formatString: \$#,0;-\$#,0
+		displayFolder: Freight
+		lineageTag: b28fc9b3-1cf2-5b72-bdbb-f03961985b09
+
 	measure 'Gross Weight' = SUM('fact_sales_order_freight'[gross_weight])
 		formatString: #,0
 		displayFolder: Volume
@@ -106,6 +111,16 @@ table fact_sales_order_freight
 	measure 'Company Currency' = SELECTEDVALUE(dim_company[currency_code])
 		displayFolder: Company
 		lineageTag: d73bd217-5440-50d9-8aa1-98e753490b34
+
+	measure 'Invoice Period Offset' = SELECTEDVALUE(dim_company[period_number_current]) - MONTH(MAX('fact_sales_order_freight'[invoice_date]))
+		formatString: 0
+		displayFolder: Company
+		lineageTag: 94cf695f-2563-58cb-9373-907d61ca3a0f
+
+	measure 'Invoice Fiscal Year Offset' = VALUE(RIGHT(YEAR(MAX('fact_sales_order_freight'[invoice_date])), 2)) - SELECTEDVALUE(dim_company[fiscal_year_current])
+		formatString: 0
+		displayFolder: Company
+		lineageTag: 9b2b8099-4597-5df4-badc-f79b8eceae41
 
 	measure 'Days Past Due' = VAR AsOf = TODAY() VAR ReqD = MAX('fact_sales_order_freight'[requested_date]) RETURN IF(NOT ISBLANK(ReqD), INT(AsOf - ReqD))
 		formatString: #,0
@@ -534,6 +549,12 @@ table fact_sales_order_freight
 		sourceColumn: user_reserved_code
 		lineageTag: 3420b0a4-116f-577e-9a45-caa2c582564e
 
+	column user_reserved_number
+		dataType: string
+		summarizeBy: none
+		sourceColumn: user_reserved_number
+		lineageTag: 9ddca605-e2d3-5aec-a593-cb95388e1cde
+
 	column price_override_code
 		dataType: string
 		summarizeBy: none
@@ -588,6 +609,12 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: total_freight
 		lineageTag: 8ba68496-2b03-5110-9969-c386f3c78847
+
+	column freight_audit_handling_code
+		dataType: string
+		summarizeBy: none
+		sourceColumn: freight_audit_handling_code
+		lineageTag: 8cf2d1bf-2ef9-51fd-adc9-51b17641879a
 
 	column gross_weight
 		dataType: double

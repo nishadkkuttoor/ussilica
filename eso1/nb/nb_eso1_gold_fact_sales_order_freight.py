@@ -172,7 +172,8 @@ def transform_freight_buckets():
                 F.round(F.sum(amt), 2).alias("total_freight"),
                 F.first(F.trim("city"), ignorenulls=True).alias("freight_city"),
                 F.first(F.trim("state"), ignorenulls=True).alias("freight_state"),
-                F.first(F.trim("zip_code_postal"), ignorenulls=True).alias("freight_zip"))
+                F.first(F.trim("zip_code_postal"), ignorenulls=True).alias("freight_zip"),
+                F.first(F.trim("freight_handling_code"), ignorenulls=True).alias("freight_audit_handling_code"))
             .withColumn("total_billable",   F.round(F.col("billable_freight") + F.col("billable_fuel"), 2))
             .withColumn("total_payable",    F.round(F.col("payable_freight")  + F.col("payable_fuel"), 2))
             .withColumn("freight_variance", F.round(F.col("billable_freight") - F.col("payable_freight"), 2))
@@ -222,7 +223,7 @@ FACT_BUSINESS_COLS = [
     "seal_no", "production_code", "production_ship_notes", "booking_no", "booking_status", "destination_port",
     "no_of_container", "ocean_del_terms", "vessel_name",
     # ── denormalized freight location + buckets (shipment grain) ──
-    "freight_city", "freight_state", "freight_zip",
+    "freight_city", "freight_state", "freight_zip", "freight_audit_handling_code",
     "billable_freight", "billable_fuel", "total_billable",
     "payable_freight", "payable_fuel", "total_payable", "total_freight",
     "freight_variance", "total_variance", "shift_factor_applied",
@@ -238,7 +239,7 @@ FACT_BUSINESS_COLS = [
     "has_effective_price",                                          # F4106 base-price existence
     "pricing_issue_remark",                                        # derived: 'Unit Price Zero' / 'No effective price'
     "pull_signal", "reference_02", "reference_03", "vendor_number", # deferred F4211 display (SDPSIG/SDVR02/SDVR03/SDVEND)
-    "price_adjustment_schedule", "user_reserved_code", "price_override_code",  # SDASN / SDURCD / SDPROV
+    "price_adjustment_schedule", "user_reserved_code", "user_reserved_number", "price_override_code",  # SDASN / SDURCD / SDURAB / SDPROV
     "user_id", "lot_number", "serial_number", "location", "sales_reporting_code_05",  # SDUSER/SDLOTN/SDSERN/SDLOCN/SDSRP5
     "sold_to_lob_category_05", "deferred_entries_flag",             # F03012 AIAC05 (sold-to LOB) / F49211 UDDEFF (SO-tag)
     # ── remaining niche display source-columns ──
@@ -520,6 +521,7 @@ def build_fact():
         F.col("fr.freight_city").alias("freight_city"),
         F.col("fr.freight_state").alias("freight_state"),
         F.col("fr.freight_zip").alias("freight_zip"),
+        F.col("fr.freight_audit_handling_code").alias("freight_audit_handling_code"),   # F4981 FHFRTH
         F.col("fr.shift_factor_applied"),
         F.coalesce(F.col("fr.billable_freight"), F.lit(0.0)).alias("billable_freight"),
         F.coalesce(F.col("fr.billable_fuel"),    F.lit(0.0)).alias("billable_fuel"),
@@ -555,6 +557,7 @@ def build_fact():
         F.col("sd.primary_last_vendor_no").alias("vendor_number"),           # SDVEND
         F.col("sd.price_adjustment_schedule_n").alias("price_adjustment_schedule"),  # SDASN
         F.col("sd.user_reserved_code").alias("user_reserved_code"),          # SDURCD
+        F.col("sd.user_reserved_number").alias("user_reserved_number"),      # SDURAB
         F.col("sd.price_override_code").alias("price_override_code"),         # SDPROV
         F.col("sd.user_id").alias("user_id"),                                # SDUSER
         F.col("sd.lot").alias("lot_number"),                                 # SDLOTN

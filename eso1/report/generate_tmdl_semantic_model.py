@@ -82,6 +82,7 @@ TABLES = {
         # detail (ALAST/ALUPRC/ALUOM/ALBSDVAL) moved to fact_price_adjustment.
         ('price_adjustment_schedule', 'string', False, None),    # SDASN (⚠ snake price_adjustment_schedule_n — verify string vs numeric vs Delta)
         ('user_reserved_code', 'string', False, None),           # SDURCD
+        ('user_reserved_number', 'string', False, None),         # SDURAB
         ('price_override_code', 'string', False, None),          # SDPROV
         ('billable_freight', 'double', True, None),
         ('billable_fuel', 'double', True, None),
@@ -90,6 +91,7 @@ TABLES = {
         ('payable_fuel', 'double', True, None),
         ('total_payable', 'double', True, None),
         ('total_freight', 'double', True, None),
+        ('freight_audit_handling_code', 'string', False, None),  # F4981 FHFRTH
         ('gross_weight', 'double', True, None),
         ('catch_weight', 'double', True, None),
         ('address_number_parent', 'int64', True, None),
@@ -158,6 +160,7 @@ TABLES = {
         ('Price Quantity Shipped', "SUM('fact_sales_order_freight'[price_quantity_shipped])", '\\$#,0;-\\$#,0', 'Volume'),
         ('Lines Missing Conversion', 'CALCULATE([Order Lines], \'fact_sales_order_freight\'[missing_conversion_flag]="Y")', '#,0', 'Quality'),
         ('Total Freight', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[total_freight])))", '\\$#,0;-\\$#,0', 'Freight'),
+        ('BP Freight Amount', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[total_freight]) * MAX('fact_sales_order_freight'[shift_factor_applied])))", '\\$#,0;-\\$#,0', 'Freight'),
         ('Gross Weight', "SUM('fact_sales_order_freight'[gross_weight])", '#,0', 'Volume'),
         ('Catch Weight', "SUM('fact_sales_order_freight'[catch_weight])", '#,0', 'Volume'),
         ('Carrier Name', 'SELECTEDVALUE(dim_address_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_carrier[name_alpha])', None, 'Names'),
@@ -165,6 +168,10 @@ TABLES = {
         ('Ocean Carrier Name', 'SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & " - " & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])', None, 'Names'),
         # company domestic currency (F0010 CCCRCD via dim_company) — the report "DomesticCurrency" column
         ('Company Currency', 'SELECTEDVALUE(dim_company[currency_code])', None, 'Company'),
+        # CL National Accounts monthly fiscal-period pivots — company CCPNC/CCDFF (dim_company) vs the
+        # line invoice_date. Filter "current monthly invoices" = Invoice Period Offset=1 AND FY Offset=0.
+        ('Invoice Period Offset', "SELECTEDVALUE(dim_company[period_number_current]) - MONTH(MAX('fact_sales_order_freight'[invoice_date]))", '0', 'Company'),
+        ('Invoice Fiscal Year Offset', "VALUE(RIGHT(YEAR(MAX('fact_sales_order_freight'[invoice_date])), 2)) - SELECTEDVALUE(dim_company[fiscal_year_current])", '0', 'Company'),
         # Days a line is past its requested ship date, as of today (live). TODAY() - requested_date in days;
         # BLANK when the line has no requested date (skips those rows). Date subtraction (not DATEDIFF) + blank
         # short-circuit for speed over the line-grain fact. Positive = past due; filter past-due via a

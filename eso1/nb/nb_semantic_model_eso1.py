@@ -252,6 +252,7 @@ MEASURES = {
     # all-charge-code shipment freight total (H2) — dedup at shipment grain exactly like the buckets above, so the
     # combined-freight reports (Baseline Finance, DE Orders, BP Freight) get the raw FHNAMT total, not just billable+payable
     "Total Freight":    (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[total_freight])))",    "\\$#,0", False),
+    "BP Freight Amount": (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[total_freight]) * MAX('{FACT}'[shift_factor_applied])))", "\\$#,0", False),
     "Freight Variance": ("[Billable Freight] - [Payable Freight]", "\\$#,0", False),
     "Total Variance":   ("[Total Billable] - [Total Payable]",     "\\$#,0", False),
     "Freight CM %":     ("DIVIDE([Freight Variance], [Billable Freight])", "0.0%", False),
@@ -306,6 +307,8 @@ MEASURES = {
     "Ocean Carrier Name": ("SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])", None, False),
     # company domestic currency (F0010 CCCRCD via dim_company) — the report "DomesticCurrency" column
     "Company Currency": ("SELECTEDVALUE(dim_company[currency_code])", None, False),
+    "Invoice Period Offset": ("SELECTEDVALUE(dim_company[period_number_current]) - MONTH(MAX('fact_sales_order_freight'[invoice_date]))", "0", False),
+    "Invoice Fiscal Year Offset": ("VALUE(RIGHT(YEAR(MAX('fact_sales_order_freight'[invoice_date])), 2)) - SELECTEDVALUE(dim_company[fiscal_year_current])", "0", False),
     # days a line is past its requested date; live as-of = TODAY() (positive = past due). Date subtraction
     # (not DATEDIFF) + blank short-circuit for speed; filter past-due via a relative-date COLUMN filter on
     # requested_date (is before today), NOT a measure filter.
