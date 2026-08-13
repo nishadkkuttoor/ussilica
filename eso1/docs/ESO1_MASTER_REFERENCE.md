@@ -119,7 +119,7 @@ sourced if the decode doesn't already match. Reconcile one invoice + one shipmen
 | `nb_eso1_gold_fact_sales_commission.py` | the 46-col commission fact (F4211-driven, LEFT F42005 — flipped 2026-07-24); `build_fact()` ← F4211 driver + F42005 → plain overwrite |
 | `nb_eso1_gold_dim_item.py` | `dim_item` (F4101); `build_dim_item()` → plain overwrite |
 | `nb_eso1_gold_dim_category_code_10.py` | `dim_category_code_10` (F0005 UDC 01/10, ABAC10 → description); `build_dim()` → plain overwrite — mirrors ESO4 `dim_udc` |
-| `nb_semantic_model_eso1.py` | Direct Lake relationships + DAX measures (freight buckets SUMX-deduped, Total Freight, weights, DISTINCTCOUNT, Days-Since, Total Tons) |
+| `nb_semantic_model_eso1.py` | Direct Lake relationships + DAX measures (freight buckets SUMX-deduped, Total Freight, weights, DISTINCTCOUNT, Days-Since); **13 price-adjustment measures on `fact_price_adjustment`** (v2.17); **`Total Tons` = 2-tier UOM→TN cascade** via `dim_uom_conversion_item` (Tier-A F41002) + `dim_uom_conversion` (Tier-B F41003); `Ordered Tons` stays F41002-only |
 | `nb_validate_gold_eso1.py` / `nb_maintenance_gold_eso1.py` | RI/health validation · read-only maintenance status |
 
 Reused dims (`old_nb/`) are **never rebuilt here** — their own jobs own them. Each notebook is **self-contained** (no `%run`).

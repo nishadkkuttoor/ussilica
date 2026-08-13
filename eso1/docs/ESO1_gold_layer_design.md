@@ -33,16 +33,25 @@
 >   fact_sales_order_freight[sales_order_line_key]`** (many:1, single-direction — every line dim reachable through the
 >   order-line fact) + **11 measures** (display folder "Price Adjustment"). Generator wiring check OK =
 >   **20 tables / 22 relationships / 72 measures**.
-> - **The 11 measures — all homed on `fact_price_adjustment` (so the order-line fact's own measures are untouched).**
+> - **The 13 measures — all homed on `fact_price_adjustment` (so the order-line fact's own measures are untouched).**
 >   **5 line-level** buckets compute over the **order-line fact directly** (one row per line, all lines): **Total Tons** =
->   `SUMX(freight, transaction_quantity*COALESCE(conversion_to_tons_rate,0))`; **Product Price** = Σ freight `extended_price`
->   where `line_type`∉{F,FT}; **Price Per Ton** = `DIVIDE([Product Price],[Total Tons])`; **Deferred Revenue** = Σ freight
->   `extended_price` where `deferred_entries_flag`≠""; **Freight**/`Car Charges` = Σ freight `extended_price` where `line_type`∈{F,FT}
+>   the UOM→TN cascade `SUMX(freight, transaction_quantity × COALESCE(IF(uom="TN",1), RELATED(dim_uom_conversion_item[conv_factor]),
+>   RELATED(dim_uom_conversion[std_factor]), 0))` (Tier0 TN → TierA F41002 item dim → TierB F41003 std dim → 0); **Product Price** = Σ
+>   freight `extended_price` where `line_type`∉{F,FT}; **Price Per Ton** = `DIVIDE([Product Price],[Total Tons])`; **Deferred Revenue** =
+>   Σ freight `extended_price` where `deferred_entries_flag`≠""; **Freight**/`Car Charges` = Σ freight `extended_price` where `line_type`∈{F,FT}
 >   & `LEFT(third_item,3)`∈{BIL,FRE,FUE,TRA} / ="RAI". **5 adjustment-level** buckets iterate the F4074 rows and pull the line's
 >   tons via **RELATED**: `SUMX(FILTER(padj,<code>), adj_unit_price × COALESCE(RELATED(freight[transaction_quantity]),0) ×
 >   COALESCE(RELATED(freight[conversion_to_tons_rate]),0))` — **Non Product** (`adj_print_code`="NON"), **AL Severance Tax**
 >   ("ALA"), **Misc Billing** ("ACR" ‖ `LEFT(ALAST,2)`="PP"), **Freight Hide** (ALAST="FRTHIDE"), **Dryer Freight Charge**
->   (ALAST="EPDELFRT"). No `adj_amount`/`ordered_tons`/`is_line_primary` stored — all computed in DAX.
+>   (ALAST="EPDELFRT"). Plus **2 line-level SUMs** for the SOP reports: **Sales Amount** = `SUM(freight[extended_price])` (RC13/RC4),
+>   **Extended Cost** = `SUM(freight[extended_cost])` (RC17). No `adj_amount`/`ordered_tons`/`is_line_primary` stored — all computed in DAX.
+> - **Tons conversion is a 2-tier conformed-dim cascade (2026-08-12).** New dim **`rpt.dim_uom_conversion_item`** (F41002 item-specific,
+>   built by `nb_silver_to_gold_dim_uom_conversion_item.py`; keyed `item_uom_key`) = **Tier A**; existing **`rpt.dim_uom_conversion`**
+>   (F41003 standard) = **Tier B**. The freight fact gains **`item_uom_key`** (`concat_ws("|", identifier_short_item, TRIM(uom_as_input))` —
+>   pure projection, row-count-neutral) + relationship `fact[item_uom_key] → dim_uom_conversion_item[item_uom_key]` (many:1). **Only `Total
+>   Tons` uses the cascade; `Ordered Tons` stays F41002-only** (`conversion_to_tons_rate`) to preserve the validated BvP numbers. Model now
+>   **21 tables / 23 relationships / 74 measures**. ⚠ The cascade adds the F41003 tier (closes under-counts) but does NOT reproduce Hubble's
+>   `conv(SDUOM)/conv(TN)` **zero-on-fail** two-lookup, so the SOP620 Total-Tons over-count (items resolving at Tier A that Hubble zeroes) remains.
 > - **Isolation verified** — grep of every report `visual.json`: NO visual binds any removed column or measure; all 76
 >   report field refs resolve; every existing report renders unchanged.
 > - ⚠ Open assumptions (all one-line filter swaps once validated vs a compare report): Product Price disjoint (F/FT

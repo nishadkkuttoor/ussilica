@@ -48,6 +48,7 @@ RPT_TABLES = ["dim_address_ship_to", "dim_address_sold_to", "dim_address_carrier
               "dim_address_parent", "dim_address_book_destination", "dim_address_salesperson",
               "dim_address_ocean_carrier",   # decodes fact.ocean_carrier (BA55OCCR) — Mak Export Orders
               "dim_uom_conversion",          # REUSED F41003 std UOM→TN dim (lh_jde_gold.rpt); Tier-B tons fallback
+              "dim_uom_conversion_item",     # F41002 item-specific UOM→TN dim (rpt); Tier-A tons conv (built by nb_silver_to_gold_dim_uom_conversion_item)
               "dim_plant", "dim_mode_of_transport"]
 MODEL_TABLES = NEW_TABLES + RPT_TABLES
 def schema_of(t): return "rpt"                         # everything in rpt now
@@ -75,7 +76,8 @@ NEW_REQUIRED    = [f"{LAKEHOUSE}.rpt.fact_sales_order_freight",
 REUSED_REQUIRED = [f"{LAKEHOUSE}.rpt.dim_address_book", f"{LAKEHOUSE}.rpt.dim_plant",
                    f"{LAKEHOUSE}.rpt.dim_mode_of_transport",
                    # reused F41003 std UOM→TN dim (built by nb_silver_to_gold_dim_f41003.py)
-                   f"{LAKEHOUSE}.rpt.dim_uom_conversion"]
+                   f"{LAKEHOUSE}.rpt.dim_uom_conversion",
+                   f"{LAKEHOUSE}.rpt.dim_uom_conversion_item"]
 REUSED_VIEWS    = [f"{LAKEHOUSE}.rpt.dim_address_ship_to",
                    f"{LAKEHOUSE}.rpt.dim_address_sold_to",
                    f"{LAKEHOUSE}.rpt.dim_address_carrier",
@@ -156,6 +158,7 @@ RELATIONSHIPS = [
     ("dim_address_book_destination", "address_number", FACT, "destination_port", True),  # dest-point role view (was dest_point_name_alpha)
     ("dim_address_ocean_carrier", "address_number", FACT, "ocean_carrier", True),  # BA55OCCR ocean-carrier role view (Mak Export Orders)
     ("dim_uom_conversion", "from_uom", FACT, "uom", True),  # reused F41003 std UOM→TN dim (rpt); fact.uom → from_uom, many:1
+    ("dim_uom_conversion_item", "item_uom_key", FACT, "item_uom_key", True),  # F41002 item-specific UOM→TN (Tier A); fact.item_uom_key → dim, many:1
     ("dim_second_item", "second_item_number", FACT, "second_item_number", True),  # physical exclusion dim (built by nb_eso1_gold_dim_second_item); fact.second_item_number -> dim, many:1
     ("dim_order_number", "order_number", FACT, "order_number", True),  # physical order-whitelist dim (built by nb_eso1_gold_dim_order_number); fact.order_number -> dim, many:1
     ("dim_company", "company", FACT, "company_key_order_no", True),  # F0010 company constants (built by nb_eso1_gold_dim_company); fact.company_key_order_no (SDKCOO=CCCO) -> dim, many:1
@@ -249,6 +252,7 @@ MEASURES = {
     # all-charge-code shipment freight total (H2) — dedup at shipment grain exactly like the buckets above, so the
     # combined-freight reports (Baseline Finance, DE Orders, BP Freight) get the raw FHNAMT total, not just billable+payable
     "Total Freight":    (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[total_freight])))",    "\\$#,0", False),
+    "BP Freight Amount": (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[total_freight]) * MAX('{FACT}'[shift_factor_applied])))", "\\$#,0", False),
     "Freight Variance": ("[Billable Freight] - [Payable Freight]", "\\$#,0", False),
     "Total Variance":   ("[Total Billable] - [Total Payable]",     "\\$#,0", False),
     "Freight CM %":     ("DIVIDE([Freight Variance], [Billable Freight])", "0.0%", False),
@@ -303,6 +307,8 @@ MEASURES = {
     "Ocean Carrier Name": ("SELECTEDVALUE(dim_address_ocean_carrier[address_number]) & \" - \" & SELECTEDVALUE(dim_address_ocean_carrier[name_alpha])", None, False),
     # company domestic currency (F0010 CCCRCD via dim_company) — the report "DomesticCurrency" column
     "Company Currency": ("SELECTEDVALUE(dim_company[currency_code])", None, False),
+    "Invoice Period Offset": ("SELECTEDVALUE(dim_company[period_number_current]) - MONTH(MAX('fact_sales_order_freight'[invoice_date]))", "0", False),
+    "Invoice Fiscal Year Offset": ("VALUE(RIGHT(YEAR(MAX('fact_sales_order_freight'[invoice_date])), 2)) - SELECTEDVALUE(dim_company[fiscal_year_current])", "0", False),
     # days a line is past its requested date; live as-of = TODAY() (positive = past due). Date subtraction
     # (not DATEDIFF) + blank short-circuit for speed; filter past-due via a relative-date COLUMN filter on
     # requested_date (is before today), NOT a measure filter.
@@ -387,7 +393,8 @@ COMM_MEASURES = {
 # fact) — so no line data is stored on this fact and the order-line fact is untouched.
 PADJ_MEASURES = {
     # line-level buckets — over the order-line fact directly
-    "Total Tons":       (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
+    # tons via the UOM->TN cascade: Tier0 (uom=TN ->1) -> TierA (F41002 item dim) -> TierB (F41003 std dim) -> 0
+    "Total Tons":       (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE(IF(TRIM('{FACT}'[uom]) = \"TN\", 1.0), RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
     "Product Price":    (f"SUMX(FILTER('{FACT}', NOT(TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\")), '{FACT}'[extended_price])", "\\$#,0.00", False),
     "Price Per Ton":    ("DIVIDE([Product Price], [Total Tons])", "\\$#,0.00", False),
     "Deferred Revenue": (f"SUMX(FILTER('{FACT}', TRIM('{FACT}'[deferred_entries_flag]) <> \"\"), '{FACT}'[extended_price])", "\\$#,0.00", False),
