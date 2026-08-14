@@ -327,11 +327,22 @@ TABLES = {
         ('Misc Billing', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"ACR\" || LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = \"PP\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
         ('Freight Hide', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTHIDE\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
         ('Dryer Freight Charge', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"EPDELFRT\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
-        # SOP0025 Detail — per-adjustment Product Price row value (adj_unit_price x ordered-tons, signed). Filter to whitelist + adj_based_on_value<>0 at the VISUAL level. FRTHIDE negated (only confirmed sign).
-        ('Adj Product Price', "SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && (LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = \"PP\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"A03\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"CASLB\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTHIDE\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTTAXN\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTTAXY\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"COLPALN\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"COLPALT\" || TRIM('fact_price_adjustment'[price_adjustment_type]) = \"ALST\")), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0) * IF(TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTHIDE\", -1, 1))", '\\$#,0.00', 'Price Adjustment'),
+        # SOP0025 Detail — adjustment-row Product Price. Verified against the fact_price_adjustment rows of two lines:
+        # Hubble prices the adjustment row ONLY for a FRTHIDE (Freight Hide) whose adj_uom = 'TN' = -(ALUPRC x ordered
+        # tons). A FRTHIDE priced in any other UOM (e.g. 'TM'), and EVERY other whitelisted adjustment type, shows a
+        # row but NO price (blank) regardless of sign. (1657933/15 FRTHIDE @ TN -> -4,010.79; 1635056/30.60 FRTHIDE
+        # @ TM -> blank.) So: FrtHide = the FRTHIDE-@-TN signed value; a line with ANY whitelisted adj (based_on<>0)
+        # keeps its adjustment row (FrtHide+0 -> 0 -> blank via the zero-hiding format on Price Value); a line with no
+        # whitelisted adj returns BLANK (no adjustment row). Totals match Hubble on both ranges.
+        ('Adj Product Price', "VAR FrtHide = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && 'fact_price_adjustment'[price_adjustment_type] = \"FRTHIDE\" && TRIM('fact_price_adjustment'[adj_uom]) = \"TN\"), VAR uomLine = RELATED('fact_sales_order_freight'[uom]) VAR convFactor = COALESCE(IF(TRIM(uomLine) = \"TN\", 1.0), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], RELATED('fact_sales_order_freight'[item_uom_key])), LOOKUPVALUE(dim_uom_conversion[std_factor], dim_uom_conversion[from_uom], uomLine), 0) RETURN - 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * convFactor) VAR HasWhitelisted = COUNTROWS(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && (LEFT('fact_price_adjustment'[price_adjustment_type], 2) = \"PP\" || 'fact_price_adjustment'[price_adjustment_type] = \"A03\" || 'fact_price_adjustment'[price_adjustment_type] = \"CASLB\" || 'fact_price_adjustment'[price_adjustment_type] = \"FRTHIDE\" || 'fact_price_adjustment'[price_adjustment_type] = \"FRTTAXN\" || 'fact_price_adjustment'[price_adjustment_type] = \"FRTTAXY\" || 'fact_price_adjustment'[price_adjustment_type] = \"COLPALN\" || 'fact_price_adjustment'[price_adjustment_type] = \"COLPALT\" || 'fact_price_adjustment'[price_adjustment_type] = \"ALST\"))) RETURN IF(HasWhitelisted > 0, FrtHide + 0, BLANK())", '\\$#,0.00', 'Price Adjustment'),
         # ── line-level sales amounts over the order-line fact (SOP reports' SUM(SDAEXP)=RC13/RC4, SUM(SDECST)=RC17) ──
         ('Sales Amount', "SUM('fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
         ('Extended Cost', "SUM('fact_sales_order_freight'[extended_cost])", '\\$#,0.00', 'Price Adjustment'),
+        # ── SOP0025 single-table base+adjustment interleave (Hubble look) ──
+        # 'Row Type' (disconnected) drives the sub-row: base row -> Product Price / Total Tons; adjustment row ->
+        # Adj Product Price / blank tons. No 'Row Type' in context (grand total) -> netted base+adjustment.
+        ('Price Value', "VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, \"Product Price\", [Product Price], \"Adjustment\", [Adj Product Price], [Product Price] + [Adj Product Price])", '\\$#,0.00;-\\$#,0.00;', 'Price Adjustment'),
+        ('Tons Value', "VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, \"Product Price\", [Total Tons], \"Adjustment\", BLANK(), [Total Tons])", '#,0.00', 'Price Adjustment'),
       ],
     },
     'dim_item': {
@@ -572,6 +583,17 @@ TABLES = {
         ('currency_code', 'string', False, None),                   # CCCRCD — report DomesticCurrency
         ('period_number_current', 'int64', False, None),            # CCPNC — company current fiscal period
         ('fiscal_year_current', 'int64', False, None),              # CCDFF — company current fiscal year
+      ],
+      "measures": [
+
+      ],
+    },
+    'Row Type': {   # disconnected static table (import DATATABLE) — innermost Matrix row field for the
+                    # SOP0025 base+adjustment single-column interleave. NO relationship; drives Price Value/Tons Value.
+      "calc": "DATATABLE(\"Row Type\", STRING, \"Sort\", INTEGER, {{\"Product Price\", 0}, {\"Adjustment\", 1}})",
+      "cols": [
+        ('Row Type', 'string', False, 'Sort'),   # display value; sorted by Sort so base precedes adjustment
+        ('Sort', 'int64', True, None),
       ],
       "measures": [
 
