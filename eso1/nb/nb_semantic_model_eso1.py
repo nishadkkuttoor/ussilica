@@ -260,12 +260,14 @@ MEASURES = {
     "Freight Shipments": (f"DISTINCTCOUNT('{FACT}'[shipment_number])", "#,0", False),
     # order-line measures (line grain — plain SUM is correct)
     "Order Lines":            (f"COUNTROWS('{FACT}')", "#,0", False),
-    "Quantity Shipped Tons":  (f"SUM('{FACT}'[quantity_shipped_tons])", "#,0.00", False),
+    "Quantity Shipped Tons":  (f"SUMX('{FACT}', '{FACT}'[quantity_shipped] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
+    "Quantity Shipped":       (f"SUM('{FACT}'[quantity_shipped])", "#,0.00", False),
+    "Price QTY Shipped":      (f"SUMX('{FACT}', '{FACT}'[quantity_shipped] * IF(TRIM('{FACT}'[uom]) = TRIM('{FACT}'[unit_price_primary]), 1, DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], '{FACT}'[item_number_short] & \"|\" & TRIM('{FACT}'[unit_price_primary])))))", "#,0.00", False),
     # ordered quantity (SDUORG) converted to tons; conversion_to_tons_rate = TN passthrough + F41002 factor,
     # NULL -> 0 tons (matches Hubble's THEN 0). Same rate the fact uses for quantity_shipped_tons.
-    "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], 0))", "#,0.00", False),
+    "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
     # SOP620: F41003 standard-UOM fallback (RELATED dim_uom_conversion) where F41002 rate is blank; isolated from base Ordered Tons
-    "Ordered Tons (F41003)":  (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE('{FACT}'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
+    "Ordered Tons (F41003)":  (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
     # F4941 shipment container count (SUM(RSNCTR)) — per-shipment value, dedup across a shipment's lines
     # (never a raw SUM). Serves 04a Export Open Orders ReportColumn2.
     "Container Count":        (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[route_container_count])))", "#,0", False),
@@ -406,9 +408,18 @@ PADJ_MEASURES = {
     "Misc Billing":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"ACR\" || LEFT(TRIM('{PADJ_FACT}'[price_adjustment_type]), 2) = \"PP\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
     "Freight Hide":     (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTHIDE\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
     "Dryer Freight Charge": (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"EPDELFRT\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
+    # adjustment-row Product Price. Hubble prices the adjustment row ONLY for FRTHIDE (Freight Hide) = -(ALUPRC x
+    # ordered tons); every other whitelisted type keeps a row but no price. FrtHide+0 -> 0 (blank via zero-hiding
+    # format) when the line has a whitelisted adj but no FRTHIDE; BLANK (no row) when it has no whitelisted adj.
+    "Adj Product Price":    (f"VAR FrtHide = SUMX(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[adj_based_on_value] <> 0 && '{PADJ_FACT}'[price_adjustment_type] = \"FRTHIDE\" && TRIM('{PADJ_FACT}'[adj_uom]) = \"TN\"), VAR uomLine = RELATED('{FACT}'[uom]) VAR convFactor = COALESCE(IF(TRIM(uomLine) = \"TN\", 1.0), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], RELATED('{FACT}'[item_uom_key])), LOOKUPVALUE(dim_uom_conversion[std_factor], dim_uom_conversion[from_uom], uomLine), 0) RETURN - '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * convFactor) VAR HasWhitelisted = COUNTROWS(FILTER('{PADJ_FACT}', '{PADJ_FACT}'[adj_based_on_value] <> 0 && (LEFT('{PADJ_FACT}'[price_adjustment_type], 2) = \"PP\" || '{PADJ_FACT}'[price_adjustment_type] = \"A03\" || '{PADJ_FACT}'[price_adjustment_type] = \"CASLB\" || '{PADJ_FACT}'[price_adjustment_type] = \"FRTHIDE\" || '{PADJ_FACT}'[price_adjustment_type] = \"FRTTAXN\" || '{PADJ_FACT}'[price_adjustment_type] = \"FRTTAXY\" || '{PADJ_FACT}'[price_adjustment_type] = \"COLPALN\" || '{PADJ_FACT}'[price_adjustment_type] = \"COLPALT\" || '{PADJ_FACT}'[price_adjustment_type] = \"ALST\"))) RETURN IF(HasWhitelisted > 0, FrtHide + 0, BLANK())", "\\$#,0.00", False),
     # line-level sales amounts over the order-line fact (SOP reports' SUM(SDAEXP)=RC13/RC4, SUM(SDECST)=RC17)
     "Sales Amount":   (f"SUM('{FACT}'[extended_price])", "\\$#,0.00", False),
     "Extended Cost":  (f"SUM('{FACT}'[extended_cost])", "\\$#,0.00", False),
+    # SOP0025 single-table base+adjustment interleave (Hubble look). 'Row Type' (disconnected) drives the
+    # sub-row: base -> Product Price / Total Tons; adjustment -> Adj Product Price / blank tons. No 'Row Type'
+    # in context (grand total) -> netted base+adjustment.
+    "Price Value": ("VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, \"Product Price\", [Product Price], \"Adjustment\", [Adj Product Price], [Product Price] + [Adj Product Price])", "\\$#,0.00;-\\$#,0.00;", False),
+    "Tons Value":  ("VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, \"Product Price\", [Total Tons], \"Adjustment\", BLANK(), [Total Tons])", "#,0.00", False),
 }
 
 with connect_semantic_model(dataset=MODEL, readonly=False) as tom:
@@ -447,6 +458,21 @@ with connect_semantic_model(dataset=MODEL, readonly=False) as tom:
                             format_string=fmt, hidden=hidden)
         except Exception as e:
             print(f"  measure {name} skipped: {e}")
+
+    # ── SOP0025 disconnected 'Row Type' table (import DATATABLE) — innermost Matrix row field that
+    #    interleaves the base (Product Price / Total Tons) and adjustment (Adj Product Price / blank tons)
+    #    sub-rows per line. NO relationship. Mirrors the TMDL twin's Row Type.tmdl. Best-effort: if the
+    #    calc-table API differs on this sempy_labs build, add it manually (2 rows: Product Price/0, Adjustment/1).
+    try:
+        tom.add_calculated_table(
+            name="Row Type",
+            expression='DATATABLE("Row Type", STRING, "Sort", INTEGER, {{"Product Price", 0}, {"Adjustment", 1}})')
+        rt = tom.model.Tables["Row Type"]
+        rt.Columns["Sort"].IsHidden = True
+        rt.Columns["Row Type"].SortByColumn = rt.Columns["Sort"]
+        print("✓ Row Type calc table added")
+    except Exception as e:
+        print(f"  Row Type calc table skipped (add manually — 2 rows Product Price/0, Adjustment/1): {e}")
 
     # No date table to mark — the model has no date dimension (2026-07-23).
 

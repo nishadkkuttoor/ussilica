@@ -1,0 +1,21 @@
+table 'Row Type'
+	lineageTag: 4a89ae4c-676c-5490-b1ff-26dab75b487c
+
+	column 'Row Type'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Row Type]
+		sortByColumn: Sort
+		lineageTag: d4f04994-a79e-583e-b75b-0f5b52141ce6
+
+	column Sort
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: [Sort]
+		lineageTag: 77210397-3df6-5c20-bf57-98f45023a5f8
+
+	partition 'Row Type' = calculated
+		mode: import
+		source = DATATABLE("Row Type", STRING, "Sort", INTEGER, {{"Product Price", 0}, {"Adjustment", 1}})
+

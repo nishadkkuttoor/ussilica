@@ -56,6 +56,11 @@ table fact_price_adjustment
 		displayFolder: Price Adjustment
 		lineageTag: b0535f60-37d4-5a6c-afbb-e5f05a43b256
 
+	measure 'Adj Product Price' = VAR FrtHide = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && 'fact_price_adjustment'[price_adjustment_type] = "FRTHIDE" && TRIM('fact_price_adjustment'[adj_uom]) = "TN"), VAR uomLine = RELATED('fact_sales_order_freight'[uom]) VAR convFactor = COALESCE(IF(TRIM(uomLine) = "TN", 1.0), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], RELATED('fact_sales_order_freight'[item_uom_key])), LOOKUPVALUE(dim_uom_conversion[std_factor], dim_uom_conversion[from_uom], uomLine), 0) RETURN - 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * convFactor) VAR HasWhitelisted = COUNTROWS(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && (LEFT('fact_price_adjustment'[price_adjustment_type], 2) = "PP" || 'fact_price_adjustment'[price_adjustment_type] = "A03" || 'fact_price_adjustment'[price_adjustment_type] = "CASLB" || 'fact_price_adjustment'[price_adjustment_type] = "FRTHIDE" || 'fact_price_adjustment'[price_adjustment_type] = "FRTTAXN" || 'fact_price_adjustment'[price_adjustment_type] = "FRTTAXY" || 'fact_price_adjustment'[price_adjustment_type] = "COLPALN" || 'fact_price_adjustment'[price_adjustment_type] = "COLPALT" || 'fact_price_adjustment'[price_adjustment_type] = "ALST"))) RETURN IF(HasWhitelisted > 0, FrtHide + 0, BLANK())
+		formatString: \$#,0.00
+		displayFolder: Price Adjustment
+		lineageTag: abd4861e-7dab-5984-b584-7385f73ca64c
+
 	measure 'Sales Amount' = SUM('fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
@@ -65,6 +70,16 @@ table fact_price_adjustment
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: a88c7ef2-08ce-54cc-9784-508a28d47a31
+
+	measure 'Price Value' = VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, "Product Price", [Product Price], "Adjustment", [Adj Product Price], [Product Price] + [Adj Product Price])
+		formatString: \$#,0.00;-\$#,0.00;
+		displayFolder: Price Adjustment
+		lineageTag: edaeb746-41d8-58ad-bb9d-6159cd1820b5
+
+	measure 'Tons Value' = VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, "Product Price", [Total Tons], "Adjustment", BLANK(), [Total Tons])
+		formatString: #,0.00
+		displayFolder: Price Adjustment
+		lineageTag: bf8d719b-c680-50c6-aeb1-10b6380383c4
 
 	column price_adjustment_key
 		dataType: string

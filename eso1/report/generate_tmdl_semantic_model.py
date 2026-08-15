@@ -156,7 +156,9 @@ TABLES = {
         ('Total CM %', 'DIVIDE([Total Variance], [Total Billable])', '0.0%', 'Freight'),
         ('Freight Shipments', "DISTINCTCOUNT('fact_sales_order_freight'[shipment_number])", '#,0', 'Counts'),
         ('Order Lines', "COUNTROWS('fact_sales_order_freight')", '#,0', 'Counts'),
-        ('Quantity Shipped Tons', "SUM('fact_sales_order_freight'[quantity_shipped_tons])", '#,0.00', 'Volume'),
+        ('Quantity Shipped Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[quantity_shipped] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Volume'),
+        ('Quantity Shipped', "SUM('fact_sales_order_freight'[quantity_shipped])", '#,0.00', 'Volume'),
+        ('Price QTY Shipped', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[quantity_shipped] * IF(TRIM('fact_sales_order_freight'[uom]) = TRIM('fact_sales_order_freight'[unit_price_primary]), 1, DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], 'fact_sales_order_freight'[item_number_short] & \"|\" & TRIM('fact_sales_order_freight'[unit_price_primary])))))", '#,0.00', 'Volume'),
         ('Price Quantity Shipped', "SUM('fact_sales_order_freight'[price_quantity_shipped])", '\\$#,0;-\\$#,0', 'Volume'),
         ('Lines Missing Conversion', 'CALCULATE([Order Lines], \'fact_sales_order_freight\'[missing_conversion_flag]="Y")', '#,0', 'Quality'),
         ('Total Freight', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[total_freight])))", '\\$#,0;-\\$#,0', 'Freight'),
@@ -204,9 +206,9 @@ TABLES = {
         ('AGE of NPO 3 To 5', "SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 3 && a <= 5, 'fact_sales_order_freight'[transaction_quantity]))", '#,0.00', 'Aging'),
         ('AGE of NPO 6 To 14', "SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 6 && a <= 14, 'fact_sales_order_freight'[transaction_quantity]))", '#,0.00', 'Aging'),
         ('AGE of NPO 15 To Any', "SUMX('fact_sales_order_freight', VAR rd = 'fact_sales_order_freight'[requested_date] VAR a = IF(NOT ISBLANK(rd), INT(rd - TODAY())) RETURN IF(a >= 15, 'fact_sales_order_freight'[transaction_quantity]))", '#,0.00', 'Aging'),
-        ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))", '#,0.00', 'Volume'),
-        # SOP620: adds the F41003 standard-UOM fallback (RELATED dim_uom_conversion) where the item-specific F41002 rate is blank — matches the query's F41002->F41003 cascade. Isolated: does NOT touch the base Ordered Tons.
-        ('Ordered Tons (F41003)', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Volume'),
+        ('Ordered Tons', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Volume'),
+        # F41002 item-specific (Tier A) -> F41003 standard (Tier B) -> 1.0 dim cascade.
+        ('Ordered Tons (F41003)', "SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", '#,0.00', 'Volume'),
         ('Container Count', "SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[route_container_count])))", '#,0', 'Volume'),
         # Short Ship Notifications — raw line quantities + the cancel-date notification-window diff (page-filter =1).
         ('Short Ship Shipped Qty', "SUM('fact_sales_order_freight'[quantity_shipped])", '#,0.00', 'Short Ship'),
@@ -325,9 +327,22 @@ TABLES = {
         ('Misc Billing', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[adj_print_code]) = \"ACR\" || LEFT(TRIM('fact_price_adjustment'[price_adjustment_type]), 2) = \"PP\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
         ('Freight Hide', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"FRTHIDE\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
         ('Dryer Freight Charge', "SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = \"EPDELFRT\"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))", '\\$#,0.00', 'Price Adjustment'),
+        # SOP0025 Detail — adjustment-row Product Price. Verified against the fact_price_adjustment rows of two lines:
+        # Hubble prices the adjustment row ONLY for a FRTHIDE (Freight Hide) whose adj_uom = 'TN' = -(ALUPRC x ordered
+        # tons). A FRTHIDE priced in any other UOM (e.g. 'TM'), and EVERY other whitelisted adjustment type, shows a
+        # row but NO price (blank) regardless of sign. (1657933/15 FRTHIDE @ TN -> -4,010.79; 1635056/30.60 FRTHIDE
+        # @ TM -> blank.) So: FrtHide = the FRTHIDE-@-TN signed value; a line with ANY whitelisted adj (based_on<>0)
+        # keeps its adjustment row (FrtHide+0 -> 0 -> blank via the zero-hiding format on Price Value); a line with no
+        # whitelisted adj returns BLANK (no adjustment row). Totals match Hubble on both ranges.
+        ('Adj Product Price', "VAR FrtHide = SUMX(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && 'fact_price_adjustment'[price_adjustment_type] = \"FRTHIDE\" && TRIM('fact_price_adjustment'[adj_uom]) = \"TN\"), VAR uomLine = RELATED('fact_sales_order_freight'[uom]) VAR convFactor = COALESCE(IF(TRIM(uomLine) = \"TN\", 1.0), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], RELATED('fact_sales_order_freight'[item_uom_key])), LOOKUPVALUE(dim_uom_conversion[std_factor], dim_uom_conversion[from_uom], uomLine), 0) RETURN - 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * convFactor) VAR HasWhitelisted = COUNTROWS(FILTER('fact_price_adjustment', 'fact_price_adjustment'[adj_based_on_value] <> 0 && (LEFT('fact_price_adjustment'[price_adjustment_type], 2) = \"PP\" || 'fact_price_adjustment'[price_adjustment_type] = \"A03\" || 'fact_price_adjustment'[price_adjustment_type] = \"CASLB\" || 'fact_price_adjustment'[price_adjustment_type] = \"FRTHIDE\" || 'fact_price_adjustment'[price_adjustment_type] = \"FRTTAXN\" || 'fact_price_adjustment'[price_adjustment_type] = \"FRTTAXY\" || 'fact_price_adjustment'[price_adjustment_type] = \"COLPALN\" || 'fact_price_adjustment'[price_adjustment_type] = \"COLPALT\" || 'fact_price_adjustment'[price_adjustment_type] = \"ALST\"))) RETURN IF(HasWhitelisted > 0, FrtHide + 0, BLANK())", '\\$#,0.00', 'Price Adjustment'),
         # ── line-level sales amounts over the order-line fact (SOP reports' SUM(SDAEXP)=RC13/RC4, SUM(SDECST)=RC17) ──
         ('Sales Amount', "SUM('fact_sales_order_freight'[extended_price])", '\\$#,0.00', 'Price Adjustment'),
         ('Extended Cost', "SUM('fact_sales_order_freight'[extended_cost])", '\\$#,0.00', 'Price Adjustment'),
+        # ── SOP0025 single-table base+adjustment interleave (Hubble look) ──
+        # 'Row Type' (disconnected) drives the sub-row: base row -> Product Price / Total Tons; adjustment row ->
+        # Adj Product Price / blank tons. No 'Row Type' in context (grand total) -> netted base+adjustment.
+        ('Price Value', "VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, \"Product Price\", [Product Price], \"Adjustment\", [Adj Product Price], [Product Price] + [Adj Product Price])", '\\$#,0.00;-\\$#,0.00;', 'Price Adjustment'),
+        ('Tons Value', "VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, \"Product Price\", [Total Tons], \"Adjustment\", BLANK(), [Total Tons])", '#,0.00', 'Price Adjustment'),
       ],
     },
     'dim_item': {
@@ -568,6 +583,17 @@ TABLES = {
         ('currency_code', 'string', False, None),                   # CCCRCD — report DomesticCurrency
         ('period_number_current', 'int64', False, None),            # CCPNC — company current fiscal period
         ('fiscal_year_current', 'int64', False, None),              # CCDFF — company current fiscal year
+      ],
+      "measures": [
+
+      ],
+    },
+    'Row Type': {   # disconnected static table (import DATATABLE) — innermost Matrix row field for the
+                    # SOP0025 base+adjustment single-column interleave. NO relationship; drives Price Value/Tons Value.
+      "calc": "DATATABLE(\"Row Type\", STRING, \"Sort\", INTEGER, {{\"Product Price\", 0}, {\"Adjustment\", 1}})",
+      "cols": [
+        ('Row Type', 'string', False, 'Sort'),   # display value; sorted by Sort so base precedes adjustment
+        ('Sort', 'int64', True, None),
       ],
       "measures": [
 

@@ -61,10 +61,20 @@ table fact_sales_order_freight
 		displayFolder: Counts
 		lineageTag: 39e45523-26f0-5a9a-8438-f20f0992fab0
 
-	measure 'Quantity Shipped Tons' = SUM('fact_sales_order_freight'[quantity_shipped_tons])
+	measure 'Quantity Shipped Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[quantity_shipped] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))
 		formatString: #,0.00
 		displayFolder: Volume
 		lineageTag: f7af5e3c-c811-5141-9a8b-43008c7bbab2
+
+	measure 'Quantity Shipped' = SUM('fact_sales_order_freight'[quantity_shipped])
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: df397229-b5fd-5dc6-8585-7ea6bc99f726
+
+	measure 'Price QTY Shipped' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[quantity_shipped] * IF(TRIM('fact_sales_order_freight'[uom]) = TRIM('fact_sales_order_freight'[unit_price_primary]), 1, DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], 'fact_sales_order_freight'[item_number_short] & "|" & TRIM('fact_sales_order_freight'[unit_price_primary])))))
+		formatString: #,0.00
+		displayFolder: Volume
+		lineageTag: 0d702826-7375-572f-af82-07d207b21a14
 
 	measure 'Price Quantity Shipped' = SUM('fact_sales_order_freight'[price_quantity_shipped])
 		formatString: \$#,0;-\$#,0
@@ -171,12 +181,12 @@ table fact_sales_order_freight
 		displayFolder: Aging
 		lineageTag: 084751e8-b505-5656-89c8-10511bcb0b8b
 
-	measure 'Ordered Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0))
+	measure 'Ordered Tons' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))
 		formatString: #,0.00
 		displayFolder: Volume
 		lineageTag: 0f5a8d12-4aa0-5589-830f-a8d94a3e33ed
 
-	measure 'Ordered Tons (F41003)' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], RELATED(dim_uom_conversion[std_factor]), 0))
+	measure 'Ordered Tons (F41003)' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))
 		formatString: #,0.00
 		displayFolder: Volume
 		lineageTag: acb2421f-8103-5bd5-b46c-6195574ecf06

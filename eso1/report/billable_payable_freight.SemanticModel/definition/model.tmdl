@@ -27,3 +27,4 @@ ref table dim_uom_conversion_item
 ref table 'Second Item Filter'
 ref table 'Order Filter'
 ref table dim_company
+ref table 'Row Type'
