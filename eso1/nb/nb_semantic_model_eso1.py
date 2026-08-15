@@ -397,10 +397,19 @@ PADJ_MEASURES = {
     # line-level buckets — over the order-line fact directly
     # tons via the UOM->TN cascade: Tier0 (uom=TN ->1) -> TierA (F41002 item dim) -> TierB (F41003 std dim) -> 0
     "Total Tons":       (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE(IF(TRIM('{FACT}'[uom]) = \"TN\", 1.0), RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
-    "Product Price":    (f"SUMX(FILTER('{FACT}', NOT(TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\")), '{FACT}'[extended_price])", "\\$#,0.00", False),
+    # product-line tons only (excludes F/FT freight lines) — identical to Total Tons on product lines, blank on freight
+    # lines. Bind the SOP620 bucket-report Total Tons column here so freight rows show blank like Hubble.
+    "Total Tons (Product)": (f"SUMX(FILTER('{FACT}', NOT(TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\")), '{FACT}'[transaction_quantity] * COALESCE(IF(TRIM('{FACT}'[uom]) = \"TN\", 1.0), RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
+    "Product Price":(f"SUMX(FILTER('{FACT}', NOT(TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\")), '{FACT}'[extended_price])", "\\$#,0.00", False),
+    # product-line extended_price only (excludes F/FT freight lines). Same logic as Product Price; a clearly-named
+    # report-scoped column so the SOP620 report never picks up a plain SUM(extended_price) (e.g. Sales Amount) on freight rows.
+    "Product Price (Product)": (f"SUMX(FILTER('{FACT}', NOT(TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\")), '{FACT}'[extended_price])", "\\$#,0.00", False),
     "Price Per Ton":    ("DIVIDE([Product Price], [Total Tons])", "\\$#,0.00", False),
+    # SOP620 bucket-report Price Per Ton — freight-excluded numerator AND denominator so freight rows show blank
+    # (0/blank) instead of $0.00 (0/1). Product-line values identical to Price Per Ton. Bind the "(Product)" trio together.
+    "Price Per Ton (Product)": ("DIVIDE([Product Price (Product)], [Total Tons (Product)])", "\\$#,0.00", False),
     "Deferred Revenue": (f"SUMX(FILTER('{FACT}', TRIM('{FACT}'[deferred_entries_flag]) <> \"\"), '{FACT}'[extended_price])", "\\$#,0.00", False),
-    "Freight":          (f"SUMX(FILTER('{FACT}', (TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\") && (LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"BIL\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"FRE\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"FUE\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"TRA\")), '{FACT}'[extended_price])", "\\$#,0.00", False),
+    "Freight":          (f"SUMX(FILTER('{FACT}', (TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\") && (LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"BIL\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"FRE\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"FUE\" || LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"TRA\")), '{FACT}'[extended_price]) + SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTTAXN\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTTAXY\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),
     "Car Charges":      (f"SUMX(FILTER('{FACT}', (TRIM('{FACT}'[line_type]) = \"F\" || TRIM('{FACT}'[line_type]) = \"FT\") && LEFT(TRIM('{FACT}'[third_item_number]), 3) = \"RAI\"), '{FACT}'[extended_price])", "\\$#,0.00", False),
     # adjustment-level buckets — per F4074 row: ALUPRC × the line's ordered tons (RELATED)
     "Non Product":      (f"SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[adj_print_code]) = \"NON\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))", "\\$#,0.00", False),

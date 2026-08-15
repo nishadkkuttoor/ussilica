@@ -6,22 +6,37 @@ table fact_price_adjustment
 		displayFolder: Price Adjustment
 		lineageTag: f5af3782-2b89-571b-b06a-db95f262566a
 
+	measure 'Total Tons (Product)' = SUMX(FILTER('fact_sales_order_freight', NOT(TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT")), 'fact_sales_order_freight'[transaction_quantity] * COALESCE(IF(TRIM('fact_sales_order_freight'[uom]) = "TN", 1.0), RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))
+		formatString: #,0.00
+		displayFolder: Price Adjustment
+		lineageTag: 6b941403-6d35-5b9a-85cf-06fe3b348b60
+
 	measure 'Product Price' = SUMX(FILTER('fact_sales_order_freight', NOT(TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT")), 'fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: 82b231f4-ce01-5fda-83ba-d1e22d799086
+
+	measure 'Product Price (Product)' = SUMX(FILTER('fact_sales_order_freight', NOT(TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT")), 'fact_sales_order_freight'[extended_price])
+		formatString: \$#,0.00
+		displayFolder: Price Adjustment
+		lineageTag: 5839bd46-8ce4-55b7-861c-ba5a0fd41fee
 
 	measure 'Price Per Ton' = DIVIDE([Product Price], [Total Tons])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: e0010b32-d04e-5ade-8f2c-d876f5452a89
 
+	measure 'Price Per Ton (Product)' = DIVIDE([Product Price (Product)], [Total Tons (Product)])
+		formatString: \$#,0.00
+		displayFolder: Price Adjustment
+		lineageTag: f8ed2c85-2b7e-590e-b33c-b26471b192fe
+
 	measure 'Deferred Revenue' = SUMX(FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[deferred_entries_flag]) <> ""), 'fact_sales_order_freight'[extended_price])
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: a148102f-f077-5f99-ad83-dc8c7493ca26
 
-	measure 'Freight' = SUMX(FILTER('fact_sales_order_freight', (TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT") && (LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "BIL" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "FRE" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "FUE" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "TRA")), 'fact_sales_order_freight'[extended_price])
+	measure 'Freight' = SUMX(FILTER('fact_sales_order_freight', (TRIM('fact_sales_order_freight'[line_type]) = "F" || TRIM('fact_sales_order_freight'[line_type]) = "FT") && (LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "BIL" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "FRE" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "FUE" || LEFT(TRIM('fact_sales_order_freight'[third_item_number]), 3) = "TRA")), 'fact_sales_order_freight'[extended_price]) + SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTTAXN" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTTAXY"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))
 		formatString: \$#,0.00
 		displayFolder: Price Adjustment
 		lineageTag: dc0a079e-7595-5a37-a896-98c5511c98a4
