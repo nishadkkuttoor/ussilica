@@ -12,18 +12,16 @@
 # One row per F4211 sales-order line × qualifying F4074 price-adjustment. F4074 is
 # LEFT-joined after a whitelist pre-filter (ALAST in ADJ_WHITELIST), so a line with N
 # whitelisted adjustments fans out to N rows, and a line with none produces one base
-# row (adjustment columns NULL). This mirrors the reporting SQL's `F4211 LEFT JOIN F4074
-# ON (line keys) AND (ALAST IS NULL OR ALAST IN (whitelist))` grain.
+# row (adjustment columns NULL).
 #
 # ── F4211-ONLY (no F42119 history union) ──
-# Driver is the live F4211 sales-order detail only. F42119 (sales-order history) is NOT
-# unioned here: the price-adjustment reporting reads current F4211 exclusively.
+# Driver is the live F4211 sales-order detail only; F42119 (sales-order history) is NOT
+# unioned here.
 #
 # ── LINE MEASURES REPEAT ACROSS THE FAN ──
 # The line-grain values (extended_price SDAEXP, extended_cost SDECST, ordered_tons,
 # shipped_tons, quantity SDSOQS/SDPQOR) are computed once per line and repeat on every
-# adjustment row of that line — matching the SQL, where each (line, adjustment) group
-# carries the line's SUM(). Display-once is a report-layer concern (measure / row-type).
+# adjustment row of that line. Display-once is a measure / row-type concern.
 #
 # ── ORDERED / SHIPPED TONS CASCADE (self-contained, not the shared UOM dims) ──
 # ordered_tons = SDUORG × factor ; shipped_tons = SDSOQS × factor, where factor is the
@@ -31,9 +29,9 @@
 # (standard) → SDUOM=IMUOM1 identity, with the ambiguity rule (more than one distinct
 # factor for a key → unusable → 0) and the zero/NULL-divisor guard → 0. The item-specific
 # leg reads F41002.UMCNV1 (Silver conversion_factor_sec) and its reverse UMCNV1/UMCONV;
-# the standard leg reads F41003.UCCONV (Silver conversion_factor) and its reciprocal. This
-# is deliberately separate from the shared `dim_uom_conversion*` cascade (which uses
-# UMCONV) so this fact resolves tons the way this report family requires.
+# the standard leg reads F41003.UCCONV (Silver conversion_factor) and its reciprocal. Kept
+# separate from the shared `dim_uom_conversion*` cascade (which uses UMCONV) so this fact
+# resolves tons independently.
 #
 # ── KEY ──
 # `sales_order_line_key` = sk(SDKCOO | SDDCTO | SDDOCO | SDLNID) — the SAME formula the
@@ -42,8 +40,8 @@
 #
 # ── NO BUSINESS FILTERS ──
 # No status / document-type / date / branch / customer WHERE — the fact carries EVERY
-# F4211 line. Those are report-level page filters. The ONLY grain-shaping rule baked in is
-# the F4074 ALAST whitelist (it defines the fan-out and the base-row semantics).
+# F4211 line (those are page filters). The ONLY grain-shaping rule baked in is the F4074
+# ALAST whitelist (it defines the fan-out and the base-row semantics).
 #
 # ── BUILD (BATCH) ──
 #   • read the Silver snapshot of every source, run build_fact() ONCE, overwrite the fact.
@@ -84,21 +82,20 @@ F49211 = "f49211_sales_order_detail_file_tag_file"                  # SO-line ta
 # ── Gold target BUILT here ─────────────────────────────────────────────────────
 FACT = "fact_sales_order_price_adjustment"
 
-# ── Price-adjustment whitelist (ALAST) — GRAIN-shaping, not a report filter ──
-# Only these adjustment types fan a line out; every other F4074 row is treated as
-# "no adjustment" (the line keeps its single base row), matching the reporting SQL's
-# `ALAST IN (...)` LEFT-join predicate.
+# ── Price-adjustment whitelist (ALAST) — GRAIN-shaping ──
+# Only these adjustment types fan a line out; every other F4074 row is treated as "no adjustment"
+# (the line keeps its single base row via the LEFT join).
 _ADJ_WHITELIST_CORE = [
     "A03", "CASLB", "FRTHIDE", "FRTTAXN", "FRTTAXY",
     "PP06", "PP07", "PP08", "PP13", "PP15", "PP17", "PP26", "PP37",
     "PP50", "PP51", "PP56", "PP57", "PP97", "PP99", "PPSLB",
     "COLPALN", "COLPALT", "ALST",
 ]
-# ENERGY toggle — only SOP0007 whitelists ENERGY; the other 6 SOP reports do not. Including it
-# adds ENERGY adjustment rows for every report, which (for the 6) turns an otherwise-base row on an
-# ENERGY-only line into an ENERGY adjustment row. Leave False unless SOP0007 needs ENERGY priced,
-# then filter it back out at the page level on the 6 reports (or accept the tiny ENERGY-only-line shift).
-INCLUDE_ENERGY = False
+# ENERGY toggle. True → ENERGY adjustments fan out too. A line that carries ENERGY alongside another
+# whitelisted adjustment is unaffected in its aggregates (the ENERGY row has is_primary_line_row=N and
+# 0 in every bucket column). A line whose ONLY whitelisted adjustment is ENERGY exists as an ENERGY row
+# instead of a base row — set False to keep such a line as a base row.
+INCLUDE_ENERGY = True
 ADJ_WHITELIST = _ADJ_WHITELIST_CORE + (["ENERGY"] if INCLUDE_ENERGY else [])
 
 print(f"ESO1 Gold fact_sales_order_price_adjustment processor (batch build) — target {gname(FACT)}")
@@ -202,7 +199,7 @@ LINE_COLS = [
     # ── status / handling / transport ──
     "hold_orders_code", "status_code_last", "status_code_next", "next_status_num", "last_status_num",
     "freight_handling_code", "cars", "mode_of_transport", "container_id", "customer_po_number",
-    "gl_class", "line_type",
+    "gl_class", "line_type", "payment_terms_code_01",
     "sales_reporting_code_01", "sales_reporting_code_02", "sales_reporting_code_03",
     "sales_reporting_code_04", "sales_reporting_code_05",
     # ── address / dimension FKs ──
@@ -212,7 +209,7 @@ LINE_COLS = [
     "order_date", "requested_date", "actual_ship_date", "invoice_date", "gl_date",
     "order_date_key", "requested_date_key", "ship_date_key", "invoice_date_key", "gl_date_key",
     # ── uom / tons ──
-    "uom", "uom_primary", "conversion_to_tons_rate", "missing_conversion_flag",
+    "uom", "uom_primary", "uom_structure", "conversion_to_tons_rate", "missing_conversion_flag",
     "ordered_tons", "shipped_tons",
     # ── line measures ──
     "quantity_shipped", "primary_quantity_ordered", "transaction_quantity",
@@ -230,7 +227,7 @@ ADJ_COLS = ["price_adjustment_type", "adj_print_code", "adj_unit_price", "adj_uo
 # is_primary_line_row: 'Y' on exactly ONE row per line. Line-grain values repeat across the
 # adjustment fan, so line-level measures must sum with this flag (CALCULATE(..., ="Y")) to avoid
 # N× inflation; adjustment-level buckets ignore it and iterate all rows.
-# is_product_line + freight_hide_amount: precomputed report classification so the semantic-model
+# is_product_line + freight_hide_amount: precomputed classification so the semantic-model
 # measures are trivial fast aggregates instead of per-row FILTER(fact) scans.
 FACT_BUSINESS_COLS = LINE_COLS + ADJ_COLS + [
     "is_primary_line_row", "is_product_line",
@@ -260,6 +257,13 @@ def build_line_df():
                 F.col("segment_04").alias("item_segment_4"))
             .dropDuplicates(["im_itm"]))
 
+    # item-level UOM structure (F41002 UMUSTR, blank cost-center) → one row per item so this LEFT
+    # join can't fan the line grain. UMUSTR is an item attribute (the UOM template the item uses —
+    # constant across the item's UOM rows); F.max collapses the rare multi-value case deterministically.
+    struct = (load_silver_table(F41002).filter(F.trim(F.col("cost_center")) == "")
+              .groupBy("identifier_short_item")
+              .agg(F.max(F.trim(F.col("uom_structure"))).alias("uom_structure")))
+
     # order header → hold code (one row per order)
     hdr = (sh.select(
                F.col("company_key_order_no").alias("h_kcoo"),
@@ -279,6 +283,8 @@ def build_line_df():
                (F.col("tg.order_type") == F.col("sd.order_type")) &
                (F.col("tg.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
                (F.col("tg.line_number") == F.col("sd.line_number")), "left")
+         .join(struct.alias("us"),
+               F.col("us.identifier_short_item") == F.col("sd.identifier_short_item"), "left")
          # tons cascade lookups: item-specific (from SDUOM / to TN) then standard (from SDUOM / to TN)
          .join(conv_item.alias("cif"),
                (F.col("cif.itm") == F.col("sd.identifier_short_item")) &
@@ -301,7 +307,7 @@ def build_line_df():
     to_factor = F.coalesce(
         F.col("cit.conv_item"), F.col("cst.conv_std"),
         F.when(F.lit("TN") == F.trim(F.col("im.uom_primary")), F.lit(1.0)))
-    # zero/null-divisor guard → factor 0 (matches the SQL's zero-on-fail cascade)
+    # zero/null-divisor guard → factor 0 (zero-on-fail cascade)
     factor = F.when(from_factor.isNull() | to_factor.isNull() | (to_factor == 0), F.lit(0.0)) \
               .otherwise(from_factor / to_factor)
 
@@ -327,6 +333,7 @@ def build_line_df():
         F.col("sd.reference_01").alias("customer_po_number"),             # SDVR01 (Customer PO Number)
         F.col("sd.gl_class").alias("gl_class"),                           # SDGLC
         F.col("sd.line_type").alias("line_type"),                        # SDLNTY
+        F.col("sd.payment_terms_code_01").alias("payment_terms_code_01"), # SDPTC (payment terms)
         F.col("sd.sales_reporting_code_01").alias("sales_reporting_code_01"),
         F.col("sd.sales_reporting_code_02").alias("sales_reporting_code_02"),
         F.col("sd.sales_reporting_code_03").alias("sales_reporting_code_03"),
@@ -350,6 +357,7 @@ def build_line_df():
         # ── uom / tons ──
         F.col("sd.uom_as_input").alias("uom"),                            # SDUOM
         F.col("im.uom_primary").alias("uom_primary"),                     # IMUOM1
+        F.col("us.uom_structure").alias("uom_structure"),                 # UMUSTR (F41002 item UOM structure)
         factor.alias("conversion_to_tons_rate"),
         F.when(factor == 0, F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
         (F.col("sd.units_transaction_qty").cast("double") * factor).alias("ordered_tons"),   # SDUORG × factor
@@ -410,8 +418,8 @@ def build_adjustments():
         F.col("based_on_value").cast("double").alias("adj_based_on_value"),      # ALBSDVAL
         F.col("gl_class").alias("adj_gl_class"),                                 # ALGLC
         F.col("factor_value").cast("double").alias("adj_factor_value"))          # ALFVTR
-    # collapse to the reporting SQL's adjustment grain (ALAST, ALUPRC, ALUOM, ALBSDVAL) so
-    # duplicate F4074 records don't double-count in the adjustment-bucket measures.
+    # collapse to the adjustment grain (ALAST, ALUPRC, ALUOM, ALBSDVAL) so duplicate F4074
+    # records don't double-count in the adjustment-bucket measures.
     return adj.dropDuplicates(["sales_order_line_key", "price_adjustment_type",
                                "adj_unit_price", "adj_uom", "adj_based_on_value"])
 
@@ -434,10 +442,10 @@ def build_fact():
                         F.when(F.col("_seq") == 1, F.lit("Y")).otherwise(F.lit("N")))
             .drop("_seq"))
 
-    # ── report classification columns (precomputed so the DAX measures are fast aggregates) ──
-    # is_product_line: a line counts toward Total Tons / Product Price when it is priced by the standard
-    # base-price adjustment (has an A03 F4074 row) OR net-priced (user_reserved_code NP/N3), AND it is
-    # NOT a freight line (F/FT) and NOT a charge/dryer item.
+    # ── classification columns (precomputed so the DAX measures are fast aggregates) ──
+    # is_product_line: a product line is priced by the standard base-price adjustment (has an A03 F4074
+    # row) OR net-priced (user_reserved_code NP/N3), AND is NOT a freight line (F/FT) and NOT a
+    # charge/dryer item.
     _charge_items = ["MISC BILLING", "EXPEDITE FEE", "BANKING FEE", "TRANSLOAD CHARGES",
                      "DRYER TAILINGS", "DRYER TAILING #1", "DRYER TAILING #40"]
     _line_w = Window.partitionBy("sales_order_line_key")
@@ -449,11 +457,9 @@ def build_fact():
                 & (~F.trim(F.col("second_item_number")).isin(_charge_items)))
     df = (df.withColumn("is_product_line", F.when(_is_prod, F.lit("Y")).otherwise(F.lit("N")))
             .drop("_has_a03"))
-    # freight_hide_amount: FRTHIDE adjustment priced by its own UOM — ordered_tons when adj_uom=TN,
-    # else the line's native transaction_quantity (BG/TM). Zero on all other rows.
-    # FRTHIDE is counted ONLY for the ALUOM×SDUOM pairs the report recognises (RC92-116):
-    # (TM,BG),(TN,TN),(TN,BG),(BG,BG),(TM,TM). Any other pair is excluded (e.g. WTXFRSBX). Amount =
-    # adj_unit_price × qty-in-ALUOM (ordered_tons for TN, else native transaction_quantity).
+    # freight_hide_amount: FRTHIDE adjustment priced by its own UOM = adj_unit_price × qty-in-ALUOM
+    # (ordered_tons when adj_uom=TN, else the line's native transaction_quantity). Counted ONLY for the
+    # ALUOM×SDUOM pairs (TM,BG),(TN,TN),(TN,BG),(BG,BG),(TM,TM); zero on all other rows/pairs.
     _au = F.trim(F.col("adj_uom")); _su = F.trim(F.col("uom"))
     _fh_pair = (((_au == "TM") & (_su == "BG")) | ((_au == "TN") & (_su == "TN"))
                 | ((_au == "TN") & (_su == "BG")) | ((_au == "BG") & (_su == "BG"))
@@ -466,7 +472,7 @@ def build_fact():
                         .otherwise(F.lit(0.0)))
 
     # ── precomputed per-row bucket amounts so every DAX measure is a plain SUM(column) (no per-cell
-    #    FILTER(fact) scans → avoids the 10 GB query blowup). ──
+    #    FILTER(fact) scans). ──
     _prod    = (F.col("is_product_line") == "Y") & (F.col("is_primary_line_row") == "Y")   # one product row per line
     _adjton  = F.col("adj_unit_price").cast("double") * F.col("ordered_tons")               # adjustment $ = ALUPRC × tons
     _pref3   = F.substring(F.trim(F.col("third_item_number")), 1, 3)                        # SDAITM prefix
