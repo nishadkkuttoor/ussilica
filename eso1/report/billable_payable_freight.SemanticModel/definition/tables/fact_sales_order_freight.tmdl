@@ -1,7 +1,7 @@
 table fact_sales_order_freight
 	lineageTag: 20a80d3b-3396-5464-ac9e-ade34e283188
 
-	measure 'Billable Freight' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), VAR _actual = CALCULATE(MAX('fact_sales_order_freight'[billable_freight_actual])) RETURN IF(_actual <> 0, _actual, CALCULATE(SUM('fact_sales_order_freight'[billable_freight_estimate]))))
+	measure 'Billable Freight' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), VAR _actual = CALCULATE(MAX('fact_sales_order_freight'[billable_freight_actual])) VAR _estimate = CALCULATE(SUMX(FILTER('fact_price_adjustment', TRIM('fact_price_adjustment'[price_adjustment_type]) = "EPDELFRT" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTHIDE" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTTAXY" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTTAXN" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "FRTNBP" || TRIM('fact_price_adjustment'[price_adjustment_type]) = "POOLFSC"), 'fact_price_adjustment'[adj_unit_price] * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0) * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0))) RETURN IF(_actual <> 0, _actual, _estimate))
 		formatString: \$#,0;-\$#,0
 		displayFolder: Freight
 		lineageTag: 6d2fbe1b-c726-513d-8c2c-f7374f707d80
@@ -577,13 +577,6 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: billable_freight_actual
 		lineageTag: 228e7611-f957-5068-bd01-a25c414764ac
-
-	column billable_freight_estimate
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: billable_freight_estimate
-		lineageTag: 228e7611-f957-5068-bd01-a25c414764ae
 
 	column billable_fuel
 		dataType: double

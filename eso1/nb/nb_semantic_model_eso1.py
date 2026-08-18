@@ -192,7 +192,7 @@ RELATIONSHIPS = [
 #
 #  #  Measure                    Format    DAX                                                                                            Description
 # ── FREIGHT $ (shipment-deduped) ─────────────────────────────────────────────
-#  1 Billable Freight           $#,0      SUMX(VALUES(FACT[shipment_number]), IF(MAX(billable_freight_actual)<>0, actual, SUM(billable_freight_estimate)))  Customer-billed freight: F4981 actual if present, else F4074 estimate
+#  1 Billable Freight           $#,0      SUMX(VALUES(FACT[shipment_number]), IF(MAX(billable_freight_actual)<>0, actual, SUMX over fact_price_adjustment freight codes of adj_unit_price×RELATED(tons)))  Customer-billed freight: F4981 actual if present, else F4074 estimate
 #  2 Billable Fuel              $#,0      SUMX(VALUES(FACT[shipment_number]), CALCULATE(MAX(FACT[billable_fuel])))                        Fuel surcharge billed to the customer (F4981)
 #  3 Total Billable             $#,0      [Billable Freight] + [Billable Fuel]                                                           Total billed to customer = billable freight + fuel
 #  4 Payable Freight            $#,0      SUMX(VALUES(FACT[shipment_number]), CALCULATE(MAX(FACT[payable_freight])))                      Freight owed to the carrier
@@ -244,9 +244,11 @@ RELATIONSHIPS = [
 MEASURES = {
     # freight $ — deduped to shipment grain (correct under any line-level filter)
     # Billable Freight = F4981 carrier-billed ACTUAL when the shipment has one, ELSE the F4074 line-level
-    # ESTIMATE (frt_adj_rate × ordered_tons). Per shipment: actual (dedup, shipment grain) or sum of the
-    # shipment's line estimates. At line detail the filter context narrows the estimate SUM to that line.
-    "Billable Freight": (f"SUMX(VALUES('{FACT}'[shipment_number]), VAR _actual = CALCULATE(MAX('{FACT}'[billable_freight_actual])) RETURN IF(_actual <> 0, _actual, CALCULATE(SUM('{FACT}'[billable_freight_estimate]))))", "\\$#,0", False),
+    # ESTIMATE = SUMX over fact_price_adjustment (freight-whitelist codes) of adj_unit_price × ordered_tons,
+    # pulling the line's transaction_quantity / conversion_to_tons_rate via RELATED (same basis as the
+    # bucket measures). CALCULATE transitions the per-shipment row context to a filter that propagates
+    # freight→fact_price_adjustment, so the estimate is the shipment's (or the line's, at detail) F4074 total.
+    "Billable Freight": (f"SUMX(VALUES('{FACT}'[shipment_number]), VAR _actual = CALCULATE(MAX('{FACT}'[billable_freight_actual])) VAR _estimate = CALCULATE(SUMX(FILTER('{PADJ_FACT}', TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"EPDELFRT\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTHIDE\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTTAXY\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTTAXN\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"FRTNBP\" || TRIM('{PADJ_FACT}'[price_adjustment_type]) = \"POOLFSC\"), '{PADJ_FACT}'[adj_unit_price] * COALESCE(RELATED('{FACT}'[transaction_quantity]), 0) * COALESCE(RELATED('{FACT}'[conversion_to_tons_rate]), 0))) RETURN IF(_actual <> 0, _actual, _estimate))", "\\$#,0", False),
     "Billable Fuel":    (f"SUMX(VALUES('{FACT}'[shipment_number]), CALCULATE(MAX('{FACT}'[billable_fuel])))",    "\\$#,0", False),
     # Total Billable is now measure-computed (Billable Freight is mixed actual/estimate grain — no shipment column).
     "Total Billable":   ("[Billable Freight] + [Billable Fuel]",   "\\$#,0", False),
@@ -498,9 +500,9 @@ with connect_semantic_model(dataset=MODEL, readonly=False) as tom:
                "promised_ship_date_key", "ship_date_key", "gl_date_key", "invoice_date_key",
                "cancel_date_key", "line_price_effective_date_key", "header_price_effective_date_key",
                "earliest_pickup_date_key", "latest_delivery_date_key",
-               # internal billable-freight legs (F4981 actual + F4074 estimate) — the [Billable Freight]
-               # measure combines them; hide the raw columns from report view.
-               "billable_freight_actual", "billable_freight_estimate",
+               # internal billable-freight ACTUAL leg (F4981) — the [Billable Freight] measure adds the
+               # F4074 estimate over fact_price_adjustment; hide the raw column from report view.
+               "billable_freight_actual",
                "shift_factor_applied"],
         # commission fact — hide keys, the retained-but-unused date_key ints, the dedup helper
         # flag (is_primary_commission_line drives the measures, not a report field), and lineage.
