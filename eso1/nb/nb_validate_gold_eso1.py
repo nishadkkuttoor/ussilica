@@ -180,10 +180,12 @@ check("completeness_uom_conversion_present", "informational",
 dup_lines = fact.groupBy("sales_order_line_key").count().filter("count > 1").count()
 check("duplicate_sales_order_line_key", 0, dup_lines, dup_lines == 0)
 
-# one freight bucket set per shipment (denormalized value must be consistent across the shipment's lines)
+# one payable-freight set per shipment (denormalized value must be consistent across the shipment's lines).
+# NOTE: billable freight is now mixed grain (F4981 actual shipment-level + F4074 estimate line-level),
+# so it is NOT shipment-constant — the consistency check uses total_payable (still pure shipment grain).
 inconsistent = (active.filter(F.col("shipment_number").isNotNull())
                 .groupBy("shipment_number")
-                .agg(F.countDistinct("total_billable").alias("d"))
+                .agg(F.countDistinct("total_payable").alias("d"))
                 .filter("d > 1").count())
 check("freight_bucket_consistent_per_shipment", 0, inconsistent, inconsistent == 0)
 
@@ -219,19 +221,16 @@ for fk, dt, dk in [
 
 # ── 6. REPORT RECONCILIATION — deduped freight control totals ─────────────────
 # Two independent dedup methods must agree (proves the anchor == SUMX dedup logic).
+# Only total_payable is a pure shipment-grain fact column now, so it is the one validated by the two
+# independent dedup methods. total_billable / total_variance became mixed-grain DAX measures (Billable
+# Freight = F4981 actual-or-F4074 estimate) and are validated at the report layer, not here.
 anchor = (active.filter(F.col("is_primary_shipment_line") == "Y")
-          .agg(F.round(F.sum("total_billable"), 2).alias("b"),
-               F.round(F.sum("total_payable"), 2).alias("p"),
-               F.round(F.sum("total_variance"), 2).alias("v")).first())
+          .agg(F.round(F.sum("total_payable"), 2).alias("p")).first())
 sumx = (active.filter(F.col("shipment_number").isNotNull())
         .groupBy("shipment_number")
-        .agg(F.max("total_billable").alias("b"), F.max("total_payable").alias("p"),
-             F.max("total_variance").alias("v"))
-        .agg(F.round(F.sum("b"), 2).alias("b"), F.round(F.sum("p"), 2).alias("p"),
-             F.round(F.sum("v"), 2).alias("v")).first())
-check("recon_total_billable_dedup", anchor["b"], sumx["b"], anchor["b"] == sumx["b"])
+        .agg(F.max("total_payable").alias("p"))
+        .agg(F.round(F.sum("p"), 2).alias("p")).first())
 check("recon_total_payable_dedup",  anchor["p"], sumx["p"], anchor["p"] == sumx["p"])
-check("recon_total_variance_dedup", anchor["v"], sumx["v"], anchor["v"] == sumx["v"])
 
 ship_ct = active.select("shipment_number").distinct().count()
 check("recon_freight_shipment_count", "> 0", f"{ship_ct:,}", ship_ct > 0)

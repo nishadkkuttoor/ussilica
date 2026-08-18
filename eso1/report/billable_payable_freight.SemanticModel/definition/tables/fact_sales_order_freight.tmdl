@@ -1,7 +1,7 @@
 table fact_sales_order_freight
 	lineageTag: 20a80d3b-3396-5464-ac9e-ade34e283188
 
-	measure 'Billable Freight' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[billable_freight])))
+	measure 'Billable Freight' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), VAR _actual = CALCULATE(MAX('fact_sales_order_freight'[billable_freight_actual])) RETURN IF(_actual <> 0, _actual, CALCULATE(SUM('fact_sales_order_freight'[billable_freight_estimate]))))
 		formatString: \$#,0;-\$#,0
 		displayFolder: Freight
 		lineageTag: 6d2fbe1b-c726-513d-8c2c-f7374f707d80
@@ -11,7 +11,7 @@ table fact_sales_order_freight
 		displayFolder: Freight
 		lineageTag: e9031740-81bd-58e7-81a7-dc2b7bc3dade
 
-	measure 'Total Billable' = SUMX(VALUES('fact_sales_order_freight'[shipment_number]), CALCULATE(MAX('fact_sales_order_freight'[total_billable])))
+	measure 'Total Billable' = [Billable Freight] + [Billable Fuel]
 		formatString: \$#,0;-\$#,0
 		displayFolder: Freight
 		lineageTag: 1735c533-0eed-5bd5-ae21-880300efd06a
@@ -571,12 +571,19 @@ table fact_sales_order_freight
 		sourceColumn: price_override_code
 		lineageTag: b9962a97-66c8-5a52-b184-f02b9e091422
 
-	column billable_freight
+	column billable_freight_actual
 		dataType: double
 		isHidden
 		summarizeBy: none
-		sourceColumn: billable_freight
+		sourceColumn: billable_freight_actual
 		lineageTag: 228e7611-f957-5068-bd01-a25c414764ac
+
+	column billable_freight_estimate
+		dataType: double
+		isHidden
+		summarizeBy: none
+		sourceColumn: billable_freight_estimate
+		lineageTag: 228e7611-f957-5068-bd01-a25c414764ae
 
 	column billable_fuel
 		dataType: double
@@ -584,13 +591,6 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: billable_fuel
 		lineageTag: 31e5559f-db08-5ca7-84e8-bb76b5f16214
-
-	column total_billable
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: total_billable
-		lineageTag: 1d5ae80a-55f3-5c67-bdaa-f17271f3552d
 
 	column payable_freight
 		dataType: double
@@ -646,20 +646,6 @@ table fact_sales_order_freight
 		summarizeBy: none
 		sourceColumn: address_number_parent
 		lineageTag: b7349e1d-0edb-55af-8262-c06612098acd
-
-	column freight_variance
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: freight_variance
-		lineageTag: e9e540af-c415-59d9-b8dd-193dd19a52d6
-
-	column total_variance
-		dataType: double
-		isHidden
-		summarizeBy: none
-		sourceColumn: total_variance
-		lineageTag: ae8fccce-8034-59af-97c5-cf444aac5a39
 
 	column is_primary_shipment_line
 		dataType: string

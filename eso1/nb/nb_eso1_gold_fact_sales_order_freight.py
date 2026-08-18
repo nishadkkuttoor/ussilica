@@ -51,6 +51,7 @@ F5642B01 = "f5642b01_custom_sales_order_entry_screen_header"
 F5642B11 = "f5642b11_custom_sales_order_entry_screen_detail"
 F4941    = "f4941_shipment_routing_steps"
 # ── additional sources ──
+F4074    = "f4074_price_adjustment_ledger_file"   # price-adjustment ledger (F4074 freight estimate → billable_freight_estimate)
 F4106    = "f4106_item_base_price_file"           # item base price (has_effective_price flag)
 F5549002 = "f5549002_mxp_bol_interface_detail"    # BOL interface weigh-ticket weights
 F03012   = "f03012_customer_master_by_line_of_business"  # sold-to LOB category (AIAC05)
@@ -165,8 +166,11 @@ def transform_freight_buckets():
     # total_freight is DELIBERATELY NOT gated (it stays the raw all-row FHNAMT total).
     _inv = F.trim(F.col("vendor_invoice_number")) != "NULL"
     # freight location (FHCTY1/FHADDS/FHADDZ) denormalized at shipment grain (first non-null)
+    # billable_freight_actual = F4981 carrier-billed freight (B/BFR). This is the ACTUAL billable, used
+    # only when the shipment has one; otherwise the report falls back to the F4074 line-level estimate
+    # (billable_freight_estimate, built in build_fact). billable_fuel stays F4981-only (no estimate leg).
     return (f4981.groupBy("shipment_number").agg(
-                F.round(F.sum(F.when((bp == "B") & (cgc == "BFR")            & _inv, amt).otherwise(0.0)), 2).alias("billable_freight"),
+                F.round(F.sum(F.when((bp == "B") & (cgc == "BFR")            & _inv, amt).otherwise(0.0)), 2).alias("billable_freight_actual"),
                 F.round(F.sum(F.when((bp == "B") & (cgc.isin("FSC", "FSB")) & _inv, amt).otherwise(0.0)), 2).alias("billable_fuel"),
                 F.round(F.sum(F.when((bp == "P") & (cgc == "PFR")            & _inv, amt).otherwise(0.0)), 2).alias("payable_freight"),
                 F.round(F.sum(F.when((bp == "P") & (cgc == "FSC")            & _inv, amt).otherwise(0.0)), 2).alias("payable_fuel"),
@@ -179,10 +183,10 @@ def transform_freight_buckets():
                 F.first(F.trim("state"), ignorenulls=True).alias("freight_state"),
                 F.first(F.trim("zip_code_postal"), ignorenulls=True).alias("freight_zip"),
                 F.first(F.trim("freight_handling_code"), ignorenulls=True).alias("freight_audit_handling_code"))
-            .withColumn("total_billable",   F.round(F.col("billable_freight") + F.col("billable_fuel"), 2))
+            # total_payable stays pure shipment grain (payable side unchanged). total_billable /
+            # freight_variance / total_variance are now measure-computed ([Billable Freight] is mixed-grain
+            # actual-or-estimate, so they can't be a shipment-grain column) — dropped here.
             .withColumn("total_payable",    F.round(F.col("payable_freight")  + F.col("payable_fuel"), 2))
-            .withColumn("freight_variance", F.round(F.col("billable_freight") - F.col("payable_freight"), 2))
-            .withColumn("total_variance",   F.round(F.col("total_billable")   - F.col("total_payable"), 2))
             .withColumn("shift_factor_applied", F.lit(SHIFT_FACTOR).cast("double")))
 
 
@@ -227,11 +231,14 @@ FACT_BUSINESS_COLS = [
     # ── denormalized booking / ocean (shipment grain) ──
     "seal_no", "production_code", "production_ship_notes", "booking_no", "booking_status", "destination_port",
     "no_of_container", "ocean_del_terms", "vessel_name",
-    # ── denormalized freight location + buckets (shipment grain) ──
+    # ── denormalized freight location + buckets ──
     "freight_city", "freight_state", "freight_zip", "freight_audit_handling_code",
-    "billable_freight", "billable_fuel", "total_billable",
+    # billable_freight_actual (F4981, shipment grain) + billable_freight_estimate (F4074, line grain);
+    # the [Billable Freight] measure picks actual-if-present-else-estimate. total_billable /
+    # freight_variance / total_variance are now DAX measures (mixed grain), not fact columns.
+    "billable_freight_actual", "billable_freight_estimate", "billable_fuel",
     "payable_freight", "payable_fuel", "total_payable", "total_freight",
-    "freight_variance", "total_variance", "shift_factor_applied",
+    "shift_factor_applied",
     "is_primary_shipment_line",
     # ── page-level filtering attributes ──
     "extended_price", "extended_cost", "currency_code",              # SDAEXP / SDECST / SDBCRC (F4211)
@@ -309,6 +316,17 @@ def build_fact():
     f5549002 = load_silver_table(F5549002)                 # BOL interface weigh-ticket weights
     f03012 = load_silver_table(F03012); f49211 = load_silver_table(F49211)  # sold-to LOB cat / SO-line tag flag
     conv_item = build_uom_cascades()
+
+    # F4074 freight price-adjustments → per-line billable-freight ESTIMATE rate = SUM(ALUPRC) over the
+    # freight-whitelist ALAST codes. Aggregated to ONE row per line so the LEFT join can't fan the grain.
+    # The line's estimate $ = frt_adj_rate × ordered_tons (computed below) — the same ALUPRC×tons basis
+    # the SOP price-adjustment fact uses. amt_price_per_unit_02 is taken at Silver scale (no division),
+    # matching the SOP freight buckets that reconcile to the cent.
+    FRT_ADJ_CODES = ["EPDELFRT", "FRTHIDE", "FRTTAXY", "FRTTAXN", "FRTNBP", "POOLFSC"]
+    f4074 = load_silver_table(F4074)
+    frt_adj = (f4074.filter(F.trim(F.col("price_adjustment_type")).isin(FRT_ADJ_CODES))
+               .groupBy("company_key_order_no", "order_type", "document_order_invoice_e", "line_number")
+               .agg(F.sum(F.col("amt_price_per_unit_02").cast("double")).alias("frt_adj_rate")))
 
     gl_name, gl_present = pick_col(f4211, ["dt_for_gl_and_vouch_01",   # F4211.SDDGL in Silver
         "date_for_g_l_julian", "date_g_l_julian", "date_general_ledger_julian",
@@ -425,7 +443,12 @@ def build_fact():
                (F.col("tag.company_key_order_no") == F.col("sd.company_key_order_no")) &
                (F.col("tag.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
                (F.col("tag.order_type") == F.col("sd.order_type")) &
-               (F.col("tag.line_number") == F.col("sd.line_number")), "left"))
+               (F.col("tag.line_number") == F.col("sd.line_number")), "left")
+         .join(frt_adj.alias("frtadj"),                                                               # F4074 freight-adjustment estimate rate (one row/line)
+               (F.col("frtadj.company_key_order_no") == F.col("sd.company_key_order_no")) &
+               (F.col("frtadj.document_order_invoice_e") == F.col("sd.document_order_invoice_e")) &
+               (F.col("frtadj.order_type") == F.col("sd.order_type")) &
+               (F.col("frtadj.line_number") == F.col("sd.line_number")), "left"))
 
     # TN passes through as 1.0, else the item-specific F41002 factor.
     # Unresolved conversions stay NULL (no blanket 1.0 default); missing_conversion_flag marks those rows.
@@ -528,15 +551,16 @@ def build_fact():
         F.col("fr.freight_zip").alias("freight_zip"),
         F.col("fr.freight_audit_handling_code").alias("freight_audit_handling_code"),   # F4981 FHFRTH
         F.col("fr.shift_factor_applied"),
-        F.coalesce(F.col("fr.billable_freight"), F.lit(0.0)).alias("billable_freight"),
+        # billable_freight_actual = F4981 carrier-billed (shipment grain); frt_adj_rate = F4074 estimate
+        # rate (line grain) → billable_freight_estimate computed below = rate × ordered_tons. The DAX
+        # [Billable Freight] measure = actual-if-present-else-estimate.
+        F.coalesce(F.col("fr.billable_freight_actual"), F.lit(0.0)).alias("billable_freight_actual"),
+        F.coalesce(F.col("frtadj.frt_adj_rate"),        F.lit(0.0)).alias("frt_adj_rate"),
         F.coalesce(F.col("fr.billable_fuel"),    F.lit(0.0)).alias("billable_fuel"),
-        F.coalesce(F.col("fr.total_billable"),   F.lit(0.0)).alias("total_billable"),
         F.coalesce(F.col("fr.payable_freight"),  F.lit(0.0)).alias("payable_freight"),
         F.coalesce(F.col("fr.payable_fuel"),     F.lit(0.0)).alias("payable_fuel"),
         F.coalesce(F.col("fr.total_payable"),    F.lit(0.0)).alias("total_payable"),
         F.coalesce(F.col("fr.total_freight"),    F.lit(0.0)).alias("total_freight"),    # all-charge-code shipment freight total
-        F.coalesce(F.col("fr.freight_variance"), F.lit(0.0)).alias("freight_variance"),
-        F.coalesce(F.col("fr.total_variance"),   F.lit(0.0)).alias("total_variance"),
         # ── page-level filtering attributes ──
         F.col("sd.amount_extended_price").alias("extended_price"),           # SDAEXP — THE sales-amount measure
         F.col("sd.amount_extended_cost").alias("extended_cost"),             # SDECST
@@ -617,6 +641,12 @@ def build_fact():
     df = (_base
           .withColumn("quantity_shipped_tons", F.col("quantity_shipped") * F.col("conversion_to_tons_rate"))
           .withColumn("price_quantity_shipped", F.col("price_per_unit") * F.col("quantity_shipped"))
+          # billable_freight_estimate (line grain) = F4074 freight-adjustment rate × ordered_tons
+          # (ordered_tons = SDUORG × conversion_to_tons_rate). Used by [Billable Freight] only when the
+          # shipment has NO F4981 actual billable. Null rate/conversion → 0.
+          .withColumn("billable_freight_estimate",
+                      F.round(F.coalesce(F.col("frt_adj_rate"), F.lit(0.0))
+                              * F.coalesce(F.col("transaction_quantity") * F.col("conversion_to_tons_rate"), F.lit(0.0)), 2))
           .withColumn("ship_year_week",
                       F.when(F.col("actual_ship_date").isNotNull(),
                              F.concat(_isoyr, F.lit("-W"), F.lpad(_wk.cast("string"), 2, "0"))))
@@ -682,6 +712,7 @@ FACT_SOURCES = [
     {"silver": F41002,   "join": "static", "join_pairs": []},                    # UoM->TN conversion + UMUSTR structure
     {"silver": F4941,    "join": "static", "join_pairs": []},                    # shipment routing (route_number / OCE flag / container count)
     {"silver": F4981,    "join": "static", "join_pairs": []},                    # freight-audit buckets (billable / payable / total) at shipment grain
+    {"silver": F4074,    "join": "static", "join_pairs": []},                    # F4074 freight-adjustment estimate rate → billable_freight_estimate (line grain)
     {"silver": F5642B01, "join": "static", "join_pairs": []},                    # ocean booking header (booking / vessel / voyage / ports / refs / pickup-delivery dates)
     {"silver": F5642B11, "join": "static", "join_pairs": []},                    # ocean booking detail (seal_no)
     {"silver": F5549002, "join": "static", "join_pairs": []},                    # BOL weigh-ticket weights (gross / catch / max)
