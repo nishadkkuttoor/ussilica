@@ -162,6 +162,8 @@ MEASURES = {
     #    the FRTTAXN/FRTTAXY adjustment rows (adj_unit_price × the line's ordered tons) ──
     "Freight":          (f"SUM('{FACT}'[freight_amount])", "\\$#,0.00", False),
     "Car Charges":      (f"SUM('{FACT}'[car_charges_amount])", "\\$#,0.00", False),
+    # dryer-freight bucket (SOP0008) — F/FT freight lines with SDAITM prefix DRY, deduped per line
+    "Dryer Freight Charge": (f"SUM('{FACT}'[dryer_freight_amount])", "\\$#,0.00", False),
     # ── adjustment-row buckets (precomputed ALUPRC × tons by print code) ──
     "Non Product":      (f"SUM('{FACT}'[non_product_amount])", "\\$#,0.00", False),
     "AL Severance Tax": (f"SUM('{FACT}'[al_severance_amount])", "\\$#,0.00", False),
@@ -249,7 +251,7 @@ with connect_semantic_model(dataset=MODEL, readonly=False) as tom:
         FACT: ["price_adjustment_key", "sales_order_line_key", "is_primary_line_row",
                "is_product_line", "product_ordered_tons", "product_ext_price", "freight_hide_amount",
                "non_product_amount", "al_severance_amount", "misc_billing_amount",
-               "freight_amount", "car_charges_amount", "conversion_to_tons_rate",
+               "freight_amount", "car_charges_amount", "dryer_freight_amount", "conversion_to_tons_rate",
                "order_date_key", "requested_date_key", "ship_date_key",
                "invoice_date_key", "gl_date_key"],
     }

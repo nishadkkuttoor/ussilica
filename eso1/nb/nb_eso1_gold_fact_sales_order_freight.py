@@ -157,14 +157,22 @@ def build_uom_cascades():
     return item_fwd.unionByName(item_rev)
 
 def transform_freight_buckets():
-    f4981 = load_silver_table(F4981)   # no vendor-invoice filter — all freight-audit rows included
+    f4981 = load_silver_table(F4981)
     bp, cgc, amt = F.trim("billable_payable"), F.trim("charge_code_01"), F.col("net_amount")
+    # invoiced-only gate for the 4 billable/payable buckets: the freight-audit row must carry a real
+    # vendor invoice (FHVINV). Un-invoiced rows store the literal text 'NULL' (or are actually null) —
+    # both are excluded (trim<>'NULL' is null-safe: a null vendor_invoice_number yields null → dropped).
+    # total_freight is DELIBERATELY NOT gated (it stays the raw all-row FHNAMT total).
+    _inv = F.trim(F.col("vendor_invoice_number")) != "NULL"
     # freight location (FHCTY1/FHADDS/FHADDZ) denormalized at shipment grain (first non-null)
+    # billable_freight_actual = F4981 carrier-billed freight (B/BFR). This is the ACTUAL billable, used
+    # only when the shipment has one; otherwise the [Billable Freight] measure falls back to the F4074
+    # line-level estimate computed over fact_price_adjustment. billable_fuel stays F4981-only.
     return (f4981.groupBy("shipment_number").agg(
-                F.round(F.sum(F.when((bp == "B") & (cgc == "BFR"),            amt).otherwise(0.0)), 2).alias("billable_freight"),
-                F.round(F.sum(F.when((bp == "B") & (cgc.isin("FSC", "FSB")), amt).otherwise(0.0)), 2).alias("billable_fuel"),
-                F.round(F.sum(F.when((bp == "P") & (cgc == "PFR"),            amt).otherwise(0.0)), 2).alias("payable_freight"),
-                F.round(F.sum(F.when((bp == "P") & (cgc == "FSC"),            amt).otherwise(0.0)), 2).alias("payable_fuel"),
+                F.round(F.sum(F.when((bp == "B") & (cgc == "BFR")            & _inv, amt).otherwise(0.0)), 2).alias("billable_freight_actual"),
+                F.round(F.sum(F.when((bp == "B") & (cgc.isin("FSC", "FSB")) & _inv, amt).otherwise(0.0)), 2).alias("billable_fuel"),
+                F.round(F.sum(F.when((bp == "P") & (cgc == "PFR")            & _inv, amt).otherwise(0.0)), 2).alias("payable_freight"),
+                F.round(F.sum(F.when((bp == "P") & (cgc == "FSC")            & _inv, amt).otherwise(0.0)), 2).alias("payable_fuel"),
                 # total_freight = ALL F4981 net_amount for the shipment, regardless of billable_payable / charge_code
                 # The billable/payable buckets above UNDER-count that total if any charge code falls
                 # outside {BFR,FSC,FSB,PFR}. Denormalized at shipment grain like the buckets —
@@ -174,10 +182,10 @@ def transform_freight_buckets():
                 F.first(F.trim("state"), ignorenulls=True).alias("freight_state"),
                 F.first(F.trim("zip_code_postal"), ignorenulls=True).alias("freight_zip"),
                 F.first(F.trim("freight_handling_code"), ignorenulls=True).alias("freight_audit_handling_code"))
-            .withColumn("total_billable",   F.round(F.col("billable_freight") + F.col("billable_fuel"), 2))
+            # total_payable stays pure shipment grain (payable side unchanged). total_billable /
+            # freight_variance / total_variance are now measure-computed ([Billable Freight] is mixed-grain
+            # actual-or-estimate, so they can't be a shipment-grain column) — dropped here.
             .withColumn("total_payable",    F.round(F.col("payable_freight")  + F.col("payable_fuel"), 2))
-            .withColumn("freight_variance", F.round(F.col("billable_freight") - F.col("payable_freight"), 2))
-            .withColumn("total_variance",   F.round(F.col("total_billable")   - F.col("total_payable"), 2))
             .withColumn("shift_factor_applied", F.lit(SHIFT_FACTOR).cast("double")))
 
 
@@ -222,11 +230,14 @@ FACT_BUSINESS_COLS = [
     # ── denormalized booking / ocean (shipment grain) ──
     "seal_no", "production_code", "production_ship_notes", "booking_no", "booking_status", "destination_port",
     "no_of_container", "ocean_del_terms", "vessel_name",
-    # ── denormalized freight location + buckets (shipment grain) ──
+    # ── denormalized freight location + buckets ──
     "freight_city", "freight_state", "freight_zip", "freight_audit_handling_code",
-    "billable_freight", "billable_fuel", "total_billable",
+    # billable_freight_actual = F4981 carrier-billed (shipment grain). The F4074 line-level estimate is a
+    # MEASURE over fact_price_adjustment (not a column). total_billable / freight_variance / total_variance
+    # are now DAX measures (billable is mixed grain), not fact columns.
+    "billable_freight_actual", "billable_fuel",
     "payable_freight", "payable_fuel", "total_payable", "total_freight",
-    "freight_variance", "total_variance", "shift_factor_applied",
+    "shift_factor_applied",
     "is_primary_shipment_line",
     # ── page-level filtering attributes ──
     "extended_price", "extended_cost", "currency_code",              # SDAEXP / SDECST / SDBCRC (F4211)
@@ -523,15 +534,15 @@ def build_fact():
         F.col("fr.freight_zip").alias("freight_zip"),
         F.col("fr.freight_audit_handling_code").alias("freight_audit_handling_code"),   # F4981 FHFRTH
         F.col("fr.shift_factor_applied"),
-        F.coalesce(F.col("fr.billable_freight"), F.lit(0.0)).alias("billable_freight"),
+        # billable_freight_actual = F4981 carrier-billed (shipment grain). The F4074 line-level ESTIMATE
+        # is NOT a fact column — the [Billable Freight] measure computes it over fact_price_adjustment
+        # (actual-if-present-else-estimate), so the main fact stays untouched by the estimate.
+        F.coalesce(F.col("fr.billable_freight_actual"), F.lit(0.0)).alias("billable_freight_actual"),
         F.coalesce(F.col("fr.billable_fuel"),    F.lit(0.0)).alias("billable_fuel"),
-        F.coalesce(F.col("fr.total_billable"),   F.lit(0.0)).alias("total_billable"),
         F.coalesce(F.col("fr.payable_freight"),  F.lit(0.0)).alias("payable_freight"),
         F.coalesce(F.col("fr.payable_fuel"),     F.lit(0.0)).alias("payable_fuel"),
         F.coalesce(F.col("fr.total_payable"),    F.lit(0.0)).alias("total_payable"),
         F.coalesce(F.col("fr.total_freight"),    F.lit(0.0)).alias("total_freight"),    # all-charge-code shipment freight total
-        F.coalesce(F.col("fr.freight_variance"), F.lit(0.0)).alias("freight_variance"),
-        F.coalesce(F.col("fr.total_variance"),   F.lit(0.0)).alias("total_variance"),
         # ── page-level filtering attributes ──
         F.col("sd.amount_extended_price").alias("extended_price"),           # SDAEXP — THE sales-amount measure
         F.col("sd.amount_extended_cost").alias("extended_cost"),             # SDECST

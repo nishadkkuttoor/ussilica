@@ -234,7 +234,7 @@ FACT_BUSINESS_COLS = LINE_COLS + ADJ_COLS + [
     # precomputed per-row bucket amounts (measures = plain SUM(column))
     "product_ordered_tons", "product_ext_price", "freight_hide_amount",
     "non_product_amount", "al_severance_amount", "misc_billing_amount",
-    "freight_amount", "car_charges_amount"]
+    "freight_amount", "car_charges_amount", "dryer_freight_amount"]
 
 
 def build_line_df():
@@ -491,7 +491,10 @@ def build_fact():
                       F.when(_frtline & _pref3.isin("BIL", "FRE", "FUE", "TRA"), F.col("extended_price").cast("double")).otherwise(F.lit(0.0))
                       + F.when(F.trim(F.col("price_adjustment_type")).isin("FRTTAXN", "FRTTAXY"), _adjton).otherwise(F.lit(0.0)))
           .withColumn("car_charges_amount",
-                      F.when(_frtline & (_pref3 == "RAI"), F.col("extended_price").cast("double")).otherwise(F.lit(0.0))))
+                      F.when(_frtline & (_pref3 == "RAI"), F.col("extended_price").cast("double")).otherwise(F.lit(0.0)))
+          # dryer-freight bucket: freight line (F/FT) whose SDAITM prefix is DRY/Dry → extended_price
+          .withColumn("dryer_freight_amount",
+                      F.when(_frtline & _pref3.isin("DRY", "Dry"), F.col("extended_price").cast("double")).otherwise(F.lit(0.0))))
 
     return df.select("price_adjustment_key", "sales_order_line_key", *FACT_BUSINESS_COLS)
 
