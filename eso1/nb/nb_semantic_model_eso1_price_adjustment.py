@@ -154,8 +154,7 @@ MEASURES = {
     # ── product tons + price — fast aggregates over the precomputed fact classification.
     #    is_product_line (fact) = A03-priced OR NP/N3 net-priced, non-freight, non-charge/dryer item;
     #    is_primary_line_row dedups the adjustment fan to one row per line.
-    #    Product Price is NET of the embedded Freight Hide, and "+ 0" makes excluded lines return 0
-    #    (not BLANK) so the matrix keeps their rows (zero-hiding format shows 0 as empty). ──
+    #    Product Price is NET of the embedded Freight Hide. ──
     "Total Tons":    (f"SUM('{FACT}'[product_ordered_tons])", "#,0.00", False),
     "Product Price": (f"SUM('{FACT}'[product_ext_price]) - [Freight Hide]", "\\$#,0.00", False),
     "Price Per Ton": ("DIVIDE([Product Price], [Total Tons])", "\\$#,0.00", False),
@@ -169,9 +168,9 @@ MEASURES = {
     "Misc Billing":     (f"SUM('{FACT}'[misc_billing_amount])", "\\$#,0.00", False),
     # Freight Hide = SUM of the precomputed per-row FRTHIDE amount (adj_unit_price × qty-in-ALUOM).
     "Freight Hide":     (f"SUM('{FACT}'[freight_hide_amount])", "\\$#,0.00", False),
-    # ── adjustment-row product price — Hubble prices the adjustment row ONLY for FRTHIDE
-    #    = -(ALUPRC × ordered tons); the row is kept (0 via zero-hiding format) when the line has a
-    #    whitelisted adjustment but no FRTHIDE, and BLANK (no row) when it has no whitelisted adjustment. ──
+    # ── adjustment-row product price — priced ONLY for FRTHIDE = -(ALUPRC × ordered tons); the row is
+    #    kept (0 via zero-hiding format) when the line has a whitelisted adjustment but no FRTHIDE, and
+    #    BLANK (no row) when it has no whitelisted adjustment. ──
     "Adj Product Price": (f"VAR FrtHide = SUMX(FILTER('{FACT}', '{FACT}'[adj_based_on_value] <> 0 && '{FACT}'[price_adjustment_type] = \"FRTHIDE\" && TRIM('{FACT}'[adj_uom]) = \"TN\"), - '{FACT}'[adj_unit_price] * '{FACT}'[ordered_tons]) VAR HasWhitelisted = COUNTROWS(FILTER('{FACT}', '{FACT}'[adj_based_on_value] <> 0 && (LEFT('{FACT}'[price_adjustment_type], 2) = \"PP\" || '{FACT}'[price_adjustment_type] = \"A03\" || '{FACT}'[price_adjustment_type] = \"CASLB\" || '{FACT}'[price_adjustment_type] = \"FRTHIDE\" || '{FACT}'[price_adjustment_type] = \"FRTTAXN\" || '{FACT}'[price_adjustment_type] = \"FRTTAXY\" || '{FACT}'[price_adjustment_type] = \"COLPALN\" || '{FACT}'[price_adjustment_type] = \"COLPALT\" || '{FACT}'[price_adjustment_type] = \"ALST\"))) RETURN IF(HasWhitelisted > 0, FrtHide + 0, BLANK())", "\\$#,0.00", False),
     # ── SOP0025 base+adjustment interleave, driven by the disconnected 'Row Type' table ──
     "Price Value": ("VAR rt = SELECTEDVALUE('Row Type'[Row Type]) RETURN SWITCH(rt, \"Product Price\", [Product Price], \"Adjustment\", [Adj Product Price], [Product Price] + [Adj Product Price])", "\\$#,0.00;-\\$#,0.00;", False),
