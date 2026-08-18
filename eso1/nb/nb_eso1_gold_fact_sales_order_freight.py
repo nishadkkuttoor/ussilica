@@ -157,14 +157,19 @@ def build_uom_cascades():
     return item_fwd.unionByName(item_rev)
 
 def transform_freight_buckets():
-    f4981 = load_silver_table(F4981)   # no vendor-invoice filter — all freight-audit rows included
+    f4981 = load_silver_table(F4981)
     bp, cgc, amt = F.trim("billable_payable"), F.trim("charge_code_01"), F.col("net_amount")
+    # invoiced-only gate for the 4 billable/payable buckets: the freight-audit row must carry a real
+    # vendor invoice (FHVINV). Un-invoiced rows store the literal text 'NULL' (or are actually null) —
+    # both are excluded (trim<>'NULL' is null-safe: a null vendor_invoice_number yields null → dropped).
+    # total_freight is DELIBERATELY NOT gated (it stays the raw all-row FHNAMT total).
+    _inv = F.trim(F.col("vendor_invoice_number")) != "NULL"
     # freight location (FHCTY1/FHADDS/FHADDZ) denormalized at shipment grain (first non-null)
     return (f4981.groupBy("shipment_number").agg(
-                F.round(F.sum(F.when((bp == "B") & (cgc == "BFR"),            amt).otherwise(0.0)), 2).alias("billable_freight"),
-                F.round(F.sum(F.when((bp == "B") & (cgc.isin("FSC", "FSB")), amt).otherwise(0.0)), 2).alias("billable_fuel"),
-                F.round(F.sum(F.when((bp == "P") & (cgc == "PFR"),            amt).otherwise(0.0)), 2).alias("payable_freight"),
-                F.round(F.sum(F.when((bp == "P") & (cgc == "FSC"),            amt).otherwise(0.0)), 2).alias("payable_fuel"),
+                F.round(F.sum(F.when((bp == "B") & (cgc == "BFR")            & _inv, amt).otherwise(0.0)), 2).alias("billable_freight"),
+                F.round(F.sum(F.when((bp == "B") & (cgc.isin("FSC", "FSB")) & _inv, amt).otherwise(0.0)), 2).alias("billable_fuel"),
+                F.round(F.sum(F.when((bp == "P") & (cgc == "PFR")            & _inv, amt).otherwise(0.0)), 2).alias("payable_freight"),
+                F.round(F.sum(F.when((bp == "P") & (cgc == "FSC")            & _inv, amt).otherwise(0.0)), 2).alias("payable_fuel"),
                 # total_freight = ALL F4981 net_amount for the shipment, regardless of billable_payable / charge_code
                 # The billable/payable buckets above UNDER-count that total if any charge code falls
                 # outside {BFR,FSC,FSB,PFR}. Denormalized at shipment grain like the buckets —
