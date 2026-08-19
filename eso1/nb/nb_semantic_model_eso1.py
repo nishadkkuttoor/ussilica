@@ -268,7 +268,9 @@ MEASURES = {
     "Order Lines":            (f"COUNTROWS('{FACT}')", "#,0", False),
     "Quantity Shipped Tons":  (f"SUMX('{FACT}', '{FACT}'[quantity_shipped] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),
     "Quantity Shipped":       (f"SUM('{FACT}'[quantity_shipped])", "#,0.00", False),
-    "Price QTY Shipped":      (f"SUMX('{FACT}', '{FACT}'[quantity_shipped] * IF(TRIM('{FACT}'[uom]) = TRIM('{FACT}'[unit_price_primary]), 1, DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], '{FACT}'[item_number_short] & \"|\" & TRIM('{FACT}'[unit_price_primary])))))", "#,0.00", False),
+    # shipped qty re-expressed in the pricing UOM. BLANK when line UOM = pricing UOM (no conversion —
+    # Hubble leaves same-UOM rows empty); otherwise cross-convert via the item's F41002 factors.
+    "Price QTY Shipped":      (f"SUMX('{FACT}', IF(TRIM('{FACT}'[uom]) = TRIM('{FACT}'[unit_price_primary]), BLANK(), '{FACT}'[quantity_shipped] * DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], '{FACT}'[item_number_short] & \"|\" & TRIM('{FACT}'[unit_price_primary])))))", "#,0.00", False),
     # ordered quantity (SDUORG) converted to tons; conversion_to_tons_rate = TN passthrough + F41002 factor,
     # NULL -> 0 tons (matches Hubble's THEN 0). Same rate the fact uses for quantity_shipped_tons.
     "Ordered Tons":           (f"SUMX('{FACT}', '{FACT}'[transaction_quantity] * COALESCE(RELATED(dim_uom_conversion_item[conv_factor]), RELATED(dim_uom_conversion[std_factor]), 0))", "#,0.00", False),

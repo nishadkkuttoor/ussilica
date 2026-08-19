@@ -71,7 +71,7 @@ table fact_sales_order_freight
 		displayFolder: Volume
 		lineageTag: df397229-b5fd-5dc6-8585-7ea6bc99f726
 
-	measure 'Price QTY Shipped' = SUMX('fact_sales_order_freight', 'fact_sales_order_freight'[quantity_shipped] * IF(TRIM('fact_sales_order_freight'[uom]) = TRIM('fact_sales_order_freight'[unit_price_primary]), 1, DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], 'fact_sales_order_freight'[item_number_short] & "|" & TRIM('fact_sales_order_freight'[unit_price_primary])))))
+	measure 'Price QTY Shipped' = SUMX('fact_sales_order_freight', IF(TRIM('fact_sales_order_freight'[uom]) = TRIM('fact_sales_order_freight'[unit_price_primary]), BLANK(), 'fact_sales_order_freight'[quantity_shipped] * DIVIDE(RELATED(dim_uom_conversion_item[conv_factor]), LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], 'fact_sales_order_freight'[item_number_short] & "|" & TRIM('fact_sales_order_freight'[unit_price_primary])))))
 		formatString: #,0.00
 		displayFolder: Volume
 		lineageTag: 0d702826-7375-572f-af82-07d207b21a14

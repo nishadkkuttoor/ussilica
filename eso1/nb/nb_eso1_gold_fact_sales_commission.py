@@ -148,7 +148,7 @@ FACT_BUSINESS_COLS = [
     "company", "company_key_order_no", "order_type", "order_number", "line_number",
     "commission_line_number", "salesperson", "commission_code_type",
     # ── FK / dimension columns ──
-    "ship_to", "sold_to", "branch_plant", "item_number_short",
+    "ship_to", "sold_to", "address_number_parent", "branch_plant", "item_number_short",
     # ── date keys (retained but unused — no date dimension; slice raw dates) ──
     "commission_paid_date_key", "gl_date_key", "ship_date_key",
     # ── raw event dates ──
@@ -265,6 +265,7 @@ def build_fact():
         # ── FK / dimension columns ──
         F.col("ln.address_number_ship_to").alias("ship_to"),                         # SDSHAN → dim_address_ship_to
         F.col("sh.address_number").alias("sold_to"),                                 # SHAN8  → dim_address_sold_to
+        F.col("sh.address_number_parent").alias("address_number_parent"),            # SHPA8  (header parent of the sold-to)
         F.trim(F.coalesce(F.col("ln.cost_center"), F.col("sc.cost_center"))).alias("branch_plant"),  # SDMCU / SCMCU (Silver: cost_center, NOT metadata's business_unit) → dim_plant
         F.coalesce(F.col("ln.identifier_short_item"), F.col("sc.identifier_short_item")).alias("item_number_short"),  # SDITM/SCITM → dim_item
         # ── raw event dates ──

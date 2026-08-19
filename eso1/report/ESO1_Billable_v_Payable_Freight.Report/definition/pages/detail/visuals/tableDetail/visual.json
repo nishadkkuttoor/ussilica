@@ -395,16 +395,16 @@
             },
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "fact_sales_order_freight"
                     }
                   },
-                  "Property": "price_quantity_shipped"
+                  "Property": "Price QTY Shipped"
                 }
               },
-              "queryRef": "fact_sales_order_freight.price_quantity_shipped",
+              "queryRef": "fact_sales_order_freight.Price QTY Shipped",
               "nativeQueryRef": "Price Quantity Shipped"
             },
             {
