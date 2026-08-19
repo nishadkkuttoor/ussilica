@@ -118,6 +118,13 @@ table fact_sales_commission
 		sourceColumn: sold_to
 		lineageTag: 2818eb8e-539d-5084-8551-3cebc3b86968
 
+	column address_number_parent
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: address_number_parent
+		lineageTag: d7931676-10f0-54f0-ae88-28f3b3ff3b5b
+
 	column branch_plant
 		dataType: string
 		isHidden

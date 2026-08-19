@@ -1107,10 +1107,9 @@ FROM   PRODDTA.F4211 F4211
             AND ( F4101.IMUOM1 = ToConvTableF41003.UMRUM )
        INNER JOIN PRODDTA.F0010 F0010
          ON F0010.CCCO = F4211.SDKCOO
-WHERE  ( (( (( (( (( (( F4211.SDDCTO IN ( N'SO', N'CO' ) ))
-                     AND (( F4211.SDLTTR < N'980' )) ))
-                  AND (( F4211.SDNXTR BETWEEN N'574' AND N'620' )) ))
-               AND (( F4211.SDADDJ BETWEEN 126229 AND 126229 )) ))
+WHERE  ( (( (( (( (( F4211.SDDCTO IN ( N'SO', N'CO' ) ))
+                  AND (( F4211.SDLTTR < N'980' )) ))
+               AND (( F4211.SDNXTR BETWEEN N'574' AND N'620' )) ))
             AND (( ( F4074.ALAST IS NULL )
                     OR ( F4074.ALAST IN ( N'A03     ', N'CASLB   ', N'FRTHIDE ', N'FRTTAXN ',
                                           N'FRTTAXY ', N'PP06    ', N'PP07    ', N'PP08    ',
