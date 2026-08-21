@@ -42,7 +42,6 @@ def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 F4211    = "f4211_sales_order_detail_file"
 F4201    = "f4201_sales_order_header_file"
 F0101    = "f0101_address_book_master"
-F4101    = "f4101_item_master"
 F41002   = "f41002_item_units_of_measure_conversion_factors"
 # F41003 (standard UoM conversion) is not sourced here — this notebook uses F41002 item-specific
 # conversion only.

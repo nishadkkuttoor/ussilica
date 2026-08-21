@@ -1,0 +1,104 @@
+table dim_second_item
+	lineageTag: 812944dd-a9ba-44f7-b381-eca49277befb
+	sourceLineageTag: [rpt].[dim_second_item]
+
+	column second_item_number
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: ae44743f-d6cb-41b2-a061-a69233b13a40
+		sourceLineageTag: second_item_number
+		summarizeBy: none
+		sourceColumn: second_item_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column whole_grain_truck_packaged_filter
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 4a99dee7-dcb5-4220-a6fc-534da47f6bc4
+		sourceLineageTag: whole_grain_truck_packaged_filter
+		summarizeBy: none
+		sourceColumn: whole_grain_truck_packaged_filter
+
+		annotation SummarizationSetBy = Automatic
+
+	column whole_grain_truck_bulk_filter
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 1d04c413-dd56-47e0-b8a3-c73f084e680d
+		sourceLineageTag: whole_grain_truck_bulk_filter
+		summarizeBy: none
+		sourceColumn: whole_grain_truck_bulk_filter
+
+		annotation SummarizationSetBy = Automatic
+
+	column whole_grain_rail_bulk_filter
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 0d6c30c9-ccad-4b21-8840-54d4af7b4110
+		sourceLineageTag: whole_grain_rail_bulk_filter
+		summarizeBy: none
+		sourceColumn: whole_grain_rail_bulk_filter
+
+		annotation SummarizationSetBy = Automatic
+
+	column ground_packaged_filter
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 14e7266d-224b-4eb9-a206-6140e52e8f3f
+		sourceLineageTag: ground_packaged_filter
+		summarizeBy: none
+		sourceColumn: ground_packaged_filter
+
+		annotation SummarizationSetBy = Automatic
+
+	column ground_bulk_filter
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e6d985b7-6866-4e0a-a10a-dc057fdf8534
+		sourceLineageTag: ground_bulk_filter
+		summarizeBy: none
+		sourceColumn: ground_bulk_filter
+
+		annotation SummarizationSetBy = Automatic
+
+	column astm_packaged_filter
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 69c2211b-58ea-4c85-960f-62f7111e45c2
+		sourceLineageTag: astm_packaged_filter
+		summarizeBy: none
+		sourceColumn: astm_packaged_filter
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 9645785b-403b-493e-a357-e86823bbbae2
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 40c2ca0c-ea4d-4caf-872d-9f52a3a01872
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_second_item = entity
+		mode: directLake
+		source
+			entityName: dim_second_item
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

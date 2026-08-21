@@ -1,0 +1,35 @@
+table dim_uom_conversion
+	lineageTag: f6eeec98-52aa-41ef-9adb-2421452d2e1b
+	sourceLineageTag: [rpt].[dim_uom_conversion]
+
+	column from_uom
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b148e361-97de-4bee-8e2b-5fb4ff098d80
+		sourceLineageTag: from_uom
+		summarizeBy: none
+		sourceColumn: from_uom
+
+		annotation SummarizationSetBy = Automatic
+
+	column std_factor
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 9d6b88eb-d546-49a1-8911-596abcb2a68f
+		sourceLineageTag: std_factor
+		summarizeBy: none
+		sourceColumn: std_factor
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition dim_uom_conversion = entity
+		mode: directLake
+		source
+			entityName: dim_uom_conversion
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+
