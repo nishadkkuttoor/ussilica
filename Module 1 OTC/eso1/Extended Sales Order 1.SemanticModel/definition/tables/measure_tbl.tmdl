@@ -19,7 +19,10 @@ table measure_tbl
 			                    TRIM('fact_price_adjustment'[price_adjustment_type]) = "POOLFSC"),
 			                'fact_price_adjustment'[adj_unit_price]
 			                    * COALESCE(RELATED('fact_sales_order_freight'[transaction_quantity]), 0)
-			                    * COALESCE(RELATED('fact_sales_order_freight'[conversion_to_tons_rate]), 0)
+			                    * COALESCE(
+			                        IF ( TRIM ( RELATED('fact_sales_order_freight'[uom]) ) = "TN", 1.0 ),
+			                        LOOKUPVALUE(dim_uom_conversion_item[conv_factor], dim_uom_conversion_item[item_uom_key], RELATED('fact_sales_order_freight'[item_uom_key])),
+			                        0)
 			            )
 			        )
 			    RETURN IF(_actual <> 0, _actual, _estimate)
@@ -126,7 +129,14 @@ table measure_tbl
 		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
 
 	/// Count of lines with no UOM->TN factor
-	measure 'Lines Missing Conversion' = CALCULATE(COUNTROWS(fact_sales_order_freight), fact_sales_order_freight[missing_conversion_flag] = "Y")
+	measure 'Lines Missing Conversion' =
+			COUNTROWS (
+			    FILTER (
+			        fact_sales_order_freight,
+			        TRIM ( fact_sales_order_freight[uom] ) <> "TN"
+			            && ISBLANK ( RELATED ( dim_uom_conversion_item[conv_factor] ) )
+			    )
+			)
 		formatString: 0
 		lineageTag: 0b7b83cc-21a8-4d4c-a630-2e1ecc438ea4
 
@@ -227,20 +237,26 @@ table measure_tbl
 			
 			SUMX (
 			    fact_sales_order_freight,
-			    fact_sales_order_freight[transaction_quantity] * fact_sales_order_freight[conversion_to_tons_rate]
+			    fact_sales_order_freight[transaction_quantity]
+			        * COALESCE (
+			            IF ( TRIM ( fact_sales_order_freight[uom] ) = "TN", 1.0 ),
+			            RELATED ( dim_uom_conversion_item[conv_factor] ),
+			            RELATED ( dim_uom_conversion[std_factor] ),
+			            0 )
 			)
 		lineageTag: 2421300e-3327-4ed8-be05-88488eae2d21
 
 		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
-	/// Total ordered volume converted to short tons, using the pre-computed conversion_to_tons_rate fact column (which already encodes TN→1.0 plus the F41002 item factor), falling back to the standard F41003 factor, and finally to 1 when nothing resolves. For each line it multiplies ordered quantity (SDUORG) by that factor and sums.
+	/// Total ordered volume converted to short tons. For each line it multiplies ordered quantity (SDUORG / transaction_quantity) by a UOM→TN factor resolved from the dims — TN pass-through (1.0) → item-specific (dim_uom_conversion_item, F41002) → standard (dim_uom_conversion, F41003) → 1 — then sums with SUMX.
 	measure 'Tons Conv.' =
 			
 			SUMX(
 			    fact_sales_order_freight,
 			    fact_sales_order_freight[transaction_quantity]
 			        * COALESCE(
-			            fact_sales_order_freight[conversion_to_tons_rate],
+			            IF ( TRIM ( fact_sales_order_freight[uom] ) = "TN", 1.0 ),
+			            RELATED(dim_uom_conversion_item[conv_factor]),
 			            RELATED(dim_uom_conversion[std_factor]),
 			            1
 			        )
@@ -316,7 +332,10 @@ table measure_tbl
 			SUMX(
 			    FILTER('fact_sales_order_freight', TRIM('fact_sales_order_freight'[uom]) <> "TN"),
 			    'fact_sales_order_freight'[transaction_quantity]
-			      * COALESCE('fact_sales_order_freight'[conversion_to_tons_rate], 0)
+			      * COALESCE(
+			            RELATED(dim_uom_conversion_item[conv_factor]),
+			            RELATED(dim_uom_conversion[std_factor]),
+			            0)
 			)
 		lineageTag: 71cdc564-badf-4562-82d9-4716e863691a
 

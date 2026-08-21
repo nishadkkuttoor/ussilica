@@ -661,27 +661,6 @@ table fact_sales_order_freight
 
 		annotation SummarizationSetBy = Automatic
 
-	column conversion_to_tons_rate
-		dataType: double
-		formatString: 0.000
-		lineageTag: d6792af8-5459-4aa1-b0b7-431c2b945bba
-		sourceLineageTag: conversion_to_tons_rate
-		summarizeBy: sum
-		sourceColumn: conversion_to_tons_rate
-
-		changedProperty = FormatString
-
-		annotation SummarizationSetBy = Automatic
-
-	column missing_conversion_flag
-		dataType: string
-		lineageTag: 50cf343c-107b-4bbf-a3fc-73951e688599
-		sourceLineageTag: missing_conversion_flag
-		summarizeBy: none
-		sourceColumn: missing_conversion_flag
-
-		annotation SummarizationSetBy = Automatic
-
 	column uom_structure
 		dataType: string
 		lineageTag: 0264c5c5-8928-49c9-8c30-cc1867b2dab4
@@ -713,17 +692,6 @@ table fact_sales_order_freight
 		annotation SummarizationSetBy = Automatic
 
 		annotation PBI_FormatHint = {"isDecimal":true}
-
-	column quantity_shipped_tons
-		dataType: double
-		lineageTag: 7d044b1e-e7a7-49e4-9831-3e8e4d2c7bd6
-		sourceLineageTag: quantity_shipped_tons
-		summarizeBy: sum
-		sourceColumn: quantity_shipped_tons
-
-		annotation SummarizationSetBy = Automatic
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	column primary_quantity_ordered
 		dataType: double
