@@ -1,0 +1,33 @@
+table dim_sic
+	lineageTag: c958b3ac-9365-4271-abfc-ce8d19e51433
+	sourceLineageTag: [rpt].[dim_sic]
+
+	column standardindustrycode_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 69fba1bf-fa55-455b-9f30-17fb4fd34c77
+		sourceLineageTag: standardindustrycode_code
+		summarizeBy: none
+		sourceColumn: standardindustrycode_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column standardindustrycode_description
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: fc4538be-1ba9-44ab-8de1-c0ea9a64799c
+		sourceLineageTag: standardindustrycode_description
+		summarizeBy: none
+		sourceColumn: standardindustrycode_description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_sic = entity
+		mode: directLake
+		source
+			entityName: dim_sic
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+
