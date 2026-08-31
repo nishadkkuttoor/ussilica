@@ -1,0 +1,320 @@
+table measure_tbl
+	lineageTag: 23c8b390-7e78-40d8-b863-972a78c13f14
+
+	/// [Ext Weight] divided by 2000 - pounds to tons.
+	measure 'Ext Tons' = DIVIDE([Ext Weight], 2000)
+		lineageTag: 3c4d52af-4e75-4589-ac94-0ec020f3ac00
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Distinct count of load_scope_key - the number of loads.
+	measure 'Load Count' = DISTINCTCOUNT(fact_extended_sales_order_5[load_scope_key])
+		formatString: 0
+		lineageTag: 0d62cba6-eb40-419a-b3ac-7e03ba941961
+
+		changedProperty = Name
+
+	/// Max of loading_facility where product_category = "COM"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Load LOFA' = CALCULATE(MAX(fact_extended_sales_order_5[loading_facility]), fact_extended_sales_order_5[product_category] = "COM", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: a18edae6-5ff2-43ac-987a-d5b75541d7be
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of units_ordered where item_number = "LOFADET"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'LOFA Detention Hours' = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[item_number] = "LOFADET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: c221c9c6-a83e-4247-ba78-4b7ed68ef753
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Count of fact rows - the number of report lines.
+	measure 'Line Count' = COUNTROWS(fact_extended_sales_order_5)
+		formatString: 0
+		lineageTag: 0dfb9431-13fb-4d2b-980b-e7a65b196b45
+
+		changedProperty = Name
+
+	/// Sum of units_ordered where item_number = "WELLDET"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Well Detention Hours' = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[item_number] = "WELLDET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: f2d04bbf-3b45-436d-a4c5-fab55642acfe
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Max of uss_so_weight, counted once per load (semi-additive — the value is repeated on every line, so a plain SUM would multiply it by the line count).
+	measure 'USS SO Weight' = SUMX(VALUES(fact_extended_sales_order_5[load_scope_key]), CALCULATE(MAX(fact_extended_sales_order_5[uss_so_weight])))
+		formatString: 0.00
+		lineageTag: bdf96257-f033-4df3-8879-94cd834db0e0
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	/// Sum of total_amount across the current selection.
+	measure 'Total Amount' = SUM(fact_extended_sales_order_5[total_amount])
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: b8f5242b-7ad7-41c4-824f-8870502066da
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	/// Max of sbx_weight, counted once per load (semi-additive — the value is repeated on every line, so a plain SUM would multiply it by the line count).
+	measure 'SBX Weight' = SUMX(VALUES(fact_extended_sales_order_5[load_scope_key]), CALCULATE(MAX(fact_extended_sales_order_5[sbx_weight])))
+		formatString: 0.00
+		lineageTag: 085204cc-fa07-4203-968d-f4cda91b8428
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+	/// Sum of units_ordered where product_category = "COM"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Sand Weight' = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[product_category] = "COM", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 51d49ad5-b1eb-444c-8ceb-24f19c064f4d
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// [Sand Weight] divided by 2000 — pounds to tons.
+	measure 'Sand Tons' = DIVIDE([Sand Weight], 2000)
+		lineageTag: 47e3d68c-9ab1-462d-a110-3c11a9a83021
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of total_amount where sales_report_code_01 = "352"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Sand Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[sales_report_code_01] = "352", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 981b6813-b1ee-411e-a612-683b6df06aae
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Max of lofa_rate, counted once per loading facility (semi-additive — the value is repeated on every line, so a plain SUM would multiply it by the line count).
+	measure Rate = SUMX(VALUES(fact_extended_sales_order_5[loading_facility]), CALCULATE(MAX(fact_extended_sales_order_5[lofa_rate])))
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: a6f067eb-cf53-4511-854c-981a18dab657
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	/// Sum of quantity across the current selection.
+	measure Quantity = SUM(fact_extended_sales_order_5[quantity])
+		lineageTag: 5fdf4e55-cced-4ead-8a09-16d754f67baf
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Max of item_description where product_category = "COM"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure Proppant = CALCULATE(MAX(fact_extended_sales_order_5[item_description]), fact_extended_sales_order_5[product_category] = "COM", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 9248e5f1-cdfa-44ea-a235-4a9ac64f2c33
+
+		changedProperty = Name
+
+	/// Sum of ox_amount across the current selection.
+	measure 'OX Amount' = SUM(fact_extended_sales_order_5[ox_amount])
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 81c62b8b-681c-42d2-b2ac-3886d039dda5
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	/// Max of next_status; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Load Next Status' = CALCULATE(MAX(fact_extended_sales_order_5[next_status]), fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 09cdc562-95de-4a18-bbce-2a4a3da6212b
+
+		changedProperty = Name
+
+	/// Sum of units_ordered where item_number = "FRT"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure Miles = CALCULATE(SUM(fact_extended_sales_order_5[units_ordered]), fact_extended_sales_order_5[item_number] = "FRT", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 2c8f551b-5d34-4b00-b6df-b83316df0861
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of item_weight where product_category = "FRT"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Ext Weight' = CALCULATE(SUM(fact_extended_sales_order_5[item_weight]), fact_extended_sales_order_5[product_category] = "FRT", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 2a873857-a293-487a-83e0-a7763e9a9b68
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Max of gl_date over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Load GL Date' = CALCULATE(MAX(fact_extended_sales_order_5[gl_date]), fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: General Date
+		lineageTag: 452ed394-1b15-4ce3-99ef-2317e8cad107
+
+		changedProperty = Name
+
+	/// Sum of total_amount where product_category = "FRT"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Freight Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[product_category] = "FRT", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 37efee33-b1ac-47de-b6b2-81574a10f6a4
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+
+	/// Sum of total_amount where item_number = "HOLADD"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Holiday Adder' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "HOLADD", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 92d9cd36-7ff2-4e88-89d3-d75836bf5363
+
+		changedProperty = Name
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Max of invoice_number over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Load Invoice No' = CALCULATE(MAX(fact_extended_sales_order_5[invoice_number]), fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		formatString: 0
+		lineageTag: 25e3ad93-c243-476f-bfe8-269db031df52
+
+		changedProperty = Name
+
+	/// Sum of total_amount where item_number = "LOFADET"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'LOFA Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "LOFADET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 2e5c53b2-1b9e-45d4-9cb7-40e537e666c3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of total_amount where item_number = "WELLDET"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Well Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "WELLDET", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 04d1386b-de84-4786-847d-0afa9f8c2cae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of total_amount where item_number = "LOFADETPP"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'LOFA PP Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "LOFADETPP", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 1cd53b86-2cdc-4000-a781-ea98db793b46
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of total_amount where item_number = "WELLDETPP"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Well PP Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "WELLDETPP", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 607a8e02-ae00-4f57-a90d-6dafca1694ce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of total_amount where item_number = "LOFADETPB"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'LOFA PB Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "LOFADETPB", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: ef9dbb61-62d8-42b6-8bcd-f1326cc12406
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of total_amount where item_number = "WELLDETPB"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Well PB Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "WELLDETPB", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: f49328a6-0b85-4819-bbed-a5a5051319fa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of total_amount where item_number = "FSC"; over sales lines only (row_class LINE/HOLADD/TEXT).
+	measure 'Fuel Surcharge Amount' = CALCULATE(SUM(fact_extended_sales_order_5[total_amount]), fact_extended_sales_order_5[item_number] = "FSC", fact_extended_sales_order_5[row_class] IN { "LINE", "HOLADD", "TEXT" })
+		lineageTag: 5269bea2-8399-42bb-8533-04871193ed39
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// District code and description combined.
+	measure display_district =
+			
+			VAR _code = SELECTEDVALUE ( fact_extended_sales_order_5[district] )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _code ),
+			        _code & " - "
+			            & LOOKUPVALUE ( dim_plant[plant_name],
+			                            dim_plant[plant_code], _code )
+			    )
+		lineageTag: ec615e73-a832-495f-bfbe-cd8a783b8066
+
+	/// sold_to and its name_alpha from dim_address_book_sold_to concatenated
+	measure display_customer =
+			
+			VAR _code = SELECTEDVALUE ( fact_extended_sales_order_5[sold_to] )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _code ),
+			        _code & " - "
+			            & LOOKUPVALUE ( dim_address_book_sold_to[name_alpha],
+			                            dim_address_book_sold_to[address_number], _code )
+			    )
+		lineageTag: af8c5007-5efb-4c12-868c-47f320f71eeb
+
+	/// Carrier code and its description combined.
+	measure display_carrier =
+			
+			VAR _code = SELECTEDVALUE ( fact_extended_sales_order_5[carrier] )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _code ),
+			        _code & " - "
+			            & LOOKUPVALUE ( dim_address_book_carrier[name_alpha],
+			                            dim_address_book_carrier[address_number], _code )
+			    )
+		lineageTag: a00b6041-b57c-4274-9ee9-bb40924e6a98
+
+	/// shipt_to from fact_extended_sales_order_5 and its name_alpha from dim_address_book_ship_to field combined.
+	measure 'display_ship to' =
+			
+			VAR _code = SELECTEDVALUE ( fact_extended_sales_order_5[ship_to] )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _code ),
+			        _code & " - "
+			            & LOOKUPVALUE ( dim_address_book_ship_to[name_alpha],
+			                            dim_address_book_ship_to[address_number], _code )
+			    )
+		lineageTag: d031fea4-e339-4737-9ac7-b88e8fb0715e
+
+	measure 'Row Count Test' = COUNTROWS ( fact_extended_sales_order_5 )
+		formatString: 0
+		lineageTag: 688cf5f8-a561-4f6d-adf8-730ab25565d2
+
+	/// Calculates the most recent timestamp from a table in Eastern Time (ET). It ignores any visual, page, or report-level filters.
+	measure 'JDE Last Updated' =
+			
+			VAR _ts = CALCULATE (
+			        	  MAX ( 'fact_extended_sales_order_5'[jde_updated_ts] ),
+			        	  REMOVEFILTERS ()
+			    	    )
+			RETURN
+			    IF ( NOT ISBLANK ( _ts ), FORMAT ( _ts, "MM/dd/yyyy HH:mm:ss" ) )
+		lineageTag: 1a6fef26-8ee0-48b3-9c3f-fd4e753acce3
+
+	column Column
+		isHidden
+		formatString: 0
+		lineageTag: 24136484-9707-4d11-aac9-d6c1dcfe3731
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition measure_tbl = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = 53eddd5382ef4b3892600135b3c72286
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":""}
+

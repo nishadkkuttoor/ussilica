@@ -299,7 +299,7 @@ Authoritative inputs for this design:
         │                                    ├─ dim_address_book  + role views ship_to / sold_to / carrier / salesperson
         │                                    └─ dim_plant
         │   NO date dimension — dates are the facts' raw date columns (sliced directly; weekly = fact.ship_year_week)
- Semantic model  billable_payable_freight  (Direct Lake, single schema rpt)  →  Power BI report
+ Semantic model  Extended Sales Order 1  (Direct Lake, rpt; hand-maintained TMDL, no generator)  →  report "Extended Sales Orders 1"
 ```
 
 **Design principles**
@@ -403,7 +403,7 @@ the shared `_exists()` helper tries `spark.catalog.tableExists` then falls back 
 |---|---|---|---|
 | `nb_eso1_gold_fact_sales_order_freight` | In[7] preflight, before seed + streams begin | base dims exist · non-empty; role views best-effort | **raises** (don't seed/stream a fact with FKs to absent dims) |
 | `nb_eso1_gold_dim_item` | — (no reused-dim dependency) | none — `dim_item` has no FK to `rpt.*` | n/a |
-| `nb_semantic_model_eso1` | preflight, before model bind | base dims + new tables exist; role views best-effort | **raises** on base/new; **warn** on role views |
+| ~~`nb_semantic_model_eso1`~~ (SUPERSEDED — model now hand-maintained TMDL) | manual, before binding the TMDL model | base dims + all built tables exist in `rpt` | n/a (no builder; verify sources exist before deploy) |
 | `nb_validate_gold_eso1` | §0 health + RI checks | exist · non-empty · unique PK · **role-view subset-of-base consistency** · freshness; + fact↔dim left-anti RI | logged **pass/fail** gate |
 | `nb_maintenance_gold_eso1` | read-only status | confirm reused dims are **out of scope** (never OPTIMIZE/VACUUM them); report freshness, flag `⚠ STALE` > 7 days | informational only |
 
@@ -682,25 +682,58 @@ the two facts) → `nb_validate_gold_eso1`, on whatever schedule the reporting S
 
 ---
 
-## 7. Semantic model (`billable_payable_freight`, Direct Lake)
+## 7. Semantic model (`Extended Sales Order 1`, Direct Lake)
 
-### 7.1 Relationships (single direction, dim → fact)
-| From (dim, 1) | To (fact, *) | Active |
+**Hand-maintained TMDL** at `report/Extended Sales Order 1.SemanticModel/`; the report `report/Extended Sales Orders 1.Report`
+binds to it **`byPath`**. **No generator / no runtime builder** — the old `generate_tmdl_semantic_model.py` and the
+`billable_payable_freight` model it produced were retired/deleted 2026-08-31; **edit the TMDL model directly.** All tables
+are in `lh_jde_gold.rpt`, Direct Lake.
+
+**Composition — 26 tables / 24 relationships / 61 measures:**
+- **Facts (2):** `fact_sales_order_freight` (order-line grain, freight denormalized, 166 cols) and `fact_price_adjustment`
+  (F4074 price-adjustment grain, 15 cols) — the latter related **many:1 to the freight fact** on `sales_order_line_key`.
+- **Measures (61):** all live in a dedicated measures-only table **`measure_tbl`** (not on the fact) — Billable/Payable
+  Freight+Fuel, Total Billable/Payable/Variance, CM %, tons/price cascades, aging (`AGE of NPO …`), BvP-split
+  (`Billable Freight (Transport)/(APM)`, `Billable/Payable per Ton`), `HasData`, etc.
+- **Dims (23):** eight `dim_address_book_*` **role dims** (ship_to, sold_to, carrier, parent, destination, ocean_carrier,
+  loading_port, vendor) + `dim_item`, `dim_plant`, `dim_company`, `dim_mode_of_transport`, `dim_freight_handling_code`,
+  `dim_hold_orders_code`, `dim_status_code_last`, `dim_status_code_next`, `dim_order_number`, `dim_second_item`,
+  `dim_uom_conversion`, `dim_uom_conversion_item`, `dim_sic`, `dim_category_code_05`, `dim_category_code_05_sold_to`.
+- **No date dimension** — dates are the fact's raw date columns (weekly grouping via `ship_year_week`).
+
+> **Commission is now a SEPARATE model.** `fact_sales_commission` (SOP0027) is **not** in this report model — it has its
+> own model `Extended Sales Order 1 Sales Commission.SemanticModel` (OTC PROD). The commission-fact build (§4.6) still
+> produces the physical Gold table that separate model consumes. Likewise `fact_price_adjustment` also feeds the PROD
+> `Extended Sales Order 1 Sales Order Price Adjustment.SemanticModel`.
+
+### 7.1 Relationships (24; all 1:* active, single cross-filter)
+**Freight fact FK → dim key** (`fact_sales_order_freight[<fk>]` → `<dim>[<key>]`):
+| Address role dims (8) | Other fact→dim (11) | UoM (2) |
 |---|---|---|
-| `dim_address_ship_to[address_number]` (rpt) | `fact…[ship_to]` | ✅ active |
-| `dim_address_sold_to[address_number]` (rpt) | `fact…[bill_to]` | ✅ active |
-| `dim_address_carrier[address_number]` (rpt) | `fact…[carrier_number]` | ✅ active |
-| `dim_item[item_number_short]` (rpt) | `fact…[item_number_short]` | ✅ |
-| `dim_plant[plant_code]` (rpt) | `fact…[branch_plant]` | ✅ |
+| `ship_to → dim_address_book_ship_to` | `item_number_short → dim_item` | `uom → dim_uom_conversion[from_uom]` |
+| `bill_to → dim_address_book_sold_to` | `branch_plant → dim_plant` | `item_uom_key → dim_uom_conversion_item` |
+| `carrier_number → dim_address_book_carrier` | `company_key_order_no → dim_company[company]` | |
+| `address_number_parent → dim_address_book_parent` | `order_number → dim_order_number` | |
+| `destination_port → dim_address_book_destination` | `second_item_number → dim_second_item` | |
+| `ocean_carrier → dim_address_book_ocean_carrier` | `mode_of_transport → dim_mode_of_transport` | |
+| `loading_port → dim_address_book_loading_port` | `freight_handling_code → dim_freight_handling_code` | |
+| `vendor_number → dim_address_book_vendor` | `hold_orders_code → dim_hold_orders_code` | |
+| | `status_code_last → dim_status_code_last` | |
+| | `status_code_next → dim_status_code_next` | |
 
-**No date relationships** — there is no date dimension. Dates are the fact's raw date columns, sliced directly
-(weekly grouping via `fact…[ship_year_week]`). All relationships are 1:* with single cross-filter (dim → fact). The
-built ESO1 tables (fact, `dim_item`) and the reused address/plant dims all live in `rpt`; the generator
-emits a per-table `schemaName`. The three address roles use the existing `dim_address_*` views so each gets an active
-relationship; if a view forces Direct Lake → DirectQuery fallback, relate to the physical `dim_address_book` with
-`USERELATIONSHIP` instead.
+Plus **1 fact→fact**: `fact_price_adjustment[sales_order_line_key] → fact_sales_order_freight[sales_order_line_key]`, and
+**3 snowflake dim→dim** off the address role dims: `dim_address_book_ship_to[category_code_05] → dim_category_code_05`,
+`dim_address_book_ship_to[standard_industry_code] → dim_sic`, `dim_address_book_sold_to[category_code_05] →
+dim_category_code_05_sold_to`.
+
+**No date relationships** — no date dimension; dates are sliced off the fact's raw date columns (weekly via
+`ship_year_week`). All tables live in `rpt` (per-table `schemaName` in the TMDL partitions). Address roles are physical
+`dim_address_book_*` tables (each a Direct Lake table over the `rpt` role source), so each gets its own active
+relationship — no `USERELATIONSHIP` needed.
 
 ### 7.2 Key measures (ratios = SUM/SUM; freight deduped per shipment)
+> All 61 measures live in the dedicated **`measure_tbl`** table (measures-only). The DAX below still references
+> `fact_sales_order_freight` columns — only the measures' *home table* changed, not their definitions.
 ```DAX
 -- Freight $ deduped to shipment grain (correct under any line-level filter)
 Total Billable  = SUMX(VALUES(fact_sales_order_freight[shipment_number]),
@@ -773,16 +806,18 @@ Validation writes a `lh_jde_gold.rpt.eso1_validation_log` row per run (check, ex
 | Notebook | `nb_eso1_gold_fact_sales_commission` | **BATCH (fact) — self-contained** builder: reused-dim + F4211/F42005 preflight + `build_fact()` (F4211 driver, F42005 LEFT) → overwrite `fact_sales_commission`; `MANUAL_OVERWRITE`; 4-section layout (§4.6) |
 | Notebook | `nb_validate_gold_eso1` | validation suite — **self-contained** |
 | Notebook | `nb_maintenance_gold_eso1` | OPTIMIZE / VACUUM — **self-contained** |
-| Notebook | `nb_semantic_model_eso1` | Direct Lake model + relationships + measures — **self-contained** |
+| Notebook | `nb_semantic_model_eso1` | ⚠ **SUPERSEDED** — built the old `billable_payable_freight` model. The live model is the **hand-maintained** `Extended Sales Order 1.SemanticModel` (TMDL, no builder) |
 | | | *all notebooks have **no `%run`** — each declares its own constants/transforms inline* |
-| Fact | `lh_jde_gold.rpt.fact_sales_order_freight` | single consolidated freight fact |
-| Fact | `lh_jde_gold.rpt.fact_sales_commission` | SOP0027 commission fact (sales line × commission record; §4.6) |
+| Fact | `lh_jde_gold.rpt.fact_sales_order_freight` | consolidated freight fact — **in the `Extended Sales Order 1` model** |
+| Fact | `lh_jde_gold.rpt.fact_price_adjustment` | F4074 price-adjustment fact — also **in the `Extended Sales Order 1` model** (many:1 to freight); feeds PROD `…Sales Order Price Adjustment` model |
+| Fact | `lh_jde_gold.rpt.fact_sales_commission` | SOP0027 commission fact (§4.6) — **NOT** in this model; feeds the separate `…Sales Commission` model |
 | Dim (NEW) | `lh_jde_gold.rpt.dim_item` | genuinely-new dim built here (no date dimension — dates are raw fact columns) |
 | Dim (NEW) | `lh_jde_gold.rpt.dim_category_code_10` | ABAC10 → description (UDC 01/10) for SOP0027 |
 | Dims (REUSED) | `lh_jde_gold.rpt.dim_address_book` (+ `dim_address_ship_to`/`_sold_to`/`_carrier`/`_salesperson` views), `lh_jde_gold.rpt.dim_plant` | conformed; built by `old_nb`/other jobs |
 | Pipeline (optional) | `pl_fact_sales_order_freight` | batch schedule: dims (`nb_eso1_gold_dim_item`, `nb_eso1_gold_dim_category_code_10`) → facts (`nb_eso1_gold_fact_sales_order_freight`, `nb_eso1_gold_fact_sales_commission`) → `nb_validate_gold_eso1` |
 | Deployment pipeline | `dpl_jde` | dev→test→prod promotion |
-| Semantic model | `billable_payable_freight` | Direct Lake |
+| Semantic model | `Extended Sales Order 1` | Direct Lake — hand-maintained TMDL at `report/Extended Sales Order 1.SemanticModel/` (26 tbl / 24 rel / 61 measures in `measure_tbl`); freight + price_adjustment facts |
+| Report | `Extended Sales Orders 1` | PBIR at `report/Extended Sales Orders 1.Report/`, binds `byPath` to the model above |
 
 ---
 
@@ -797,7 +832,8 @@ model to bind). Set `MANUAL_OVERWRITE = True` on the first run of each notebook,
 4. **`nb_eso1_gold_fact_sales_commission`** (batch fact job) → reused-dim + F4211/F42005 preflight → `build_fact()` →
    overwrite `fact_sales_commission` (§4.6).
 5. `nb_validate_gold_eso1` → confirm counts / keys / reconciliation (run after each rebuild).
-6. `nb_semantic_model_eso1` → (re)generate the Direct Lake model + measures.
+6. **Semantic model** — no build step: the `Extended Sales Order 1.SemanticModel` is hand-maintained TMDL. After a Gold
+   rebuild, Direct Lake picks up the new data automatically; edit the TMDL only when columns/measures change, then redeploy.
 7. `nb_maintenance_gold_eso1` → optional OPTIMIZE/VACUUM. *(Steps 1–4 can be chained by a `pl_*` pipeline on the reporting SLA.)*
 
 ---
@@ -830,11 +866,17 @@ no preflight) and `nb_eso1_gold_fact_sales_order_freight` (builds the fact; 2 CD
 **Rewritten in place (not archived):** `nb/nb_semantic_model_eso1.py` now contains the single-fact Direct Lake model.
 
 **Also archived to `old_nb/` (2026-06-23):** `generate_tmdl_semantic_model.py` and
-`eso1_billable_payable_freight.SemanticModel/` (old two-fact TMDL generator + output). The model is now generated by
-`nb_semantic_model_eso1` (§7).
+`eso1_billable_payable_freight.SemanticModel/` (old two-fact TMDL generator + output). The model was **then** built by
+`nb_semantic_model_eso1` — itself **since superseded** (see the 2026-08-31 note below): the live model is now the
+hand-maintained `Extended Sales Order 1.SemanticModel` TMDL.
 
-**Rebound (2026-06-23):** `report/ESO1_Billable_v_Payable_Freight.Report` (PBIR) now binds (`byPath`) to a new local
+**⚠ SUPERSEDED 2026-08-31:** the local model `report/billable_payable_freight.SemanticModel`, its report
+`ESO1_Billable_v_Payable_Freight.Report`, and the generator `report/generate_tmdl_semantic_model.py` have all been
+**deleted**. Live model = hand-maintained `report/Extended Sales Order 1.SemanticModel`; live report =
+`report/Extended Sales Orders 1.Report` (byPath). No generator remains — edit the TMDL directly.
+
+**Rebound (2026-06-23, historical):** `report/ESO1_Billable_v_Payable_Freight.Report` (PBIR) bound (`byPath`) to a local
 Direct Lake model `report/billable_payable_freight.SemanticModel`, generated by `report/generate_tmdl_semantic_model.py`
-(matches the workspace model from `nb_semantic_model_eso1`). All 26 visual field references were remapped to the single
+(matched the workspace model from `nb_semantic_model_eso1`). All 26 visual field references were remapped to the single
 fact + new dims and verified to resolve; obsolete fields (cost %, status, has_freight) were remapped/removed. Fill the
 SQL-endpoint placeholders in `…SemanticModel/definition/expressions.tmdl` before refresh.

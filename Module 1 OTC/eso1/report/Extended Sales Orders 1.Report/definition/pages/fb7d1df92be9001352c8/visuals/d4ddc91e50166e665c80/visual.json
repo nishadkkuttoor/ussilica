@@ -1,0 +1,1661 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "d4ddc91e50166e665c80",
+  "position": {
+    "x": 217.4265178854624,
+    "y": 137.92252606025693,
+    "z": 39002,
+    "height": 1032,
+    "width": 1838,
+    "tabOrder": 39002
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "hold_orders_code"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.hold_orders_code",
+              "nativeQueryRef": "Hold Orders Code",
+              "displayName": "Hold Orders Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_ship_to"
+                    }
+                  },
+                  "Property": "standard_industry_code"
+                }
+              },
+              "queryRef": "dim_address_book_ship_to.standard_industry_code",
+              "nativeQueryRef": "Market Code SIC Code1",
+              "displayName": "Market Code SIC Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "branch_plant"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.branch_plant",
+              "nativeQueryRef": "Branch Plant",
+              "displayName": "Branch Plant"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_plant"
+                    }
+                  },
+                  "Property": "plant_name"
+                }
+              },
+              "queryRef": "dim_plant.plant_name",
+              "nativeQueryRef": "Plant",
+              "displayName": "Plant"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "bill_to"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.bill_to",
+              "nativeQueryRef": "Bill To",
+              "displayName": "Bill To",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "ship_to"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.ship_to",
+              "nativeQueryRef": "Ship To",
+              "displayName": "Ship To",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_ship_to"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_book_ship_to.name_alpha",
+              "nativeQueryRef": "Ship To Name",
+              "displayName": "Ship To Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_ship_to"
+                    }
+                  },
+                  "Property": "city"
+                }
+              },
+              "queryRef": "dim_address_book_ship_to.city",
+              "nativeQueryRef": "City",
+              "displayName": "City"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_ship_to"
+                    }
+                  },
+                  "Property": "state"
+                }
+              },
+              "queryRef": "dim_address_book_ship_to.state",
+              "nativeQueryRef": "State",
+              "displayName": "State"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "order_number"
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.order_number)",
+              "nativeQueryRef": "Order Number",
+              "displayName": "Order Number",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "line_number"
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.line_number)",
+              "nativeQueryRef": "Line Number",
+              "displayName": "Line Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "order_type"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.order_type",
+              "nativeQueryRef": "Order Type",
+              "displayName": "Order Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "order_date"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.order_date",
+              "nativeQueryRef": "Order Date",
+              "displayName": "Order Date",
+              "format": "MM/dd/yyyy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "requested_date"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.requested_date",
+              "nativeQueryRef": "Requested Date",
+              "displayName": "Requested Date",
+              "format": "MM/dd/yyyy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "scheduled_pick_date"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.scheduled_pick_date",
+              "nativeQueryRef": "Scheduled Pick  (Detail)",
+              "displayName": "Scheduled Pick  (Detail)",
+              "format": "MM/dd/yyyy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "promised_ship_date"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.promised_ship_date",
+              "nativeQueryRef": "Promised Ship (Detail)",
+              "displayName": "Promised Ship (Detail)",
+              "format": "MM/dd/yyyy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "actual_ship_date"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.actual_ship_date",
+              "nativeQueryRef": "Actual Ship Date",
+              "displayName": "Actual Ship Date",
+              "format": "MM/dd/yyyy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "status_code_last"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.status_code_last",
+              "nativeQueryRef": "Status Code - Last",
+              "displayName": "Status Code - Last"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "status_code_next"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.status_code_next",
+              "nativeQueryRef": "Status Code - Next",
+              "displayName": "Status Code - Next"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "seal_no"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.seal_no",
+              "nativeQueryRef": "Seal Number",
+              "displayName": "Seal Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "container_id"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.container_id",
+              "nativeQueryRef": "Vehicle Number",
+              "displayName": "Vehicle Number"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_sales_order_freight"
+                        }
+                      },
+                      "Property": "quantity_shipped_tons"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.quantity_shipped_tons)",
+              "nativeQueryRef": "Sum of quantity_shipped_tons",
+              "displayName": "Short Tons Total"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "mode_of_transport"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.mode_of_transport",
+              "nativeQueryRef": "Mode of Transport",
+              "displayName": "Mode of Transport"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_mode_of_transport"
+                    }
+                  },
+                  "Property": "modeoftransport_description"
+                }
+              },
+              "queryRef": "dim_mode_of_transport.modeoftransport_description",
+              "nativeQueryRef": "MOT Name",
+              "displayName": "MOT Name"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_sales_order_freight"
+                        }
+                      },
+                      "Property": "transaction_quantity"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.transaction_quantity)",
+              "nativeQueryRef": "Sum of transaction_quantity",
+              "displayName": "Units - Order/Transaction Quantity",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "uom"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.uom",
+              "nativeQueryRef": "Unit of Measure",
+              "displayName": "Unit of Measure"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "price_per_unit"
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.price_per_unit)",
+              "nativeQueryRef": "Price per Unit",
+              "displayName": "Price per Unit",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "uom_pricing"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.uom_pricing",
+              "nativeQueryRef": "Unit of Measure - Pricing",
+              "displayName": "Unit of Measure - Pricing"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "line_price_effective_date"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.line_price_effective_date",
+              "nativeQueryRef": "Price Effective (Detail)",
+              "displayName": "Price Effective (Detail)",
+              "format": "d"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "header_price_effective_date"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.header_price_effective_date",
+              "nativeQueryRef": "Price Effective  (Header)",
+              "displayName": "Price Effective  (Header)",
+              "format": "d"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "freight_handling_code"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.freight_handling_code",
+              "nativeQueryRef": "Freight Handling Code",
+              "displayName": "Freight Handling Code"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "carrier_number"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.carrier_number",
+              "nativeQueryRef": "Carrier Number",
+              "displayName": "Carrier Number",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_carrier"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_book_carrier.name_alpha",
+              "nativeQueryRef": "Carrier Name",
+              "displayName": "Carrier Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "booking_no"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.booking_no",
+              "nativeQueryRef": "Booking Number",
+              "displayName": "Booking Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "date_earliest_pickup"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.date_earliest_pickup",
+              "nativeQueryRef": "Sail Date",
+              "displayName": "Sail Date",
+              "format": "MM/dd/yyyy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "date_latest_delivery"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.date_latest_delivery",
+              "nativeQueryRef": "Cut-Off Date",
+              "displayName": "Cut-Off Date",
+              "format": "MM/dd/yyyy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_destination"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_book_destination.name_alpha",
+              "nativeQueryRef": "Name - Alpha",
+              "displayName": "Name - Alpha"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "destination_port"
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.destination_port)",
+              "nativeQueryRef": "Port of Destination",
+              "displayName": "Port of Destination",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "no_of_container"
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.no_of_container)",
+              "nativeQueryRef": "No. of Containers",
+              "displayName": "No. of Containers",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "ocean_del_terms"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.ocean_del_terms",
+              "nativeQueryRef": "Ocean Del Terms",
+              "displayName": "Ocean Del Terms"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "vessel_name"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.vessel_name",
+              "nativeQueryRef": "Vessel Name",
+              "displayName": "Vessel Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "second_item_number"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.second_item_number",
+              "nativeQueryRef": "Item Number",
+              "displayName": "Item Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "address_number_parent"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.address_number_parent",
+              "nativeQueryRef": "address_number_parent",
+              "displayName": "Parent Number",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_parent"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_book_parent.name_alpha",
+              "nativeQueryRef": "Parent Name",
+              "displayName": "Parent Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "bol_number"
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.bol_number)",
+              "nativeQueryRef": "BOL Number",
+              "displayName": "BOL Number",
+              "format": "0"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "reference_01"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.reference_01",
+              "nativeQueryRef": "Customer PO #",
+              "displayName": "Customer PO #"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_sales_order_freight"
+                        }
+                      },
+                      "Property": "primary_quantity_ordered"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fact_sales_order_freight.primary_quantity_ordered)",
+              "nativeQueryRef": "Sum of primary_quantity_ordered",
+              "displayName": "Primary Quantity Ordered F4211[PQOR]",
+              "format": "#,0.00"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales_order_freight"
+                    }
+                  },
+                  "Property": "shipment_number"
+                }
+              },
+              "queryRef": "fact_sales_order_freight.shipment_number",
+              "nativeQueryRef": "Shipment Number",
+              "displayName": "Shipment Number"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#333D51'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#333D51'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Center'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "abbeb660cb86f3d6f495",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "hold_orders_code"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "b4ba0eb7148c08512572",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_ship_to"
+              }
+            },
+            "Property": "standard_industry_code"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "0064e504ea4f952eea72",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "branch_plant"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "f9d150e7d79e6fcd7506",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_plant"
+              }
+            },
+            "Property": "plant_name"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "d49592fa3de461b98570",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "bill_to"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "6d72028534f88dd117d8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "ship_to"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "ca2e8b6784b08a17bc9c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_ship_to"
+              }
+            },
+            "Property": "name_alpha"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "446f6c0d5f17ff1aa2c3",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_ship_to"
+              }
+            },
+            "Property": "city"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "8cafa0e00809ff7b2317",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_ship_to"
+              }
+            },
+            "Property": "state"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "286dca363609c1978f2a",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "order_number"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "78d3028fd5ad42ec2d8c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "line_number"
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "fb61756f45da85ee4c43",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "order_type"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "74595e1e194dda0b1785",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "order_date"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "90e16551ba35e812c4ca",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "requested_date"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "88d85b60e3a932057a34",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "scheduled_pick_date"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "372056e56bbdb55ffea0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "promised_ship_date"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "3b71835f80aa41b99573",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "actual_ship_date"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "28c964667908eed545c8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "status_code_last"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "442217546766b4d6e8ef",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "status_code_next"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "3d2df06d316c58c01ae4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "seal_no"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "fc24c5a267ce87108c82",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "container_id"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "0b8291e093c57e4e4e0e",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_sales_order_freight"
+                  }
+                },
+                "Property": "quantity_shipped_tons"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "d2cad2fe9b7e73aeab83",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "mode_of_transport"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "537b0077c6cad2354a9e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_mode_of_transport"
+              }
+            },
+            "Property": "modeoftransport_description"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "f9c382f6ced3ca732311",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_sales_order_freight"
+                  }
+                },
+                "Property": "transaction_quantity"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "4ce4a6e73bdb5325a634",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "uom"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "508abebdf6ac2846d442",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "price_per_unit"
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "e6d4edcf2deff0a2f3f9",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "uom_pricing"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "d35ea3b8f4fe29b0837d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "line_price_effective_date"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "816b5705b40e840e7a3e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "header_price_effective_date"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "00f8a9070a9aa24a52a0",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "freight_handling_code"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "25d96b8e5ecaa1cc63e6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "carrier_number"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "e84e6897eb3ead21db10",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_carrier"
+              }
+            },
+            "Property": "name_alpha"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "418ec9266a73afa323fc",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "booking_no"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "40b5b0b7d8f964c58df4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "date_earliest_pickup"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "6cd66662858c92f16d57",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "date_latest_delivery"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "eb7fd0de571d1d2f717d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_destination"
+              }
+            },
+            "Property": "name_alpha"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "a18566a6cbb8d0e39ed8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "destination_port"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "34cd99af7c2aac8c7ac6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "no_of_container"
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "7eccd45fdbf3891f2fe7",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "ocean_del_terms"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "735bdee6a9c4d2e76dfa",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "vessel_name"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "78a317729b22d3c46a51",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "second_item_number"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "ce88040ae3db6d809ce7",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "address_number_parent"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "41e8ebaab90a1730037d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_parent"
+              }
+            },
+            "Property": "name_alpha"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "f9585ad44ed3bbf4059f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "bol_number"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "529a74bd50b5fe9ee45e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "reference_01"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "bb8c16c41e96a1190f45",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_sales_order_freight"
+                  }
+                },
+                "Property": "primary_quantity_ordered"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      },
+      {
+        "name": "e033e7f940ff4df68075",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales_order_freight"
+              }
+            },
+            "Property": "shipment_number"
+          }
+        },
+        "type": "Categorical",
+        "isHiddenInViewMode": true,
+        "isLockedInViewMode": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,74 @@
+table Measures_Table
+	lineageTag: bcf9f0ec-9262-4a97-9c15-791af0881fbc
+
+	/// Returns the loading port for export shipments by taking the maximum load_port value where the mode of transport equals "OCE".
+	measure 'Export Loading Port (OCE)' =
+			
+			CALCULATE(
+			    MAX ( fact_shipment_routing[load_port] ),
+			    fact_shipment_routing[mode_of_transport] = "OCE"
+			)
+		lineageTag: 76ce86d3-7e64-4bfa-9d07-00251077f06d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Returns the export loading port name from the loading port address dimension for shipments whose mode of transport matches "OCE", using the maximum port name when multiple records exist.
+	measure 'Export Loading Port Name (OCE)' =
+			CALCULATE(
+						    MAXX(
+						        fact_shipment_routing,
+						        RELATED(dim_address_book_loading_port[name_alpha])
+						        ),
+						        fact_shipment_routing[mode_of_transport] = "OCE"
+						    )
+		lineageTag: 0a87dc87-4159-4b85-8fc4-cbf50f49af43
+
+	/// Returns the maximum order originator from fact_sales_order_detail rows where the line type equals "S" representing the S-line originator.
+	measure 'TORG (S-line)' =
+			
+			CALCULATE(
+			    MAX ( fact_sales_order_detail[order_originator] ),
+			    fact_sales_order_detail[line_type] = "S"
+			)
+		lineageTag: ad387d90-87fa-4d07-83c8-9e8ab41ad295
+
+	/// Displays the current date based on the user's system time or last report refresh, formatted as 'DD MMMM YYYY'
+	measure 'Current Date' = ```
+			
+			VAR _UtcNow = UTCNOW()
+			// Adjust for your target timezone, e.g., Central Daylight Time (UTC -6)
+			VAR _TargetDate = _UtcNow - (6 / 24) 
+			RETURN FORMAT(_TargetDate, "dd MMMM yyyy")
+			
+			```
+		lineageTag: 36f2b5f9-c324-4ad9-800e-a522a824991f
+
+	/// Calculates the most recent timestamp from a table in Eastern Time (ET). It ignores any visual, page, or report-level filters.
+	measure 'JDE Last Updated' =
+			
+			VAR _ts = CALCULATE (
+			        	  MAX ( 'fact_extended_sales_order_8'[jde_updated_ts] ),
+			        	  REMOVEFILTERS ()
+			    	    )
+			RETURN
+			    IF ( NOT ISBLANK ( _ts ), FORMAT ( _ts, "MM/dd/yyyy HH:mm:ss" ) )
+		lineageTag: d7ba085e-cc2a-4d34-b998-ba92ec718bff
+
+	column Column
+		isHidden
+		formatString: 0
+		lineageTag: 87c03b97-ac9a-4b45-a0dc-029ae9470597
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Measures_Table = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = d480f9a017444a5f85ebc6dc90aa8353
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":""}
+

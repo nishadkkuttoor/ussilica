@@ -1,0 +1,230 @@
+table fact_customer_ledger
+	lineageTag: dd996bd6-6d1e-49b5-a0f4-ba79737149cb
+	sourceLineageTag: [rpt].[fact_customer_ledger]
+
+	column company_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 69137433-73b7-4be9-bf6c-b27b40d52587
+		sourceLineageTag: company_key
+		summarizeBy: none
+		sourceColumn: company_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 2a182b84-e849-40e4-9fd1-69ff9f641bf3
+		sourceLineageTag: invoice_number
+		summarizeBy: sum
+		sourceColumn: invoice_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column document_type
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 1e7a5691-f00e-4ba0-8c36-68cea162dc2c
+		sourceLineageTag: document_type
+		summarizeBy: none
+		sourceColumn: document_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column document_pay_item
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2d82b1ea-5b69-44f8-bb5a-b09722fcc00f
+		sourceLineageTag: document_pay_item
+		summarizeBy: none
+		sourceColumn: document_pay_item
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_company
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 198e60b7-b993-4d43-98cc-7477092b76e9
+		sourceLineageTag: order_company
+		summarizeBy: none
+		sourceColumn: order_company
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: e4ba62db-c955-4d90-805b-5fa196ad8912
+		sourceLineageTag: order_number
+		summarizeBy: none
+		sourceColumn: order_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 61a51ecd-0fd8-4c7f-9805-d06e07dda9d3
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column originating_line_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 2cd8c55e-7cad-4c45-8585-54d3f93e5f08
+		sourceLineageTag: originating_line_number
+		summarizeBy: sum
+		sourceColumn: originating_line_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column amount_taxable
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: b4b5695d-b8f0-473a-9da5-65eadf97b29a
+		sourceLineageTag: amount_taxable
+		summarizeBy: sum
+		sourceColumn: amount_taxable
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column amount_tax_exempt
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: c845f94a-340e-450c-adc1-7d07be392304
+		sourceLineageTag: amount_tax_exempt
+		summarizeBy: sum
+		sourceColumn: amount_tax_exempt
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column amount_tax
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 04b1d0ff-c6d3-4bf8-bbb5-bce959ef6c3b
+		sourceLineageTag: amount_tax
+		summarizeBy: sum
+		sourceColumn: amount_tax
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column amount_gross
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 097b10e2-1752-4064-9e06-c6d495c16e85
+		sourceLineageTag: amount_gross
+		summarizeBy: sum
+		sourceColumn: amount_gross
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column tax_area
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 8f9edca7-984a-4393-9dbf-63d3f08979ea
+		sourceLineageTag: tax_area
+		summarizeBy: none
+		sourceColumn: tax_area
+
+		annotation SummarizationSetBy = Automatic
+
+	column service_tax_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 5526d429-fb33-4f74-93e1-7eced32554b4
+		sourceLineageTag: service_tax_date
+		summarizeBy: none
+		sourceColumn: service_tax_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_ledger_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: da940af3-e9d5-4007-94fd-652a5ea0fee0
+		sourceLineageTag: customer_ledger_key
+		summarizeBy: none
+		sourceColumn: customer_ledger_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_scope_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 73e90848-fad9-4675-8d65-f08426456ce7
+		sourceLineageTag: invoice_scope_key
+		summarizeBy: none
+		sourceColumn: invoice_scope_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_scope_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 983e7c2e-d15e-4577-b7a0-6f212870aed2
+		sourceLineageTag: order_scope_key
+		summarizeBy: none
+		sourceColumn: order_scope_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 72d68add-e4e0-4932-899d-727e6e09fe3f
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 801e4195-e833-4707-9e22-4ac44e0be1cf
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 5dc78d9d-7b8b-4361-b0d0-4612b82c7cdd
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_customer_ledger = entity
+		mode: directLake
+		source
+			entityName: fact_customer_ledger
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

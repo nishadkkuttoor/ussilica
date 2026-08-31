@@ -1,0 +1,84 @@
+table measure_tbl
+	lineageTag: f569390d-4353-488c-9b0b-9391b536c255
+
+	/// Sum of gross_amount (the invoice gross) across the current selection.
+	measure 'Gross Amount' = SUM(fact_customer_ledger[amount_gross])
+		formatString: "£"#,0.###############;-"£"#,0.###############;"£"#,0.###############
+		lineageTag: 524f0b22-818f-40f4-8e22-aaf771b79f76
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		changedProperty = Description
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	/// Sum of non_taxable_amount (the exempt amount) across the current selection.
+	measure 'Non-Taxable Amount' = SUM(fact_customer_ledger[amount_tax_exempt])
+		formatString: "£"#,0.###############;-"£"#,0.###############;"£"#,0.###############
+		lineageTag: 92e2115e-a9e2-4770-8ced-3763f294949e
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		changedProperty = Description
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	/// Sum of tax_amount (the tax charged) across the current selection.
+	measure 'Tax Amount' = SUM(fact_customer_ledger[amount_tax])
+		formatString: "£"#,0.###############;-"£"#,0.###############;"£"#,0.###############
+		lineageTag: a7dae79b-2d5d-4410-ba0d-f9b0fb76cee1
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		changedProperty = Description
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	/// Sum of taxable_amount (the amount subject to tax) across the current selection.
+	measure 'Taxable Amount' = SUM(fact_customer_ledger[amount_taxable])
+		formatString: "£"#,0.###############;-"£"#,0.###############;"£"#,0.###############
+		lineageTag: c9c3f12b-7d70-44be-b103-444bbffb0715
+
+		changedProperty = Name
+
+		changedProperty = FormatString
+
+		changedProperty = Description
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-GB"}
+
+	/// Calculates the most recent timestamp from a table in Eastern Time (ET). It ignores any visual, page, or report-level filters.
+	measure 'JDE Last Updated' =
+			
+			VAR _ts = CALCULATE (
+			        	  MAX ( 'fact_customer_ledger'[jde_updated_ts] ),
+			        	  REMOVEFILTERS ()
+			    	    )
+			RETURN
+			    IF ( NOT ISBLANK ( _ts ), FORMAT ( _ts, "MM/dd/yyyy HH:mm:ss" ) )
+		lineageTag: 619081b3-bf3f-4f96-8051-a17c0277952f
+
+	column Column
+		isHidden
+		formatString: 0
+		lineageTag: a451162c-f730-4fa4-90b9-d375da1a13a0
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition measure_tbl = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = 87ea7e8abc2d478283bc2c465b8d6b64
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":""}
+

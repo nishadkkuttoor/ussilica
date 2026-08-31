@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Notebook",
+    "displayName": "nb_silver_to_gold_eso1_fact_sales_order_freight"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "8a0d0190-077a-8bdc-48fc-bc87426d3f91"
+  }
+}

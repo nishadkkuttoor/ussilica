@@ -1,0 +1,195 @@
+table dim_order
+	lineageTag: 13faba17-91be-4b58-9dbd-26c4477079c2
+	sourceLineageTag: [rpt].[dim_order]
+
+	column company
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3468350e-cd31-4797-a483-214b5156893c
+		sourceLineageTag: company
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: f324ac6a-497a-48f5-bf6b-4015ad95ff0f
+		sourceLineageTag: order_number
+		summarizeBy: sum
+		sourceColumn: order_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column order_type
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 78e12ba6-6660-4340-bea5-bca678222599
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: d49627ef-c5b9-44c4-896b-0169876299f3
+		sourceLineageTag: address_number
+		summarizeBy: sum
+		sourceColumn: address_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column address_number_ship_to
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: b636f09e-ebe3-4157-a171-af65d1b856ff
+		sourceLineageTag: address_number_ship_to
+		summarizeBy: sum
+		sourceColumn: address_number_ship_to
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mode_of_transport
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2fbb54e9-c768-401a-a59b-c1c175cf2368
+		sourceLineageTag: mode_of_transport
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_requested
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: f66f141f-39c5-4c16-8cbf-c133bbf358b0
+		sourceLineageTag: date_requested
+		summarizeBy: none
+		sourceColumn: date_requested
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_transaction
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 4dbab1a3-c1b3-455f-b854-c68111192805
+		sourceLineageTag: date_transaction
+		summarizeBy: none
+		sourceColumn: date_transaction
+
+		annotation SummarizationSetBy = Automatic
+
+	column ordered_by
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 094f8277-8d54-47b0-aefb-d0ffdf2d8ffa
+		sourceLineageTag: ordered_by
+		summarizeBy: none
+		sourceColumn: ordered_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_taken_by
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b0b75d51-d1bf-4b0e-ac2d-346650af083c
+		sourceLineageTag: order_taken_by
+		summarizeBy: none
+		sourceColumn: order_taken_by
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_updated
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: e4b29a2f-2561-4049-8136-650506ac3472
+		sourceLineageTag: date_updated
+		summarizeBy: none
+		sourceColumn: date_updated
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 47f647ae-3c49-45bc-b7fe-faddd9a1e64b
+		sourceLineageTag: order_key
+		summarizeBy: none
+		sourceColumn: order_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column hold_orders_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: c7755103-e3f9-4739-ada1-6496d5423c36
+		sourceLineageTag: hold_orders_code
+		summarizeBy: none
+		sourceColumn: hold_orders_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_original_promisde
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 060646ef-24e5-42b2-a87d-4718815107da
+		sourceLineageTag: date_original_promisde
+		summarizeBy: none
+		sourceColumn: date_original_promisde
+
+		annotation SummarizationSetBy = Automatic
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: bedafdcc-4e8a-4ae0-8033-e95cd30482a5
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 48bb6815-2f54-4b98-bd65-c9b895ca876f
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 21862866-3c13-468b-a949-3e4c6ffd4574
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_order = entity
+		mode: directLake
+		source
+			entityName: dim_order
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

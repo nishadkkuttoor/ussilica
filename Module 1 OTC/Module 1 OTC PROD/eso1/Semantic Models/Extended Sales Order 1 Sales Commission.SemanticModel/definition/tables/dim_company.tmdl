@@ -1,0 +1,65 @@
+table dim_company
+	lineageTag: 23302382-c0e4-458f-9a12-9846e3c6f7cc
+	sourceLineageTag: [rpt].[dim_company]
+
+	column company
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 640b1bea-69c0-47a5-a8b8-64a0147e120e
+		sourceLineageTag: company
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_name
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 02c922bc-d947-42c5-ad91-fdeb2e87992b
+		sourceLineageTag: company_name
+		summarizeBy: none
+		sourceColumn: company_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column currency_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e3d2c9a7-5250-4be0-bffe-94775a62f27a
+		sourceLineageTag: currency_code
+		summarizeBy: none
+		sourceColumn: currency_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column period_number_current
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: dc316cf3-a6d7-46c2-8626-57d4fb356f1e
+		sourceLineageTag: period_number_current
+		summarizeBy: none
+		sourceColumn: period_number_current
+
+		annotation SummarizationSetBy = Automatic
+
+	column fiscal_year_current
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 0b1f54fb-49e9-4d6a-9198-f68f0d2587c0
+		sourceLineageTag: fiscal_year_current
+		summarizeBy: none
+		sourceColumn: fiscal_year_current
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_company = entity
+		mode: directLake
+		source
+			entityName: dim_company
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

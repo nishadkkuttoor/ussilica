@@ -60,7 +60,8 @@ F0101  = "f0101_address_book_master"          # sold-to category (ABAC10)
 # (guarded via _load_optional); the fact is F4211-only if F42119 is absent.
 F42119 = "f42119_sales_order_history_file"
 F4074  = "f4074_price_adjustment_ledger_file"  # price-adjustment type (aggregated to ONE row per line)
-F41002 = "f41002_item_units_of_measure_conversion_factors"  # item UOM structure (UMUSTR) — item-level lookup
+F41002 = "f41002_item_units_of_measure_conversion_factors"  # item UOM structure (UMUSTR) + item-specific UOM->TN (Tier A)
+F41003 = "f41003_unit_of_measure_standard_conversion"       # standard UOM->TN conversion (Tier B)
 
 # ── Gold target BUILT here ─────────────────────────────────────────────────────
 FACT = "fact_sales_commission"
@@ -171,6 +172,7 @@ FACT_BUSINESS_COLS = [
     "shipment_number", "uom_as_input", "mode_of_transport", "payment_terms_code_01",
     "gl_class", "date_transaction_julian", "date_invoice_julian",
     "price_adjustment_type", "uom_structure",
+    "conversion_to_tons_rate", "missing_conversion_flag", "quantity_shipped_tons",
     # ── flags / lineage ──
     "is_primary_commission_line", "shift_factor_applied",
 ]
@@ -201,6 +203,28 @@ def _line_context():
     ln = ln.select(*[c for c in keep if c in ln.columns])
     return ln.dropDuplicates(["company_key_order_no", "order_type", "document_order_invoice_e", "line_number"])
 
+# SDUOM->TN conversion cascade — item-specific F41002 then standard F41003, each fwd + inverse, resolved
+# directly to TN (no IMUOM1 pivot). Item leg reads F41002.UMCONV (related_uom=TN) + reciprocal; standard
+# leg reads F41003.UCCONV (related_uom=TN) + reciprocal.
+def build_uom_cascades():
+    f41002 = load_silver_table(F41002)
+    item_fwd = (f41002.filter((F.trim("related_uom") == "TN") & (F.col("conversion_factor") != 0))
+                .select(F.col("identifier_short_item").alias("itm"), F.trim("uom").alias("from_uom"),
+                        F.col("conversion_factor").cast("double").alias("conv_factor")))
+    item_rev = (f41002.filter((F.trim("uom") == "TN") & (F.col("conversion_factor") != 0))
+                .select(F.col("identifier_short_item").alias("itm"), F.trim("related_uom").alias("from_uom"),
+                        (F.lit(1.0) / F.col("conversion_factor").cast("double")).alias("conv_factor")))
+    item = item_fwd.unionByName(item_rev)
+    f41003 = load_silver_table(F41003)
+    std_fwd = f41003.select(F.trim("uom").alias("from_uom"), F.trim("related_uom").alias("to_uom"),
+                            F.col("conversion_factor").cast("double").alias("conv_std"))
+    std_rev = (f41003.filter(F.col("conversion_factor").cast("double") != 0)
+               .select(F.trim("related_uom").alias("from_uom"), F.trim("uom").alias("to_uom"),
+                       (F.lit(1.0) / F.col("conversion_factor").cast("double")).alias("conv_std")))
+    std = std_fwd.unionByName(std_rev)
+    return item, std
+
+
 def build_fact():
     ln  = _line_context()                    # DRIVER — F4211 (∪ F42119): ALL sales lines
     sc  = load_silver_table(F42005)      # commission ledger — LEFT-joined (a sales line has 0..N commission records)
@@ -220,6 +244,7 @@ def build_fact():
                .groupBy("identifier_short_item")
                .agg(F.max(F.trim(F.col("uom_structure"))).alias("uom_structure"))
                .withColumnRenamed("identifier_short_item", "us_itm"))
+    vol_item, vol_std = build_uom_cascades()   # SDUOM->TN item (F41002) + standard (F41003) direct cascades
 
     # JOIN MODEL: F4211 is the DRIVER, F42005 is LEFT-joined.
     #   • a sales line with NO commission → one row, commission_* columns NULL;
@@ -248,7 +273,21 @@ def build_fact():
                (F.col("pa.order_type") == F.col("ln.order_type")) &
                (F.col("pa.document_order_invoice_e") == F.col("ln.document_order_invoice_e")) &
                (F.col("pa.line_number") == F.col("ln.line_number")), "left")
-         .join(uom_str.alias("us"), F.col("us.us_itm") == F.col("ln.identifier_short_item"), "left"))  # F41002 UMUSTR (1 row/item — no fan)
+         .join(uom_str.alias("us"), F.col("us.us_itm") == F.col("ln.identifier_short_item"), "left")  # F41002 UMUSTR (1 row/item — no fan)
+         # SDUOM->TN cascade: item-specific (F41002) then standard (F41003)
+         .join(vol_item.alias("ci"),
+               (F.col("ci.itm") == F.col("ln.identifier_short_item")) &
+               (F.col("ci.from_uom") == F.trim(F.col("ln.uom_as_input"))), "left")
+         .join(vol_std.alias("cs"),
+               (F.col("cs.from_uom") == F.trim(F.col("ln.uom_as_input"))) &
+               (F.col("cs.to_uom") == F.lit("TN")), "left"))
+
+    # Conversion Factor (Volume): SDUOM->TN — TN->1.0, else item F41002, else standard F41003, else NULL (flag).
+    vol_factor_raw = F.coalesce(
+        F.when(F.trim(F.col("ln.uom_as_input")) == "TN", F.lit(1.0)),
+        F.col("ci.conv_factor"),
+        F.col("cs.conv_std"))
+    vol_factor = F.coalesce(vol_factor_raw, F.lit(1.0))   # vol_factor_raw (before 1.0 default) drives the flag
 
     sel = j.select(
         # ── grain / degenerate (grain = sales line × commission record; the 4 line keys come from the
@@ -317,6 +356,10 @@ def build_fact():
         # ── added lookups (fan-safe: aggregated to line/item grain) ──
         F.col("pa.price_adjustment_type").alias("price_adjustment_type"),            # F4074 ALAST (per-line primary)
         F.col("us.uom_structure").alias("uom_structure"),                            # F41002 UMUSTR (item-level)
+        # volume conversion (SDUOM->TN cascade)
+        vol_factor.alias("conversion_to_tons_rate"),                                  # Conversion Factor (Volume)
+        F.when(vol_factor_raw.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
+        (F.col("ln.units_quantity_shipped").cast("double") * vol_factor).alias("quantity_shipped_tons"),  # Converted Volume (Tons)
         # ── lineage ──
         F.lit(SHIFT_FACTOR).cast("double").alias("shift_factor_applied"),
     ).distinct()
@@ -370,7 +413,8 @@ FACT_SOURCES = [
     {"silver": F4201,  "join": "static", "join_pairs": []},                    # order header — sold-to (SHAN8)
     {"silver": F0101,  "join": "static", "join_pairs": []},                    # sold-to F0101 — category_code_10 (ABAC10) + search_type (ABAT1)
     {"silver": F4074,  "join": "static", "join_pairs": []},                    # F4074 → per-line price_adjustment_type (1 row/line — no fan)
-    {"silver": F41002, "join": "static", "join_pairs": []},                    # F41002 → item-level uom_structure (UMUSTR)
+    {"silver": F41002, "join": "static", "join_pairs": []},                    # F41002 → item-level uom_structure (UMUSTR) + item UOM->TN cascade
+    {"silver": F41003, "join": "static", "join_pairs": []},                    # F41003 → standard UOM->TN cascade
 ]
 
 

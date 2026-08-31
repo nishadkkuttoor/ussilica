@@ -1,0 +1,12 @@
+relationship 757855ef-8b71-820f-28fb-b4bd30a5d919
+	fromColumn: fact_extended_sales_order_6.mode_of_transport
+	toColumn: dim_mode_of_transport.modeoftransport_code
+
+relationship 1f37d646-fddb-8b0d-3265-e99c9dbb216d
+	fromColumn: fact_extended_sales_order_6.carrier
+	toColumn: dim_address_book_carrier.address_number
+
+relationship 79852f1e-13a0-ad0a-5229-7b2f281fcdf2
+	fromColumn: fact_extended_sales_order_6.cost_center
+	toColumn: dim_plant.plant_code
+

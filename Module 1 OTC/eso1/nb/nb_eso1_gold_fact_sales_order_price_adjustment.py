@@ -209,8 +209,9 @@ LINE_COLS = [
     "order_date", "requested_date", "actual_ship_date", "invoice_date", "gl_date",
     "order_date_key", "requested_date_key", "ship_date_key", "invoice_date_key", "gl_date_key",
     # ── uom / tons ──
-    "uom", "uom_primary", "uom_structure", "conversion_to_tons_rate", "missing_conversion_flag",
+    "uom", "uom_pricing", "uom_primary", "uom_structure", "conversion_to_tons_rate", "missing_conversion_flag",
     "ordered_tons", "shipped_tons",
+    "price_conversion_factor", "converted_price_per_ton", "price_missing_conversion_flag",
     # ── line measures ──
     "quantity_shipped", "primary_quantity_ordered", "transaction_quantity",
     "extended_price", "extended_cost", "unit_price", "currency_code_base",
@@ -297,7 +298,14 @@ def build_line_df():
                (F.col("csf.to_uom") == F.trim(F.col("im.uom_primary"))), "left")
          .join(conv_std.alias("cst"),
                (F.col("cst.from_uom") == F.lit("TN")) &
-               (F.col("cst.to_uom") == F.trim(F.col("im.uom_primary"))), "left"))
+               (F.col("cst.to_uom") == F.trim(F.col("im.uom_primary"))), "left")
+         # PRICE cascade lookups on the pricing UoM (SDUOM4): item-specific + standard, from SDUOM4 to IMUOM1
+         .join(conv_item.alias("cifp"),
+               (F.col("cifp.itm") == F.col("sd.identifier_short_item")) &
+               (F.col("cifp.from_uom") == F.trim(F.col("sd.uom_pricing"))), "left")
+         .join(conv_std.alias("csfp"),
+               (F.col("csfp.from_uom") == F.trim(F.col("sd.uom_pricing"))) &
+               (F.col("csfp.to_uom") == F.trim(F.col("im.uom_primary"))), "left"))
 
     # from-factor: item-specific → standard → (SDUOM = IMUOM1 ? 1.0)
     from_factor = F.coalesce(
@@ -310,6 +318,21 @@ def build_line_df():
     # zero/null-divisor guard → factor 0 (zero-on-fail cascade)
     factor = F.when(from_factor.isNull() | to_factor.isNull() | (to_factor == 0), F.lit(0.0)) \
               .otherwise(from_factor / to_factor)
+
+    # price factor on the pricing UoM SDUOM4 — same two-hop method as the volume factor: from-leg
+    # SDUOM4->IMUOM1 (item F41002 then standard F41003), to-leg TN->IMUOM1 (shared to_factor).
+    from_factor_price = F.coalesce(
+        F.col("cifp.conv_item"), F.col("csfp.conv_std"),
+        F.when(F.trim(F.col("sd.uom_pricing")) == F.trim(F.col("im.uom_primary")), F.lit(1.0)))
+    price_factor_raw = F.when(from_factor_price.isNull() | to_factor.isNull() | (to_factor == 0), F.lit(None).cast("double")) \
+                        .otherwise(from_factor_price / to_factor)
+    price_factor = F.coalesce(price_factor_raw, F.lit(1.0))   # price_factor_raw (before 1.0 default) drives the flag
+    _pf_nz = F.when(price_factor != 0, price_factor)   # NULL only when factor is 0 — guards the divide
+    # delivered lines only: Last Status (SDLTTR) <> 980 AND Next Status (SDNXTR) = 999
+    _delivered = (F.trim(F.col("sd.status_code_last")).cast("int") != F.lit(980)) & \
+                 (F.trim(F.col("sd.status_code_next")).cast("int") == F.lit(999))
+    # Converted Price per Ton = (de-scaled SDUPRC) / price factor. amt_price_per_unit_02 already de-scaled in Silver.
+    converted_price_per_ton = F.when(_delivered, F.col("sd.amt_price_per_unit_02") / _pf_nz)
 
     sel = j.select(
         # ── order / line identifiers ──
@@ -356,12 +379,17 @@ def build_line_df():
         F.col("sd.dt_for_gl_and_vouch_01").alias("gl_date"),              # SDDGL
         # ── uom / tons ──
         F.col("sd.uom_as_input").alias("uom"),                            # SDUOM
+        F.col("sd.uom_pricing").alias("uom_pricing"),                     # SDUOM4 (pricing UoM — Source UoM (Price))
         F.col("im.uom_primary").alias("uom_primary"),                     # IMUOM1
         F.col("us.uom_structure").alias("uom_structure"),                 # UMUSTR (F41002 item UOM structure)
         factor.alias("conversion_to_tons_rate"),
         F.when(factor == 0, F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
         (F.col("sd.units_transaction_qty").cast("double") * factor).alias("ordered_tons"),   # SDUORG × factor
         (F.col("sd.units_quantity_shipped").cast("double") * factor).alias("shipped_tons"),  # SDSOQS × factor
+        # price-side conversion (SDUOM4->TN cascade; per-ton on delivered lines)
+        price_factor.alias("price_conversion_factor"),                    # Conversion Factor (Price)
+        converted_price_per_ton.alias("converted_price_per_ton"),         # Converted Price per Ton (delivered only)
+        F.when(price_factor_raw.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("price_missing_conversion_flag"),
         # ── line measures ──
         F.col("sd.units_quantity_shipped").alias("quantity_shipped"),         # SDSOQS
         F.col("sd.units_primary_qty_order").alias("primary_quantity_ordered"),# SDPQOR

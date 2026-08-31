@@ -1,0 +1,260 @@
+table dim_invoice_reconciliation
+	lineageTag: 0e340772-8bdb-4cdd-8ed1-0c0469bb0609
+	sourceLineageTag: [rpt].[dim_invoice_reconciliation]
+
+	column document_company
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b97d9a3d-5797-4a44-ad15-21a32089b6ec
+		sourceLineageTag: document_company
+		summarizeBy: none
+		sourceColumn: document_company
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: a85b5b56-d033-4f34-bc80-98c39b757f4d
+		sourceLineageTag: invoice_number
+		summarizeBy: none
+		sourceColumn: invoice_number
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column document_type
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: feb1403e-cc8e-42f6-9426-6ece0475da1b
+		sourceLineageTag: document_type
+		summarizeBy: none
+		sourceColumn: document_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 80244bd7-ef2c-4627-a1d8-005baa8555fd
+		sourceLineageTag: order_number
+		summarizeBy: none
+		sourceColumn: order_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: c351acea-f8b2-4e37-9d40-402dd2be2539
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 33b4fcd1-bdf6-4380-bfd2-bc169dbdb9d0
+		sourceLineageTag: line_number
+		summarizeBy: sum
+		sourceColumn: line_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column plant
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3711aa39-0b7d-420c-9cf3-cdaaadbe456b
+		sourceLineageTag: plant
+		summarizeBy: none
+		sourceColumn: plant
+
+		annotation SummarizationSetBy = Automatic
+
+	column sold_to
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: fe3f8f02-efe2-44b3-9d44-d2cde7ee12d9
+		sourceLineageTag: sold_to
+		summarizeBy: none
+		sourceColumn: sold_to
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column ship_to
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 93c0a3c3-283a-4267-a700-46292e0e1726
+		sourceLineageTag: ship_to
+		summarizeBy: none
+		sourceColumn: ship_to
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column parent_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 3618152e-c76a-4355-9b2b-2bd793e26e2d
+		sourceLineageTag: parent_number
+		summarizeBy: none
+		sourceColumn: parent_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column tax_explanation_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: f34810b3-ceff-46fa-b754-e539224120c5
+		sourceLineageTag: tax_explanation_code
+		summarizeBy: none
+		sourceColumn: tax_explanation_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column avalara_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 89dfcb99-938e-479c-8f72-d7b0885b4459
+		sourceLineageTag: avalara_code
+		summarizeBy: none
+		sourceColumn: avalara_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column business_stream
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 4585f183-f92c-4951-b28f-0f9f45ce693f
+		sourceLineageTag: business_stream
+		summarizeBy: none
+		sourceColumn: business_stream
+
+		annotation SummarizationSetBy = Automatic
+
+	column sic_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b3b2ffcb-7053-4dbc-95db-7e44e84f6533
+		sourceLineageTag: sic_code
+		summarizeBy: none
+		sourceColumn: sic_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column jurisdiction
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 21136dcc-ed3b-4814-bcac-dc59d8a35ae5
+		sourceLineageTag: jurisdiction
+		summarizeBy: none
+		sourceColumn: jurisdiction
+
+		annotation SummarizationSetBy = Automatic
+
+	column county
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 6cdd703e-bf25-4dce-a88a-69365fa1ed08
+		sourceLineageTag: county
+		summarizeBy: none
+		sourceColumn: county
+
+		annotation SummarizationSetBy = Automatic
+
+	column gl_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 9e4ebe76-5dc3-4122-ab82-9fd03154de2b
+		sourceLineageTag: gl_date
+		summarizeBy: none
+		sourceColumn: gl_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_scope_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3e8ad1a8-3b3e-4f48-8657-be0fe22e2867
+		sourceLineageTag: invoice_scope_key
+		summarizeBy: none
+		sourceColumn: invoice_scope_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_scope_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 4162eceb-aaeb-4ee7-bdbb-37321d09b9b6
+		sourceLineageTag: order_scope_key
+		summarizeBy: none
+		sourceColumn: order_scope_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column plant_invoice
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: eb7e92ac-352a-45d5-a2d1-5ffb5b0f6ee9
+		sourceLineageTag: plant_invoice
+		summarizeBy: none
+		sourceColumn: plant_invoice
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3339613f-6b1a-4463-9cd3-fa71c5f49c83
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 60f9f3e6-d7f1-4bb3-9d7b-a7eaa8521305
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: eb574c03-1980-4f23-be59-5fd513531189
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_invoice_reconciliation = entity
+		mode: directLake
+		source
+			entityName: dim_invoice_reconciliation
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

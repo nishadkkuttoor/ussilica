@@ -1,0 +1,17 @@
+relationship f666cc38-24d1-4ed0-808d-9b780cc2e7af
+	fromColumn: fact_extended_sales_order_2.plant
+	toColumn: dim_plant.plant_code
+
+relationship bb870b63-bc35-c5bb-a6f7-be8fa9b06811
+	crossFilteringBehavior: bothDirections
+	fromColumn: fact_extended_sales_order_2.company
+	toColumn: dim_company.company
+
+relationship d206f4af-36be-c38e-0a54-833cdff1c5a1
+	fromColumn: fact_extended_sales_order_2.ship_to
+	toColumn: dim_address_book_ship_to.address_number
+
+relationship db3a6f71-41a8-432f-9e8b-b1bcf120eab0
+	fromColumn: fact_extended_sales_order_2.next_status
+	toColumn: dim_status_code_next.statuscodenext_code
+

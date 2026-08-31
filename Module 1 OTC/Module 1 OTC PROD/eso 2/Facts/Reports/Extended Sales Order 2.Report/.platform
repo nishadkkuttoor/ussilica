@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Extended Sales Order 2"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "3b8e834c-7385-a740-4e0a-b10b40cfc4ee"
+  }
+}

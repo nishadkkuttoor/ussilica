@@ -1,0 +1,67 @@
+table measure_tbl
+	lineageTag: b79c1b98-e24e-48fb-83fc-6f88a400f834
+
+	/// Total sales-line amount from the commission ledger (SCTOTL)
+	measure 'Commission Sales Line Amount' = SUM(fact_sales_commission[amount_sales_total_line])
+		formatString: #,0.00
+		lineageTag: 3b4b4148-4695-4d1d-a352-6c14646e31d4
+
+	/// Total line cost from the commission ledger (SCLRCS).
+	measure 'Commission Line Cost' = SUM(fact_sales_commission[amount_sales_line_total_cost])
+		formatString: #,0.00
+		lineageTag: 749f76e9-5f50-4930-9a45-c0541a3bb00d
+
+	/// The commission dollars earned (SCCOMA)
+	measure 'Commission Amount' = SUM(fact_sales_commission[amount_commission])
+		formatString: #,0.00
+		lineageTag: 06388eb2-461c-4853-bd21-9298e86a2681
+
+	/// Qty shipped on the sales line (SDSOQS), deduped to one row/line
+	measure 'Commission Quantity Shipped' = CALCULATE(SUM(fact_sales_commission[quantity_shipped]), fact_sales_commission[is_primary_commission_line] = "Y")
+		formatString: 0.00
+		lineageTag: dac72682-d943-4745-95af-998f2a0f44ff
+
+	/// Extended price of the line (SDAEXP)
+	measure 'Commission Extended Price' = CALCULATE(SUM(fact_sales_commission[extended_price]), fact_sales_commission[is_primary_commission_line] = "Y")
+		formatString: #,0.00
+		lineageTag: d3d60a0a-c250-430b-96aa-22aae60c5418
+
+	/// Extended cost of the line (SDECST).
+	measure 'Commission Extended Cost' = CALCULATE(SUM(fact_sales_commission[extended_cost]), fact_sales_commission[is_primary_commission_line] = "Y")
+		formatString: #,0.00
+		lineageTag: 3fd87fed-ffee-4d22-ba5c-ece78badbd09
+
+	/// Primary qty ordered on the line (SDPQOR)
+	measure 'Commission Primary Qty Ordered' = CALCULATE(SUM(fact_sales_commission[primary_quantity_ordered]), fact_sales_commission[is_primary_commission_line]= "Y")
+		formatString: 0.00
+		lineageTag: a9fc8e72-9794-4f8d-ba17-ec734a0d1651
+
+	/// Calculates the most recent timestamp from a table in Eastern Time (ET). It ignores any visual, page, or report-level filters.
+	measure 'JDE Last Updated' =
+			
+			VAR _ts = CALCULATE (
+			        	  MAX ( 'fact_sales_commission'[jde_updated_ts] ),
+			        	  REMOVEFILTERS ()
+			    	    )
+			RETURN
+			    IF ( NOT ISBLANK ( _ts ), FORMAT ( _ts, "MM/dd/yyyy HH:mm:ss" ) )
+		lineageTag: 7bb6f2a8-c500-4083-80cc-af4efee3acfb
+
+	column Column
+		isHidden
+		formatString: 0
+		lineageTag: 85dacde9-7e19-4349-adcb-d774bb8bd71b
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition measure_tbl = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = 654b3bc10b5e4562995ab76a121808d8
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":""}
+

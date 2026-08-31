@@ -1,0 +1,173 @@
+table fact_custom_sales_order_2
+	lineageTag: a94397cf-4311-44e9-9420-c2ec410601f5
+	sourceLineageTag: [rpt].[fact_custom_sales_order_2]
+
+	column order_number
+		dataType: string
+		lineageTag: cb274209-74d4-4f2a-91b2-a633dd6dfb74
+		sourceLineageTag: order_number
+		summarizeBy: none
+		sourceColumn: order_number
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		lineageTag: 3dac2da7-1803-4b1e-8024-66e636b63772
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer
+		dataType: string
+		lineageTag: d254e8ac-59c9-4065-8c15-7285ed02c657
+		sourceLineageTag: customer
+		summarizeBy: none
+		sourceColumn: customer
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_number
+		dataType: string
+		lineageTag: 5ffefb2a-1d2e-4ab7-8391-87bf43cecb8f
+		sourceLineageTag: invoice_number
+		summarizeBy: none
+		sourceColumn: invoice_number
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column second_item_number
+		dataType: string
+		lineageTag: 8945593d-941a-4fc4-8650-792ada8f8ed1
+		sourceLineageTag: second_item_number
+		summarizeBy: none
+		sourceColumn: second_item_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_status_code
+		dataType: string
+		lineageTag: eeef0ee5-904d-4d37-b0e9-b89b61d6c5e1
+		sourceLineageTag: last_status_code
+		summarizeBy: none
+		sourceColumn: last_status_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column next_status_code
+		dataType: string
+		lineageTag: 0758fea3-047a-458e-9049-90a3502141af
+		sourceLineageTag: next_status_code
+		summarizeBy: none
+		sourceColumn: next_status_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column plant
+		dataType: string
+		lineageTag: 66546c69-24a1-4030-b1cb-f3154baee0c6
+		sourceLineageTag: plant
+		summarizeBy: none
+		sourceColumn: plant
+
+		annotation SummarizationSetBy = Automatic
+
+	column ship_to
+		dataType: string
+		lineageTag: d8e89e12-01e1-465b-a6fa-e502cea0a575
+		sourceLineageTag: ship_to
+		summarizeBy: none
+		sourceColumn: ship_to
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_type
+		dataType: string
+		lineageTag: 5891c461-0d57-4fa9-96dd-ea45bbe147f6
+		sourceLineageTag: line_type
+		summarizeBy: none
+		sourceColumn: line_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_key_order_no
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: da8d5edb-8867-4fe0-afdf-6a6ceaf8d285
+		sourceLineageTag: company_key_order_no
+		summarizeBy: none
+		sourceColumn: company_key_order_no
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: b01e967e-1c0d-4a86-a074-8c5650e7b135
+		sourceLineageTag: line_number
+		summarizeBy: sum
+		sourceColumn: line_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 6f342f82-1678-4687-bae1-a53f7cb2d45e
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: d71a869d-9329-4bb6-b85f-53ce95f41fd7
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 8d554bf8-097a-4edd-92c4-c190b0d8258a
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_custom_sales_order_2 = entity
+		mode: directLake
+		source
+			entityName: fact_custom_sales_order_2
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

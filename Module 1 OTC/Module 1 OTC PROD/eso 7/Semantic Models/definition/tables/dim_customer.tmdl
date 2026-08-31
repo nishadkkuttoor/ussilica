@@ -1,0 +1,179 @@
+table dim_customer
+	lineageTag: 1b042f0f-fe1c-4c0b-a876-eb2211483688
+	sourceLineageTag: [rpt].[dim_customer]
+
+	column address_number
+		dataType: string
+		lineageTag: 3a5a1f78-ef3d-4673-82b2-ebd4278630f4
+		sourceLineageTag: address_number
+		summarizeBy: none
+		sourceColumn: address_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_name_abbreviated
+		dataType: string
+		lineageTag: 84cc184e-4304-4d03-a77d-7a0578a2c56d
+		sourceLineageTag: customer_name_abbreviated
+		summarizeBy: none
+		sourceColumn: customer_name_abbreviated
+
+		annotation SummarizationSetBy = Automatic
+
+	column name_alpha
+		dataType: string
+		lineageTag: f6920875-e315-4e8e-b834-d8ab1bf523eb
+		sourceLineageTag: name_alpha
+		summarizeBy: none
+		sourceColumn: name_alpha
+
+		annotation SummarizationSetBy = Automatic
+
+	column name_compressed
+		dataType: string
+		lineageTag: 27138bbc-68bb-47b0-8513-6c69e04e3db5
+		sourceLineageTag: name_compressed
+		summarizeBy: none
+		sourceColumn: name_compressed
+
+		annotation SummarizationSetBy = Automatic
+
+	column company
+		dataType: string
+		lineageTag: a2c8b693-88fd-4871-a88c-3303cd403e07
+		sourceLineageTag: company
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column search_type
+		dataType: string
+		lineageTag: 73dce31f-5262-4a1f-bd83-1906bf28492c
+		sourceLineageTag: search_type
+		summarizeBy: none
+		sourceColumn: search_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column standard_industry_code
+		dataType: string
+		lineageTag: a77e5eef-5aa5-450d-958c-fb66f5431aec
+		sourceLineageTag: standard_industry_code
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column billing_address_type
+		dataType: string
+		lineageTag: b1a852cc-2d20-4a14-b069-63810e3b55f9
+		sourceLineageTag: billing_address_type
+		summarizeBy: none
+		sourceColumn: billing_address_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column bat_description
+		dataType: string
+		lineageTag: 044ea93f-bb75-471a-a88a-5c6359bc7ec8
+		sourceLineageTag: bat_description
+		summarizeBy: none
+		sourceColumn: bat_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column territory_code
+		dataType: string
+		lineageTag: 32279ee4-48b1-40ca-8517-33b63b7116c0
+		sourceLineageTag: territory_code
+		summarizeBy: none
+		sourceColumn: territory_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column terr_description
+		dataType: string
+		lineageTag: 1e64946e-22e3-4ac0-b157-d982baf594fa
+		sourceLineageTag: terr_description
+		summarizeBy: none
+		sourceColumn: terr_description
+
+		annotation SummarizationSetBy = Automatic
+
+	column territory_id
+		dataType: double
+		lineageTag: faa0ed2d-9f87-45d0-b5be-fbcf3e419376
+		sourceLineageTag: territory_id
+		summarizeBy: none
+		sourceColumn: territory_id
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column hold_orders_code
+		dataType: string
+		lineageTag: a329b101-fcb8-4506-8022-9f27d1fe0e29
+		sourceLineageTag: hold_orders_code
+		summarizeBy: none
+		sourceColumn: hold_orders_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_status
+		dataType: string
+		lineageTag: 1b99a827-c448-4438-8c21-d12de5400f12
+		sourceLineageTag: customer_status
+		summarizeBy: none
+		sourceColumn: customer_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column credit_analyst_code
+		dataType: string
+		lineageTag: c6ee6946-b9de-44cc-a4ae-bae5610afe71
+		sourceLineageTag: credit_analyst_code
+		summarizeBy: none
+		sourceColumn: credit_analyst_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column sales_rep_code
+		dataType: string
+		lineageTag: bd913f49-05d5-4ed8-81c5-64bf8fe7b155
+		sourceLineageTag: sales_rep_code
+		summarizeBy: none
+		sourceColumn: sales_rep_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column basin_code
+		dataType: string
+		lineageTag: 91343038-05cc-48c0-91c4-a0da54521f55
+		sourceLineageTag: basin_code
+		summarizeBy: none
+		sourceColumn: basin_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column formation_code
+		dataType: string
+		lineageTag: fe3b7d1c-cfdd-488a-8623-605156e1593d
+		sourceLineageTag: formation_code
+		summarizeBy: none
+		sourceColumn: formation_code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = entity
+		mode: directLake
+		source
+			entityName: dim_customer
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

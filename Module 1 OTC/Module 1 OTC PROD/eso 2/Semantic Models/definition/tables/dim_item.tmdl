@@ -1,0 +1,65 @@
+table dim_item
+	lineageTag: 4a7f268e-ba23-41ff-9f4f-5b0955fa2e5f
+	sourceLineageTag: [rpt].[dim_item]
+
+	column item_number_short
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 3c98d699-e9a4-475a-ae7c-c23e549aae1c
+		sourceLineageTag: item_number_short
+		summarizeBy: sum
+		sourceColumn: item_number_short
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column item_number_2nd
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 4a7f268e-ba23-41ff-9f4f-5b0955fa2d01
+		sourceLineageTag: item_number_2nd
+		summarizeBy: none
+		sourceColumn: item_number_2nd
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_name
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 063ddf7b-0456-4682-96e3-10befea15e3b
+		sourceLineageTag: item_name
+		summarizeBy: none
+		sourceColumn: item_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_segment_04
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 5008b1e0-3076-472d-9b36-eb111bbb440f
+		sourceLineageTag: item_segment_04
+		summarizeBy: none
+		sourceColumn: item_segment_04
+
+		annotation SummarizationSetBy = Automatic
+
+	column uom_weight
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 78bd8ceb-2cde-4238-aeec-c3047b1276c0
+		sourceLineageTag: uom_weight
+		summarizeBy: none
+		sourceColumn: uom_weight
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_item = entity
+		mode: directLake
+		source
+			entityName: dim_item
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

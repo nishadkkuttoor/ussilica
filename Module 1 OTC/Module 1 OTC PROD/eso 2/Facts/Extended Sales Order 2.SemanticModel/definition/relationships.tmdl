@@ -1,0 +1,4 @@
+relationship ddf9fe2a-535d-ad97-9583-b9393e65d044
+	fromColumn: fact_extended_sales_order_2.ship_to
+	toColumn: dim_address_book_ship_to.address_number
+

@@ -61,6 +61,7 @@ def build_dim_item():
     f4101 = load_silver_table(F4101)
     # business columns only — no audit columns
     return (f4101.select(F.col("identifier_short_item").alias("item_number_short"),
+                         F.col("identifier_2nd_item").alias("item_number_2nd"),  # IMLITM
                          F.col("description_line_01").alias("item_name"),
                          F.col("segment_04").alias("item_segment_04"),      # IMSEG4
                          F.col("uom_weight"))

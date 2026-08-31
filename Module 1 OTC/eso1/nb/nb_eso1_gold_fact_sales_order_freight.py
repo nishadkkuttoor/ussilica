@@ -42,9 +42,14 @@ def gname(t): return "{}.{}.{}".format(GOLD_LH,   GOLD_SCHEMA,  t)
 F4211    = "f4211_sales_order_detail_file"
 F4201    = "f4201_sales_order_header_file"
 F0101    = "f0101_address_book_master"
-F41002   = "f41002_item_units_of_measure_conversion_factors"
-# F41003 (standard UoM conversion) is not sourced here — this notebook uses F41002 item-specific
-# conversion only.
+F41002   = "f41002_item_units_of_measure_conversion_factors"  # item-specific UOM conversion (Tier A) + UMUSTR
+F41003   = "f41003_unit_of_measure_standard_conversion"       # standard UOM conversion (Tier B)
+F4101    = "f4101_item_master"                                 # item master — IMUOM1 (tons-cascade pivot)
+# Tons VALUES are NOT computed in this fact — the UoM->TN factor and tons live in the semantic-model measures
+# (RELATED to dim_uom_conversion_item + dim_uom_conversion); the fact carries the join keys (item_uom_key, uom).
+# F41002 + F41003 (+ F4101 IMUOM1) are read here for ONE data-quality output: missing_conversion_flag ('Y' when
+# a line has NO resolvable UoM->TN conversion via the full item→standard cascade — same method as
+# nb_eso1_gold_fact_sales_order_price_adjustment). The rate/tons columns themselves stay OUT of the fact.
 F4981    = "f4981_freight_audit_history"
 F5642B01 = "f5642b01_custom_sales_order_entry_screen_header"
 F5642B11 = "f5642b11_custom_sales_order_entry_screen_detail"
@@ -142,10 +147,11 @@ def pick_col(df, candidates):
 # ----------------------------------------------------------------------------
 
 
-# UoM -> TN cascades + freight buckets (F4981 -> shipment grain)
+# UoM -> TN cascade (item-specific F41002 only) — produces conversion_to_tons_rate.
+# fwd = SDUOM->TN direct (F41002.UMCONV where UMRUM='TN'); rev = the reciprocal of a TN->SDUOM row.
+# TN passes through as 1.0; unresolved conversions stay NULL (missing_conversion_flag is derived
+# separately from the fuller item->standard cascade below).
 def build_uom_cascades():
-    # item-specific F41002 conversion ONLY (fwd + reciprocal rev union).
-    # The standard-UoM (F41003) fallback is handled downstream, not cascaded here.
     f41002 = load_silver_table(F41002)
     item_fwd = (f41002.filter((F.trim("related_uom") == "TN") & (F.col("conversion_factor") != 0))
                 .select(F.col("identifier_short_item").alias("itm"), F.trim("uom").alias("from_uom"),
@@ -155,6 +161,54 @@ def build_uom_cascades():
                         (F.lit(1.0) / F.col("conversion_factor").cast("double")).alias("conv_factor")))
     return item_fwd.unionByName(item_rev)
 
+
+# UoM->TN conversion lookups — used ONLY to derive missing_conversion_flag (whether the line has a
+# resolvable conversion). Same construction as nb_eso1_gold_fact_sales_order_price_adjustment: the
+# item leg reads F41002.UMCNV1 (conversion_factor_sec) fwd + its reverse UMCNV1/UMCONV; the standard
+# leg reads F41003.UCCONV fwd + its reciprocal. Ambiguous keys (>1 distinct factor) collapse to NULL.
+def build_conv_lookups():
+    # ── F41002 item-specific (blank cost-center only) ──
+    f41002 = load_silver_table(F41002).filter(F.trim(F.col("cost_center")) == "")
+    i_fwd = f41002.select(
+        F.col("identifier_short_item").alias("itm"),
+        F.trim(F.col("uom")).alias("from_uom"),
+        F.round(F.col("conversion_factor_sec").cast("double"), 9).alias("f"))
+    i_rev = (f41002.filter(F.col("conversion_factor").cast("double") != 0)
+             .select(
+                 F.col("identifier_short_item").alias("itm"),
+                 F.trim(F.col("related_uom")).alias("from_uom"),
+                 F.round(F.col("conversion_factor_sec").cast("double")
+                         / F.col("conversion_factor").cast("double"), 9).alias("f")))
+    conv_item = (i_fwd.unionByName(i_rev)
+                 .dropDuplicates(["itm", "from_uom", "f"])
+                 .groupBy("itm", "from_uom")
+                 .agg(F.count("f").alias("n"), F.min("f").alias("f"))
+                 .withColumn("conv_item", F.when(F.col("n") > 1, F.lit(None).cast("double"))
+                                           .otherwise(F.col("f")))
+                 .select("itm", "from_uom", "conv_item"))
+
+    # ── F41003 standard ──
+    f41003 = load_silver_table(F41003)
+    s_fwd = f41003.select(
+        F.trim(F.col("uom")).alias("from_uom"),
+        F.trim(F.col("related_uom")).alias("to_uom"),
+        F.round(F.col("conversion_factor").cast("double"), 9).alias("f"))
+    s_rev = (f41003.filter(F.col("conversion_factor").cast("double") != 0)
+             .select(
+                 F.trim(F.col("related_uom")).alias("from_uom"),
+                 F.trim(F.col("uom")).alias("to_uom"),
+                 F.round(F.lit(1.0) / F.col("conversion_factor").cast("double"), 9).alias("f")))
+    conv_std = (s_fwd.unionByName(s_rev)
+                .dropDuplicates(["from_uom", "to_uom", "f"])
+                .groupBy("from_uom", "to_uom")
+                .agg(F.count("f").alias("n"), F.min("f").alias("f"))
+                .withColumn("conv_std", F.when(F.col("n") > 1, F.lit(None).cast("double"))
+                                         .otherwise(F.col("f")))
+                .select("from_uom", "to_uom", "conv_std"))
+
+    return conv_item, conv_std
+
+# freight buckets (F4981 -> shipment grain)
 def transform_freight_buckets():
     f4981 = load_silver_table(F4981)
     bp, cgc, amt = F.trim("billable_payable"), F.trim("charge_code_01"), F.col("net_amount")
@@ -219,7 +273,9 @@ FACT_BUSINESS_COLS = [
     "ship_year_week",
     # ── item / uom ──
     "second_item_number", "third_item_number", "line_type", "uom", "uom_primary", "uom_pricing",
-    "conversion_to_tons_rate", "missing_conversion_flag", "item_uom_key",
+    "conversion_to_tons_rate",                   # SDUOM->TN item factor (TN->1.0, else F41002, else NULL)
+    "missing_conversion_flag", "item_uom_key",   # flag = no item->std UoM->TN row; item_uom_key -> dim (tons factor in measures)
+    "price_conversion_factor", "converted_price_per_ton", "price_missing_conversion_flag",
     # ── filter-only attributes ──
     "uom_structure", "payment_terms",   # UMUSTR (F41002) / SDPTC (F4211)
     # ── measures / numerics (line grain) ──
@@ -313,7 +369,13 @@ def build_fact():
     f41002 = load_silver_table(F41002)
     f5549002 = load_silver_table(F5549002)                 # BOL interface weigh-ticket weights
     f03012 = load_silver_table(F03012); f49211 = load_silver_table(F49211)  # sold-to LOB cat / SO-line tag flag
-    conv_item = build_uom_cascades()
+    # item master IMUOM1 — the tons-cascade pivot for missing_conversion_flag (one row/item, no fan-out)
+    item_im = (load_silver_table(F4101)
+               .select(F.col("identifier_short_item").alias("im_itm"),
+                       F.trim(F.col("uom_primary")).alias("im_uom_primary"))
+               .dropDuplicates(["im_itm"]))
+    conv_item, conv_std = build_conv_lookups()   # F41002 + F41003 lookups — used ONLY for missing_conversion_flag
+    uom_cascade = build_uom_cascades()           # F41002 item-only SDUOM->TN factor — the stored conversion_to_tons_rate
 
     gl_name, gl_present = pick_col(f4211, ["dt_for_gl_and_vouch_01",   # F4211.SDDGL in Silver
         "date_for_g_l_julian", "date_g_l_julian", "date_general_ledger_julian",
@@ -415,9 +477,32 @@ def build_fact():
          .join(uom_str.alias("us"),
                (F.col("us.us_itm") == F.col("sd.identifier_short_item")) &
                (F.col("us.us_uom") == F.trim(F.col("sd.uom_as_input"))), "left")
-         .join(conv_item.alias("ci"),
+         # tons-cascade existence lookups (for missing_conversion_flag) — item master IMUOM1 pivot, then
+         # item-specific (SDUOM / TN) and standard (SDUOM→IMUOM1 / TN→IMUOM1), same as the price_adjustment fact
+         .join(item_im.alias("im"), F.col("im.im_itm") == F.col("sd.identifier_short_item"), "left")
+         .join(conv_item.alias("cif"),
+               (F.col("cif.itm") == F.col("sd.identifier_short_item")) &
+               (F.col("cif.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left")
+         .join(conv_item.alias("cit"),
+               (F.col("cit.itm") == F.col("sd.identifier_short_item")) &
+               (F.col("cit.from_uom") == F.lit("TN")), "left")
+         .join(conv_std.alias("csf"),
+               (F.col("csf.from_uom") == F.trim(F.col("sd.uom_as_input"))) &
+               (F.col("csf.to_uom") == F.col("im.im_uom_primary")), "left")
+         .join(conv_std.alias("cst"),
+               (F.col("cst.from_uom") == F.lit("TN")) &
+               (F.col("cst.to_uom") == F.col("im.im_uom_primary")), "left")
+         # item-only SDUOM->TN factor (F41002) -> conversion_to_tons_rate
+         .join(uom_cascade.alias("ci"),
                (F.col("ci.itm") == F.col("sd.identifier_short_item")) &
                (F.col("ci.from_uom") == F.trim(F.col("sd.uom_as_input"))), "left")
+         # pricing-UoM cascade on SDUOM4: item F41002 (direct+inverse) then standard F41003 (direct+inverse), to TN
+         .join(uom_cascade.alias("cip"),
+               (F.col("cip.itm") == F.col("sd.identifier_short_item")) &
+               (F.col("cip.from_uom") == F.trim(F.col("sd.uom_pricing"))), "left")
+         .join(conv_std.alias("csp"),
+               (F.col("csp.from_uom") == F.trim(F.col("sd.uom_pricing"))) &
+               (F.col("csp.to_uom") == F.lit("TN")), "left")
          .join(route.alias("rt"), F.col("sd.shipment_number") == F.col("rt.shipment_number"), "left")
          .join(freight.alias("fr"), F.col("sd.shipment_number") == F.col("fr.shipment_number"), "left")
          .join(wt.alias("wt"),                                                                                # F5549002 BOL weigh-ticket weights (one row/line)
@@ -432,10 +517,35 @@ def build_fact():
                (F.col("tag.order_type") == F.col("sd.order_type")) &
                (F.col("tag.line_number") == F.col("sd.line_number")), "left"))
 
-    # TN passes through as 1.0, else the item-specific F41002 factor.
-    # Unresolved conversions stay NULL (no blanket 1.0 default); missing_conversion_flag marks those rows.
+    # UoM->TN factor via the full item→standard cascade (same as the price_adjustment fact): from-leg
+    # SDUOM→IMUOM1, to-leg TN→IMUOM1, factor = from/to; zero-on-fail. Used ONLY to derive
+    # missing_conversion_flag below — the rate itself is NOT stored on the fact.
+    from_factor = F.coalesce(
+        F.col("cif.conv_item"), F.col("csf.conv_std"),
+        F.when(F.trim(F.col("sd.uom_as_input")) == F.col("im.im_uom_primary"), F.lit(1.0)))
+    to_factor = F.coalesce(
+        F.col("cit.conv_item"), F.col("cst.conv_std"),
+        F.when(F.lit("TN") == F.col("im.im_uom_primary"), F.lit(1.0)))
+    conv_factor = F.when(from_factor.isNull() | to_factor.isNull() | (to_factor == 0), F.lit(0.0)) \
+                   .otherwise(from_factor / to_factor)
+
+    # conversion_to_tons_rate — SDUOM->TN factor: TN->1.0, else item-specific F41002, else NULL.
     conv_rate = F.coalesce(F.when(F.trim(F.col("sd.uom_as_input")) == "TN", F.lit(1.0)),
                            F.col("ci.conv_factor"))
+
+    # price factor on the pricing UoM SDUOM4: TN->1.0, else item F41002 (cip), else standard F41003 (csp),
+    # else 1.0. price_factor_raw (before the 1.0 default) drives price_missing_conversion_flag.
+    price_factor_raw = F.coalesce(
+        F.when(F.trim(F.col("sd.uom_pricing")) == "TN", F.lit(1.0)),
+        F.col("cip.conv_factor"),
+        F.col("csp.conv_std"))
+    price_factor = F.coalesce(price_factor_raw, F.lit(1.0))
+    _pf_nz = F.when(price_factor != 0, price_factor)           # NULL only when factor is 0 — guards the divide
+    # delivered lines only: Last Status (SDLTTR) <> 980 AND Next Status (SDNXTR) = 999
+    _delivered = (F.trim(F.col("sd.status_code_last")).cast("int") != F.lit(980)) & \
+                 (F.trim(F.col("sd.status_code_next")).cast("int") == F.lit(999))
+    # price per ton = (SDUPRC, de-scaled in Silver) / price factor; NULL on non-delivered lines
+    converted_price_per_ton = F.when(_delivered, F.col("sd.amt_price_per_unit_02") / _pf_nz)
 
     sel = j.select(
         # ── degenerate / order identifiers ──
@@ -504,7 +614,11 @@ def build_fact():
         F.col("sd.uom_primary").alias("uom_primary"),
         F.col("sd.uom_pricing").alias("uom_pricing"),
         conv_rate.alias("conversion_to_tons_rate"),
-        F.when(conv_rate.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
+        F.when(conv_factor == 0, F.lit("Y")).otherwise(F.lit("N")).alias("missing_conversion_flag"),
+        # price-side conversion (SDUOM4->TN cascade; per-ton on delivered lines)
+        price_factor.alias("price_conversion_factor"),                 # Conversion Factor (Price)
+        converted_price_per_ton.alias("converted_price_per_ton"),      # Converted Price per Ton (delivered only)
+        F.when(price_factor_raw.isNull(), F.lit("Y")).otherwise(F.lit("N")).alias("price_missing_conversion_flag"),
         # item+uom key -> dim_uom_conversion_item[item_uom_key] (F41002 item-specific Tier-A tons conversion)
         F.concat_ws("|", F.col("sd.identifier_short_item"), F.trim(F.col("sd.uom_as_input"))).alias("item_uom_key"),
         F.col("us.uom_structure").alias("uom_structure"),                       # UMUSTR (F41002)
@@ -620,7 +734,6 @@ def build_fact():
                 .otherwise(_wyr))
 
     df = (_base
-          .withColumn("quantity_shipped_tons", F.col("quantity_shipped") * F.col("conversion_to_tons_rate"))
           .withColumn("price_quantity_shipped", F.col("price_per_unit") * F.col("quantity_shipped"))
           .withColumn("ship_year_week",
                       F.when(F.col("actual_ship_date").isNotNull(),
@@ -639,7 +752,9 @@ def build_fact():
           .withColumn("header_price_effective_date_key",  date_key(F.col("header_price_effective_date")))
           .withColumn("earliest_pickup_date_key",         date_key(F.col("date_earliest_pickup")))
           .withColumn("latest_delivery_date_key",         date_key(F.col("date_latest_delivery")))
-          .withColumn("shift_factor_applied", F.coalesce(F.col("shift_factor_applied"), F.lit(SHIFT_FACTOR))))
+          .withColumn("shift_factor_applied", F.coalesce(F.col("shift_factor_applied"), F.lit(SHIFT_FACTOR)))
+          # quantity_shipped_tons = quantity_shipped x conversion_to_tons_rate (NULL rate -> NULL tons)
+          .withColumn("quantity_shipped_tons", F.col("quantity_shipped") * F.col("conversion_to_tons_rate")))
 
     w = Window.partitionBy("shipment_number").orderBy("order_number", "line_number")
     df = (df.withColumn("_rn", F.row_number().over(w))
@@ -675,7 +790,7 @@ def build_fact():
 # Declares each Silver source and how it relates to the F4211 spine.
 # This fact's join graph is rich (header / address / item / booking /
 # routing / freight / weigh-ticket / LOB / tag legs) and is applied inside build_fact() (and its
-# helpers build_uom_cascades / transform_freight_buckets / _add_effective_price_flag), so join_pairs
+# helpers build_conv_lookups / transform_freight_buckets / _add_effective_price_flag), so join_pairs
 # are [] here — the joins are not simple FK pairs. The list documents the source inventory and drives
 # the RUN source preflight.  join: spine=F4211 order-line driver, union=F42119 history (optional),
 # static=lookup / denormalized attribute source.
@@ -684,7 +799,9 @@ FACT_SOURCES = [
     {"silver": F42119,   "join": "union",  "join_pairs": [], "optional": True},  # Sales Order History — unioned via _load_optional if present
     {"silver": F4201,    "join": "static", "join_pairs": []},                    # order header (hold / delivery instr / price-eff / orig-promise)
     {"silver": F0101,    "join": "static", "join_pairs": []},                    # destination address dedup only (_dest_ab)
-    {"silver": F41002,   "join": "static", "join_pairs": []},                    # UoM->TN conversion + UMUSTR structure
+    {"silver": F41002,   "join": "static", "join_pairs": []},                    # item UoM conv (Tier A, UMCNV1) + UMUSTR — missing_conversion_flag cascade
+    {"silver": F41003,   "join": "static", "join_pairs": []},                    # standard UoM conv (Tier B, UCCONV) — missing_conversion_flag cascade
+    {"silver": F4101,    "join": "static", "join_pairs": []},                    # item master IMUOM1 — tons-cascade pivot for missing_conversion_flag
     {"silver": F4941,    "join": "static", "join_pairs": []},                    # shipment routing (route_number / OCE flag / container count)
     {"silver": F4981,    "join": "static", "join_pairs": []},                    # freight-audit buckets (billable / payable / total) at shipment grain
     {"silver": F5642B01, "join": "static", "join_pairs": []},                    # ocean booking header (booking / vessel / voyage / ports / refs / pickup-delivery dates)

@@ -1,6 +1,0 @@
-1. dim_category_code_05
-SELECT TRIM(attribute_value) AS reportcodeaddbook005_code, TRIM(user_description) AS reportcodeaddbook005_description FROM (SELECT a.dtsy AS product_code, a.dtrt AS user_defined_code, b.drky AS attribute_value, a.dtdl01 AS jde_attribute_name, b.drdl01 AS user_description, b.DRUPMT FROM jde.f0004 a LEFT JOIN jde.f0005 b ON a.dtsy = b.drsy AND a.dtrt = b.drrt) udc WHERE TRIM(product_code) = '01' AND TRIM(user_defined_code) = '05'
-
-
-2. dim_freight_handling_code
-SELECT TRIM(attribute_value) AS freighthandlingcode_code, TRIM(user_description) AS freighthandlingcode_description FROM (SELECT a.dtsy AS product_code, a.dtrt AS user_defined_code, b.drky AS attribute_value, a.dtdl01 AS jde_attribute_name, b.drdl01 AS user_description, b.DRUPMT FROM jde.f0004 a LEFT JOIN jde.f0005 b ON a.dtsy = b.drsy AND a.dtrt = b.drrt) udc WHERE TRIM(product_code) = '42' AND TRIM(user_defined_code) = 'FR'

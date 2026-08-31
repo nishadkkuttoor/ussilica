@@ -1,0 +1,208 @@
+table fact_extended_sales_order_3
+	lineageTag: b806741a-22d2-4326-9ed6-1db48dafc9ea
+	sourceLineageTag: [rpt].[fact_extended_sales_order_3]
+
+	column shipment_number
+		dataType: string
+		lineageTag: 930be535-299c-4265-8a9e-bc5bb03f9cea
+		sourceLineageTag: shipment_number
+		summarizeBy: none
+		sourceColumn: shipment_number
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipment_status
+		dataType: string
+		lineageTag: 719dafe5-b53c-4548-86ec-6708c7e24d22
+		sourceLineageTag: shipment_status
+		summarizeBy: none
+		sourceColumn: shipment_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column company
+		dataType: string
+		lineageTag: b17b3b6b-9999-409f-831a-bcd14a3ba391
+		sourceLineageTag: company
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column cost_center
+		dataType: string
+		lineageTag: e86c9f05-0611-4749-ba5a-ee81f3940166
+		sourceLineageTag: cost_center
+		summarizeBy: none
+		sourceColumn: cost_center
+
+		annotation SummarizationSetBy = Automatic
+
+	column document_order_invoice_e
+		dataType: string
+		lineageTag: 89c00aea-09ab-4437-9fb2-f1cc91789e46
+		sourceLineageTag: document_order_invoice_e
+		summarizeBy: none
+		sourceColumn: document_order_invoice_e
+
+		changedProperty = FormatString
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		lineageTag: 91dd0730-305d-4f9e-bf38-1dc795c13f94
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column freight_handling_code
+		dataType: string
+		lineageTag: d3e5bfdd-579a-472e-9d15-9d0a6b1c95c3
+		sourceLineageTag: freight_handling_code
+		summarizeBy: none
+		sourceColumn: freight_handling_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column mode_of_transport
+		dataType: string
+		lineageTag: 76e8f106-d811-4b1a-b104-353687f471bb
+		sourceLineageTag: mode_of_transport
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: bb3bb3f2-a987-4b19-9f23-edeb94a73d5f
+		sourceLineageTag: state
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column related_po_so_number
+		dataType: string
+		lineageTag: 233527ba-faf9-4391-a23b-32daaabffc28
+		sourceLineageTag: related_po_so_number
+		summarizeBy: none
+		sourceColumn: related_po_so_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_reserved_reference
+		dataType: string
+		lineageTag: 8ed087c5-eb8f-4fad-a186-1861229cd151
+		sourceLineageTag: user_reserved_reference
+		summarizeBy: none
+		sourceColumn: user_reserved_reference
+
+		annotation SummarizationSetBy = Automatic
+
+	column actual_ship_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: a399c7c9-670d-4cf0-a8c6-5d0efd77c6f6
+		sourceLineageTag: actual_ship_date
+		summarizeBy: none
+		sourceColumn: actual_ship_date
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column date_updated
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: c315144d-f6b2-486d-a074-10f03c0686c6
+		sourceLineageTag: date_updated
+		summarizeBy: none
+		sourceColumn: date_updated
+
+		changedProperty = DataType
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column user_id
+		dataType: string
+		lineageTag: c7f7dac9-f561-4c8a-b55b-5d94faa22ac2
+		sourceLineageTag: user_id
+		summarizeBy: none
+		sourceColumn: user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column units_transaction_qty_sum
+		dataType: double
+		lineageTag: 52f4cff9-1ce9-43ec-ae74-b804e6e92435
+		sourceLineageTag: units_transaction_qty_sum
+		summarizeBy: sum
+		sourceColumn: units_transaction_qty_sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: mm-dd-yyyy hh:nn:ss
+		sourceProviderType: datetime2
+		lineageTag: 14f7a6d5-db5c-4172-a0a5-00c68428ca68
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		changedProperty = FormatString
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: a810faab-a23f-480d-9a65-a5caa742c7f5
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 9435339f-7d4e-4471-9e1e-e55c5f9a2913
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_extended_sales_order_3 = entity
+		mode: directLake
+		source
+			entityName: fact_extended_sales_order_3
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

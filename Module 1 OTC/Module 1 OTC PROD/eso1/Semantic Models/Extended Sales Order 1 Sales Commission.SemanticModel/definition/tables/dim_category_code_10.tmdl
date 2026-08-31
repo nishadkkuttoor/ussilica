@@ -1,0 +1,31 @@
+table dim_category_code_10
+	lineageTag: d4acc798-7c82-4d66-b5e5-f89906144599
+	sourceLineageTag: [rpt].[dim_category_code_10]
+
+	column reportcodeaddbook010_code
+		dataType: string
+		lineageTag: f9167f4f-bbb3-4648-a738-c18453e04243
+		sourceLineageTag: reportcodeaddbook010_code
+		summarizeBy: none
+		sourceColumn: reportcodeaddbook010_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column reportcodeaddbook010_description
+		dataType: string
+		lineageTag: 0adea2e7-2d06-4bf7-9874-459a33f70d02
+		sourceLineageTag: reportcodeaddbook010_description
+		summarizeBy: none
+		sourceColumn: reportcodeaddbook010_description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_category_code_10 = entity
+		mode: directLake
+		source
+			entityName: dim_category_code_10
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

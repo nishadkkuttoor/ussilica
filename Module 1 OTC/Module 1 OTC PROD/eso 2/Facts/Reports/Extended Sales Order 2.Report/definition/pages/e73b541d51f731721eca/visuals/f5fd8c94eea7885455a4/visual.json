@@ -1,0 +1,613 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "f5fd8c94eea7885455a4",
+  "position": {
+    "x": 211.68699103937422,
+    "y": 135.84191938355565,
+    "z": 3000,
+    "height": 1024.4744753509822,
+    "width": 1833.8659116780011,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "actual_ship_date"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_2.actual_ship_date",
+              "nativeQueryRef": "Ship Date",
+              "displayName": "Ship Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_address_book_ship_to"
+                    }
+                  },
+                  "Property": "name_alpha"
+                }
+              },
+              "queryRef": "dim_address_book_ship_to.name_alpha",
+              "nativeQueryRef": "Ship to Name",
+              "displayName": "Ship to Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "ship_to"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_2.ship_to",
+              "nativeQueryRef": "Ship To",
+              "displayName": "Ship To"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "customer_po_number"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_2.customer_po_number",
+              "nativeQueryRef": "Customer PO Number",
+              "displayName": "Customer PO Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "item_description"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_2.item_description",
+              "nativeQueryRef": "Item Description",
+              "displayName": "Item Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "bol_number"
+                }
+              },
+              "queryRef": "Sum(fact_extended_sales_order_2.bol_number)",
+              "nativeQueryRef": "Bill Of Landing Number",
+              "displayName": "Bill Of Landing Number"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "fact_extended_sales_order_2"
+                        }
+                      },
+                      "Property": "invoice_number"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(fact_extended_sales_order_2.invoice_number)",
+              "nativeQueryRef": "Invoice Number",
+              "displayName": "Invoice Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "vehicle_number"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_2.vehicle_number",
+              "nativeQueryRef": "Vehicle Number",
+              "displayName": "Vehicle Number"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "well_name"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_2.well_name",
+              "nativeQueryRef": "Well Name",
+              "displayName": "Well Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "transactional_uom"
+                }
+              },
+              "queryRef": "fact_extended_sales_order_2.transactional_uom",
+              "nativeQueryRef": "Transactional UOM",
+              "displayName": "Transactional UOM"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "gross_weight"
+                }
+              },
+              "queryRef": "Sum(fact_extended_sales_order_2.gross_weight)",
+              "nativeQueryRef": "Gross Weight",
+              "displayName": "Gross Weight"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "tare_weight"
+                }
+              },
+              "queryRef": "Sum(fact_extended_sales_order_2.tare_weight)",
+              "nativeQueryRef": "Tare Weight",
+              "displayName": "Tare Weight"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "net_weight"
+                }
+              },
+              "queryRef": "Sum(fact_extended_sales_order_2.net_weight)",
+              "nativeQueryRef": "Net Weight",
+              "displayName": "Net Weight"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_extended_sales_order_2"
+                    }
+                  },
+                  "Property": "quantity_loaded"
+                }
+              },
+              "queryRef": "Sum(fact_extended_sales_order_2.quantity_loaded)",
+              "nativeQueryRef": "Quantity Loaded",
+              "displayName": "Quantity Loaded"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "14D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#333D51'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#EEEDED'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "14D"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Tahoma'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "gridVertical": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "gridVerticalColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": -0.3
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#333D51'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            },
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "stylePreset": [
+        {
+          "properties": {
+            "name": {
+              "expr": {
+                "Literal": {
+                  "Value": "'AlternatingRowsNew'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "''"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "7d71d1ba89d299e582ac",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_address_book_ship_to"
+              }
+            },
+            "Property": "name_alpha"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "b280aa9d142e862d1b7f",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "actual_ship_date"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "d4275a130929a6b39c13",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "ship_to"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "8b808da35cf187b987f8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "customer_po_number"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "eb9eb98014652f4ad343",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "item_description"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "5a3d9224b8d8942c2372",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "bol_number"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "123424b7384e65161400",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_extended_sales_order_2"
+                  }
+                },
+                "Property": "invoice_number"
+              }
+            },
+            "Function": 0
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "9fd3aac6498c06b3b198",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "vehicle_number"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "d3cef8074951b4702d75",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "well_name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "d93af1642c1df6b7a9e4",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "transactional_uom"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "6f5a5062299ce4eacf85",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "gross_weight"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "23c93bac7d76fb1c3289",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "tare_weight"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "fdf9acaea78ad0e2303e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "net_weight"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "a461f8b55f2a707468fa",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_extended_sales_order_2"
+              }
+            },
+            "Property": "quantity_loaded"
+          }
+        },
+        "type": "Advanced"
+      }
+    ],
+    "filterSortOrder": "Custom"
+  }
+}

@@ -1,0 +1,53 @@
+table dim_uom_conversion_item
+	lineageTag: be637841-26dc-4bc1-8f37-21746e1a68af
+	sourceLineageTag: [rpt].[dim_uom_conversion_item]
+
+	column identifier_short_item
+		dataType: double
+		lineageTag: 5e4b4f63-5081-49d0-a076-5645e05bb48a
+		sourceLineageTag: identifier_short_item
+		summarizeBy: none
+		sourceColumn: identifier_short_item
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column from_uom
+		dataType: string
+		lineageTag: 6ad7e2be-3472-4dc4-aa0f-2536a6fd9577
+		sourceLineageTag: from_uom
+		summarizeBy: none
+		sourceColumn: from_uom
+
+		annotation SummarizationSetBy = Automatic
+
+	column conv_factor
+		dataType: double
+		lineageTag: 7ae9e1ec-3d5b-4ee2-b27a-3195f199da49
+		sourceLineageTag: conv_factor
+		summarizeBy: none
+		sourceColumn: conv_factor
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column item_uom_key
+		dataType: string
+		lineageTag: e3d49661-d661-4652-b59f-8cb5406d33ba
+		sourceLineageTag: item_uom_key
+		summarizeBy: none
+		sourceColumn: item_uom_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_uom_conversion_item = entity
+		mode: directLake
+		source
+			entityName: dim_uom_conversion_item
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+
