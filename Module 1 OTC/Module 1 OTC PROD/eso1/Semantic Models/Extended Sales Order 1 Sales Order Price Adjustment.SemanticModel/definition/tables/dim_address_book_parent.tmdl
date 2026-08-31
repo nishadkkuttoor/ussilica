@@ -1,0 +1,206 @@
+table dim_address_book_parent
+	lineageTag: 7c72318c-7262-4e59-a86d-1f7f07d027d1
+	sourceLineageTag: [rpt].[dim_address_book_parent]
+
+	column last_refreshed_timestamp
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 828b344f-e014-4823-b24c-d225faa243c2
+		sourceLineageTag: last_refreshed_timestamp
+		summarizeBy: none
+		sourceColumn: last_refreshed_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_number
+		dataType: string
+		lineageTag: 53bb2267-58b8-4855-aeca-311d7123020e
+		sourceLineageTag: address_number
+		summarizeBy: none
+		sourceColumn: address_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column name_alpha
+		dataType: string
+		lineageTag: 7c8844e3-0377-4f2f-a142-1596d81d8fa9
+		sourceLineageTag: name_alpha
+		summarizeBy: none
+		sourceColumn: name_alpha
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_type_01
+		dataType: string
+		lineageTag: 28dce653-65ea-455b-82ed-859054ec610a
+		sourceLineageTag: address_type_01
+		summarizeBy: none
+		sourceColumn: address_type_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column standard_industry_code
+		dataType: string
+		lineageTag: e3c937e0-42c9-48f4-b7b8-fe983e7bb5a2
+		sourceLineageTag: standard_industry_code
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: 24354cca-d5b3-4c13-b810-35dfea2dfc8f
+		sourceLineageTag: city
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: f631891c-f433-443c-8502-968b4101f9de
+		sourceLineageTag: state
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		lineageTag: 2b33b58e-aeee-4ba2-9d3d-512546ac167e
+		sourceLineageTag: country
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column zip_code_postal
+		dataType: string
+		lineageTag: 0425c599-775c-40a0-81a7-5c8750ca344e
+		sourceLineageTag: zip_code_postal
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_01
+		dataType: string
+		lineageTag: b54d456a-9188-45e1-ada6-b91ff8acaa43
+		sourceLineageTag: address_line_01
+		summarizeBy: none
+		sourceColumn: address_line_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_02
+		dataType: string
+		lineageTag: 93db44d5-2efb-480b-afdd-f237cd53f9e8
+		sourceLineageTag: address_line_02
+		summarizeBy: none
+		sourceColumn: address_line_02
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_03
+		dataType: string
+		lineageTag: 23cd5cb2-6891-4b8e-a605-7f310653723e
+		sourceLineageTag: address_line_03
+		summarizeBy: none
+		sourceColumn: address_line_03
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_04
+		dataType: string
+		lineageTag: f8dacc66-e0bc-4184-b73d-92bd2842e29e
+		sourceLineageTag: address_line_04
+		summarizeBy: none
+		sourceColumn: address_line_04
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_effective_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: edc72ee8-a02a-46e7-8ff9-d3d81db00d06
+		sourceLineageTag: address_effective_date
+		summarizeBy: none
+		sourceColumn: address_effective_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_postal_address
+		dataType: string
+		lineageTag: 86d89bf2-b77c-4e45-aaae-40dcc181e9ef
+		sourceLineageTag: has_postal_address
+		summarizeBy: none
+		sourceColumn: has_postal_address
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_05
+		dataType: string
+		lineageTag: 31d2cc0b-5481-4296-b5cd-27a2903889b8
+		sourceLineageTag: category_code_05
+		summarizeBy: none
+		sourceColumn: category_code_05
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_14
+		dataType: string
+		lineageTag: 95ca457c-f939-4266-b2f6-d987664249a9
+		sourceLineageTag: category_code_14
+		summarizeBy: none
+		sourceColumn: category_code_14
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_rate
+		dataType: string
+		lineageTag: 673dd48f-65c3-4bad-85f8-be16e397179e
+		sourceLineageTag: address_rate
+		summarizeBy: none
+		sourceColumn: address_rate
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_10
+		dataType: string
+		lineageTag: 48930575-ef9b-471b-aa72-ed5ceba99d87
+		sourceLineageTag: category_code_10
+		summarizeBy: none
+		sourceColumn: category_code_10
+
+		annotation SummarizationSetBy = Automatic
+
+	column related_address_3
+		dataType: string
+		lineageTag: 9e05dc08-e8bd-4619-ba7a-d15ac6bf41d5
+		sourceLineageTag: related_address_3
+		summarizeBy: none
+		sourceColumn: related_address_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_01
+		dataType: string
+		lineageTag: e8ad4d5e-7064-4383-9638-cf5ca5791068
+		sourceLineageTag: category_code_01
+		summarizeBy: none
+		sourceColumn: category_code_01
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_address_book_parent = entity
+		mode: directLake
+		source
+			entityName: dim_address_book_parent
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

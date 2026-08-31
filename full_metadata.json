@@ -11528,5 +11528,254 @@
         "snake_case_field": "time_last_updated"
       }
     ]
+  },
+  "F1602": {
+    "table_name": "f1602_cost_analyzer_balances",
+    "columns": [
+      {
+        "column_name": "CBSBLT",
+        "snake_case_field": "subledger_type"
+      },
+      {
+        "column_name": "CBLT",
+        "snake_case_field": "ledger_type"
+      },
+      {
+        "column_name": "CBVWNM",
+        "snake_case_field": "view_number"
+      },
+      {
+        "column_name": "CBCFY",
+        "snake_case_field": "century_fiscal_year"
+      },
+      {
+        "column_name": "CBITM",
+        "snake_case_field": "identifier_short_item"
+      },
+      {
+        "column_name": "CBABR2",
+        "snake_case_field": "managerial_analysis_code_02"
+      },
+      {
+        "column_name": "CBABT1",
+        "snake_case_field": "managerial_analysis_type_01"
+      },
+      {
+        "column_name": "CBABR1",
+        "snake_case_field": "managerial_analysis_code_01"
+      },
+      {
+        "column_name": "CBABR4",
+        "snake_case_field": "managerial_analysis_code_04"
+      },
+      {
+        "column_name": "CBACTB",
+        "snake_case_field": "activity_code"
+      },
+      {
+        "column_name": "CBABT2",
+        "snake_case_field": "managerial_analysis_type_02"
+      },
+      {
+        "column_name": "CBAID",
+        "snake_case_field": "account_id"
+      },
+      {
+        "column_name": "CBSBL",
+        "snake_case_field": "subledger"
+      },
+      {
+        "column_name": "CBABT3",
+        "snake_case_field": "managerial_analysis_type_03"
+      },
+      {
+        "column_name": "CBABT4",
+        "snake_case_field": "managerial_analysis_type_04"
+      },
+      {
+        "column_name": "CBABR3",
+        "snake_case_field": "managerial_analysis_code_03"
+      },
+      {
+        "column_name": "CBOBJ",
+        "snake_case_field": "object_account"
+      },
+      {
+        "column_name": "CBCO",
+        "snake_case_field": "company"
+      },
+      {
+        "column_name": "CBMCU",
+        "snake_case_field": "cost_center"
+      },
+      {
+        "column_name": "CBSUB",
+        "snake_case_field": "subsidiary"
+      },
+      {
+        "column_name": "CBCRCX",
+        "snake_case_field": "currency_code_denom"
+      },
+      {
+        "column_name": "CBCRCD",
+        "snake_case_field": "currency_code_from"
+      },
+      {
+        "column_name": "CBPID",
+        "snake_case_field": "program_id"
+      },
+      {
+        "column_name": "CBUSER",
+        "snake_case_field": "user_id"
+      },
+      {
+        "column_name": "CBJOBN",
+        "snake_case_field": "work_station_id"
+      },
+      {
+        "column_name": "CBASMF",
+        "snake_case_field": "assignment_flag"
+      },
+      {
+        "column_name": "CBAN09",
+        "snake_case_field": "amount_net_posting_009"
+      },
+      {
+        "column_name": "CBAN07",
+        "snake_case_field": "amount_net_posting_007"
+      },
+      {
+        "column_name": "CBAN11",
+        "snake_case_field": "amount_net_posting_011"
+      },
+      {
+        "column_name": "CBAN08",
+        "snake_case_field": "amount_net_posting_008"
+      },
+      {
+        "column_name": "CBAN12",
+        "snake_case_field": "amount_net_posting_012"
+      },
+      {
+        "column_name": "CBAN10",
+        "snake_case_field": "amount_net_posting_010"
+      },
+      {
+        "column_name": "CBNB04",
+        "snake_case_field": "net_balance_004"
+      },
+      {
+        "column_name": "CBAN14",
+        "snake_case_field": "amount_net_posting_014"
+      },
+      {
+        "column_name": "CBAN06",
+        "snake_case_field": "amount_net_posting_006"
+      },
+      {
+        "column_name": "CBAN05",
+        "snake_case_field": "amount_net_posting_005"
+      },
+      {
+        "column_name": "CBNB08",
+        "snake_case_field": "net_balance_008"
+      },
+      {
+        "column_name": "CBAN04",
+        "snake_case_field": "amount_net_posting_004"
+      },
+      {
+        "column_name": "CBAN03",
+        "snake_case_field": "amount_net_posting_003"
+      },
+      {
+        "column_name": "CBNB02",
+        "snake_case_field": "net_balance_002"
+      },
+      {
+        "column_name": "CBBORG",
+        "snake_case_field": "amt_original_begin_bud"
+      },
+      {
+        "column_name": "CBAN01",
+        "snake_case_field": "amount_net_posting_001"
+      },
+      {
+        "column_name": "CBNB09",
+        "snake_case_field": "net_balance_009"
+      },
+      {
+        "column_name": "CBAN13",
+        "snake_case_field": "amount_net_posting_013"
+      },
+      {
+        "column_name": "CBNB12",
+        "snake_case_field": "net_balance_012"
+      },
+      {
+        "column_name": "CBAWTD",
+        "snake_case_field": "amount_wtd"
+      },
+      {
+        "column_name": "CBNB14",
+        "snake_case_field": "net_balance_014"
+      },
+      {
+        "column_name": "CBNB05",
+        "snake_case_field": "net_balance_005"
+      },
+      {
+        "column_name": "CBNB01",
+        "snake_case_field": "net_balance_001"
+      },
+      {
+        "column_name": "CBAPYC",
+        "snake_case_field": "amt_beginning_balance_py"
+      },
+      {
+        "column_name": "CBNB13",
+        "snake_case_field": "net_balance_013"
+      },
+      {
+        "column_name": "CBBREQ",
+        "snake_case_field": "budget_requested"
+      },
+      {
+        "column_name": "CBBAPR",
+        "snake_case_field": "budget_approved"
+      },
+      {
+        "column_name": "CBAN02",
+        "snake_case_field": "amount_net_posting_002"
+      },
+      {
+        "column_name": "CBNB06",
+        "snake_case_field": "net_balance_006"
+      },
+      {
+        "column_name": "CBNB07",
+        "snake_case_field": "net_balance_007"
+      },
+      {
+        "column_name": "CBNB10",
+        "snake_case_field": "net_balance_010"
+      },
+      {
+        "column_name": "CBNB11",
+        "snake_case_field": "net_balance_011"
+      },
+      {
+        "column_name": "CBNB03",
+        "snake_case_field": "net_balance_003"
+      },
+      {
+        "column_name": "CBUPMJ",
+        "snake_case_field": "date_updated"
+      },
+      {
+        "column_name": "CBUPMT",
+        "snake_case_field": "time_last_updated"
+      }
+    ]
   }
 }

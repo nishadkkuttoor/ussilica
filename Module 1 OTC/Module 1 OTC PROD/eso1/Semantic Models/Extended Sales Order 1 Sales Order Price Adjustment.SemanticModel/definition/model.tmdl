@@ -1,0 +1,30 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = DatabaseQuery
+
+annotation PBI_ProTooling = ["DirectLakeOnOneLakeInWeb", "WebModelingEdit", "SLL", "SLL_UpdateDLConnection_SQL"]
+
+ref table fact_sales_order_price_adjustment
+ref table dim_address_book_parent
+ref table dim_address_book_sold_to
+ref table dim_address_book_ship_to
+ref table dim_item
+ref table dim_company
+ref table dim_mode_of_transport
+ref table dim_category_code_05
+ref table dim_freight_handling_code
+ref table dim_plant
+ref table measure_tbl
+ref table 'Row Type'
+ref table dim_address_book_carrier
+ref table dim_status_code_last
+ref table dim_status_code_next
+

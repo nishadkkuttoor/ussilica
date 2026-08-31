@@ -1,0 +1,38 @@
+relationship 42385176-c2f8-728e-c279-fe27f3b50d0f
+	crossFilteringBehavior: bothDirections
+	fromColumn: fact_extended_sales_order_8.order_key
+	toColumn: dim_order.order_key
+
+relationship 0d7b56a5-ebad-48f2-492e-02efab306cb5
+	fromColumn: fact_sales_order_detail.order_key
+	toColumn: dim_order.order_key
+
+relationship b1e19084-b7fb-60d8-4873-a18eea28bb43
+	fromColumn: fact_extended_sales_order_8.customer_number
+	toColumn: dim_address_book_customer.address_number
+
+relationship 202cca68-b410-a8dc-b103-96d91aebc6e5
+	crossFilteringBehavior: bothDirections
+	fromColumn: fact_extended_sales_order_8.shipment_number
+	toColumn: dim_shipment.shipment_number
+
+relationship 5ac88c26-6cdf-9af4-853e-4095c81b6131
+	fromColumn: fact_shipment_routing.shipment_number
+	toColumn: dim_shipment.shipment_number
+
+relationship 4b4711e9-c2f8-b8c3-c503-bbdef99ffe37
+	fromColumn: fact_shipment_routing.load_port
+	toColumn: dim_address_book_loading_port.address_number
+
+relationship d22d9ff3-17f1-a09f-87b7-102567855dc7
+	fromColumn: fact_extended_sales_order_8.ship_to_number
+	toColumn: dim_address_book_ship_to.address_number
+
+relationship 02b1deb8-e1bf-4535-3fdf-c34721030bd3
+	fromColumn: fact_extended_sales_order_8.plant
+	toColumn: dim_plant.plant_code
+
+relationship 1303d01d-88ce-9653-8c50-740976e7ab74
+	fromColumn: fact_extended_sales_order_8.company
+	toColumn: dim_company.company
+

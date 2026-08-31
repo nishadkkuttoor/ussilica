@@ -1,0 +1,32 @@
+table measure_tbl
+	lineageTag: 99aa9b94-fbe1-4615-8606-9ca03c6fe69f
+
+	/// Calculates the most recent timestamp from a table in Eastern Time (ET). It ignores any visual, page, or report-level filters.
+	measure 'JDE Last Updated' =
+			
+			VAR _ts = CALCULATE (
+			        	  MAX ( 'fact_extended_sales_order_6'[jde_updated_ts] ),
+			        	  REMOVEFILTERS ()
+			    	    )
+			RETURN
+			    IF ( NOT ISBLANK ( _ts ), FORMAT ( _ts, "MM/dd/yyyy HH:mm:ss" ) )
+		lineageTag: a1b86081-0c88-454b-abdc-ba210ff8c582
+
+	column Column
+		isHidden
+		formatString: 0
+		lineageTag: f04cd3f9-409b-4503-a1fe-64bf54ab6abb
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition measure_tbl = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = adfd165359e845b096b8b5408728fbc3
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":""}
+

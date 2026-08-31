@@ -1,0 +1,252 @@
+table dim_shipment
+	lineageTag: 81fb4582-d080-4086-8826-7db56d23fc92
+	sourceLineageTag: [rpt].[dim_shipment]
+
+	column shipment_number
+		dataType: string
+		lineageTag: 9223045c-0745-4f37-8a98-5a7e9c5f779f
+		sourceLineageTag: shipment_number
+		summarizeBy: none
+		sourceColumn: shipment_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipment_status
+		dataType: string
+		lineageTag: 768d3df9-a262-499c-aaf7-927dde9679ef
+		sourceLineageTag: shipment_status
+		summarizeBy: none
+		sourceColumn: shipment_status
+
+		annotation SummarizationSetBy = Automatic
+
+	column mode_of_transport
+		dataType: string
+		lineageTag: bdcd7941-13f1-49fa-8b4c-14d741b5cda6
+		sourceLineageTag: mode_of_transport
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+
+		annotation SummarizationSetBy = Automatic
+
+	column carrier_01
+		dataType: double
+		lineageTag: 78ee5be8-cc26-41ec-99eb-2d6fb6f0a4c1
+		sourceLineageTag: carrier_01
+		summarizeBy: none
+		sourceColumn: carrier_01
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column carrier_02
+		dataType: double
+		lineageTag: d5607cca-9153-4ca1-b0cf-06ade7cc4150
+		sourceLineageTag: carrier_02
+		summarizeBy: none
+		sourceColumn: carrier_02
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column carrier_03
+		dataType: double
+		lineageTag: a093c0a9-863c-424f-a8fa-3ee5eee7197a
+		sourceLineageTag: carrier_03
+		summarizeBy: none
+		sourceColumn: carrier_03
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column origin_address_number
+		dataType: double
+		lineageTag: 24148801-ec31-472d-b8c5-c6e748fb13a4
+		sourceLineageTag: origin_address_number
+		summarizeBy: none
+		sourceColumn: origin_address_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column address_number
+		dataType: string
+		lineageTag: 852cc674-d254-42b4-ad99-7c0aa77ec488
+		sourceLineageTag: address_number
+		summarizeBy: none
+		sourceColumn: address_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_number_ship_to
+		dataType: string
+		lineageTag: 2b28f057-2413-452a-9882-35354c8a60af
+		sourceLineageTag: address_number_ship_to
+		summarizeBy: none
+		sourceColumn: address_number_ship_to
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column cost_center
+		dataType: string
+		lineageTag: 545c8d00-b285-4f78-b581-cf07d7ee74f5
+		sourceLineageTag: cost_center
+		summarizeBy: none
+		sourceColumn: cost_center
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: 4bbc183e-6a7f-4c93-b192-0cc2aec5aa8e
+		sourceLineageTag: city
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: 82b762e9-6d74-4562-a04c-6e587431ad30
+		sourceLineageTag: state
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		lineageTag: 493ae483-7962-4615-b3d9-74997dd8d3a1
+		sourceLineageTag: country
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column origin_city
+		dataType: string
+		lineageTag: fa500941-d4b3-4c78-9b7c-85dc77bcbf94
+		sourceLineageTag: origin_city
+		summarizeBy: none
+		sourceColumn: origin_city
+
+		annotation SummarizationSetBy = Automatic
+
+	column origin_state
+		dataType: string
+		lineageTag: 485a094f-efb2-46a1-aa65-4cb4f30a9353
+		sourceLineageTag: origin_state
+		summarizeBy: none
+		sourceColumn: origin_state
+
+		annotation SummarizationSetBy = Automatic
+
+	column origin_country
+		dataType: string
+		lineageTag: a8aa4b5a-5d51-40e0-b6e7-316a1a028660
+		sourceLineageTag: origin_country
+		summarizeBy: none
+		sourceColumn: origin_country
+
+		annotation SummarizationSetBy = Automatic
+
+	column number_of_routing_steps
+		dataType: double
+		lineageTag: 0d617e52-94ea-412e-a905-ec4de67f317c
+		sourceLineageTag: number_of_routing_steps
+		summarizeBy: none
+		sourceColumn: number_of_routing_steps
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column shipment_weight
+		dataType: double
+		lineageTag: d42defaf-5703-4b50-94aa-8e81136913d5
+		sourceLineageTag: shipment_weight
+		summarizeBy: none
+		sourceColumn: shipment_weight
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column date_requested
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b6a3f0c0-60d1-4a6a-8925-06369601b238
+		sourceLineageTag: date_requested
+		summarizeBy: none
+		sourceColumn: date_requested
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_release
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 990438d1-cb7c-481a-a05b-9da1e773555f
+		sourceLineageTag: date_release
+		summarizeBy: none
+		sourceColumn: date_release
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_updated
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: cdd18e63-2800-4adc-961d-d264abf7285e
+		sourceLineageTag: date_updated
+		summarizeBy: none
+		sourceColumn: date_updated
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 321d78f4-824e-41f7-bfd2-da4cab6ba5a1
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		lineageTag: c34b5aa3-3db1-405f-a764-98d0abaa2037
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8d5649b7-add9-47d4-9afe-c25458bd423c
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_shipment = entity
+		mode: directLake
+		source
+			entityName: dim_shipment
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

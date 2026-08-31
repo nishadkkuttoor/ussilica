@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "Extended Sales Order 8"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "bdf1869c-fd0b-a037-474b-e5d5b918e549"
+  }
+}

@@ -1,0 +1,451 @@
+table fact_sales_order_detail
+	lineageTag: 5936c0ab-6b51-45fe-a186-8471b45ae504
+	sourceLineageTag: [rpt].[fact_sales_order_detail]
+
+	column company
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b16e082a-3725-459f-80a9-2d5d53b224b1
+		sourceLineageTag: company
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 039e1139-4eec-4c3c-a16a-d0d9805bc3d0
+		sourceLineageTag: order_number
+		summarizeBy: none
+		sourceColumn: order_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 82b9e980-be8d-4263-a3e7-05173002bd33
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 0ee282b9-d04f-4133-87a8-c5dcf332f736
+		sourceLineageTag: line_number
+		summarizeBy: sum
+		sourceColumn: line_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column line_type
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 38719439-ea7a-4ec5-90ef-646eae246946
+		sourceLineageTag: line_type
+		summarizeBy: none
+		sourceColumn: line_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_originator
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: cd6b7bb7-c17f-488c-b0f5-62689f24fe7b
+		sourceLineageTag: order_originator
+		summarizeBy: none
+		sourceColumn: order_originator
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: cba4ae10-1ebe-4e7e-ad4d-21700a94c7c5
+		sourceLineageTag: order_key
+		summarizeBy: none
+		sourceColumn: order_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipment_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 148a2745-d519-49ae-8b50-0140de042896
+		sourceLineageTag: shipment_number
+		summarizeBy: sum
+		sourceColumn: shipment_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column cost_center
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: f308a73b-162a-422c-9ac3-93d772e15f0a
+		sourceLineageTag: cost_center
+		summarizeBy: none
+		sourceColumn: cost_center
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: a55f293a-e005-4300-ba18-180521a8f94a
+		sourceLineageTag: address_number
+		summarizeBy: sum
+		sourceColumn: address_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column address_number_ship_to
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: d2a2a577-b387-429f-ae8b-a6b628292f76
+		sourceLineageTag: address_number_ship_to
+		summarizeBy: sum
+		sourceColumn: address_number_ship_to
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column status_code_last
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3b02f91e-cadd-41ff-a362-4cfe6a3af301
+		sourceLineageTag: status_code_last
+		summarizeBy: none
+		sourceColumn: status_code_last
+
+		annotation SummarizationSetBy = Automatic
+
+	column status_code_next
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 032d2026-dee6-4c54-b0c2-b00d5981d9b4
+		sourceLineageTag: status_code_next
+		summarizeBy: none
+		sourceColumn: status_code_next
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_promised_ship_julian
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: e6d2a7ed-0ed2-47ed-972a-7ff9048e8ab3
+		sourceLineageTag: date_promised_ship_julian
+		summarizeBy: none
+		sourceColumn: date_promised_ship_julian
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_requested_julian
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 88113b0b-67a5-483a-9bfe-c32577c67c02
+		sourceLineageTag: date_requested_julian
+		summarizeBy: none
+		sourceColumn: date_requested_julian
+
+		annotation SummarizationSetBy = Automatic
+
+	column scheduled_pick_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 44e9c955-e681-4994-b51c-b85ba3fa6701
+		sourceLineageTag: scheduled_pick_date
+		summarizeBy: none
+		sourceColumn: scheduled_pick_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_release_julian
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 961aad46-7fe0-4626-a825-113317b99de1
+		sourceLineageTag: date_release_julian
+		summarizeBy: none
+		sourceColumn: date_release_julian
+
+		annotation SummarizationSetBy = Automatic
+
+	column identifier_second_item
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: ef0ba2d4-fa55-4f21-9c55-673322c6a29d
+		sourceLineageTag: identifier_second_item
+		summarizeBy: none
+		sourceColumn: identifier_second_item
+
+		annotation SummarizationSetBy = Automatic
+
+	column identifier_short_item
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 409cf508-931b-4b9e-b7e9-be32a4c84297
+		sourceLineageTag: identifier_short_item
+		summarizeBy: sum
+		sourceColumn: identifier_short_item
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column uom_as_input
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 165d1488-71f9-44d0-a9d6-56c0a832d82b
+		sourceLineageTag: uom_as_input
+		summarizeBy: none
+		sourceColumn: uom_as_input
+
+		annotation SummarizationSetBy = Automatic
+
+	column freight_handling_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 858718ec-68e0-44cb-a2e4-3c6b108e6c0c
+		sourceLineageTag: freight_handling_code
+		summarizeBy: none
+		sourceColumn: freight_handling_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column carrier
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 8af7de0a-5ca7-4813-be2a-c9067deaf2a8
+		sourceLineageTag: carrier
+		summarizeBy: sum
+		sourceColumn: carrier
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mode_of_transport
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: cf804ad5-cc43-4314-b12e-1c4dac338903
+		sourceLineageTag: mode_of_transport
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+
+		annotation SummarizationSetBy = Automatic
+
+	column container_id
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 84709f70-58bd-4e1f-9b96-01b7056a5e09
+		sourceLineageTag: container_id
+		summarizeBy: none
+		sourceColumn: container_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column reference_01
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 853b80af-012d-49e0-a4ce-249bc64b966c
+		sourceLineageTag: reference_01
+		summarizeBy: none
+		sourceColumn: reference_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column units_transaction_qty
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 8a4e4ba5-477d-475f-b9c5-91ab43fa53aa
+		sourceLineageTag: units_transaction_qty
+		summarizeBy: sum
+		sourceColumn: units_transaction_qty
+
+	/// Source UoM (Price) — pricing unit of measure (SDUOM4).
+	column uom_pricing
+		dataType: string
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e01
+		sourceLineageTag: uom_pricing
+		summarizeBy: none
+		sourceColumn: uom_pricing
+
+	/// Source Price — unit price (SDUPRC).
+	column unit_price
+		dataType: double
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e02
+		sourceLineageTag: unit_price
+		summarizeBy: none
+		sourceColumn: unit_price
+
+	/// Conversion Factor (Volume) — tons per one transaction unit (SDUOM->TN cascade).
+	column conversion_to_tons_rate
+		dataType: double
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e03
+		sourceLineageTag: conversion_to_tons_rate
+		summarizeBy: none
+		sourceColumn: conversion_to_tons_rate
+
+	/// Converted Volume (Tons) — units_transaction_qty (SDUORG) x conversion factor.
+	column quantity_shipped_tons
+		dataType: double
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e04
+		sourceLineageTag: quantity_shipped_tons
+		summarizeBy: sum
+		sourceColumn: quantity_shipped_tons
+
+	/// Missing Conversion Flag (Volume) — 'Y' when the transaction UoM has no resolvable conversion to TN.
+	column missing_conversion_flag
+		dataType: string
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e05
+		sourceLineageTag: missing_conversion_flag
+		summarizeBy: none
+		sourceColumn: missing_conversion_flag
+
+	/// Conversion Factor (Price) — tons per one pricing unit (SDUOM4->TN cascade).
+	column price_conversion_factor
+		dataType: double
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e06
+		sourceLineageTag: price_conversion_factor
+		summarizeBy: none
+		sourceColumn: price_conversion_factor
+
+	/// Converted Price per Ton — unit_price / price factor on delivered lines (Last Status <> 980 AND Next Status = 999).
+	column converted_price_per_ton
+		dataType: double
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e07
+		sourceLineageTag: converted_price_per_ton
+		summarizeBy: none
+		sourceColumn: converted_price_per_ton
+
+	/// Missing Conversion Flag (Price) — 'Y' when the pricing UoM has no resolvable conversion to TN.
+	column price_missing_conversion_flag
+		dataType: string
+		lineageTag: a5d13e88-2c71-4e44-9f32-8b3c5d0f1e08
+		sourceLineageTag: price_missing_conversion_flag
+		summarizeBy: none
+		sourceColumn: price_missing_conversion_flag
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column address_number_parent
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 736d8f65-6635-44f8-9c7a-60c91a07b047
+		sourceLineageTag: address_number_parent
+		summarizeBy: sum
+		sourceColumn: address_number_parent
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 41b5aaaf-753a-4d4b-b8c8-733244817a5c
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_shipment_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: deadd196-fef1-460c-8320-744505e4e4ac
+		sourceLineageTag: line_shipment_key
+		summarizeBy: none
+		sourceColumn: line_shipment_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipment_order_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: c177daea-5c51-4ef3-82db-44f5a9ac8419
+		sourceLineageTag: shipment_order_key
+		summarizeBy: none
+		sourceColumn: shipment_order_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column uom_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: de523996-76e5-471b-928d-8d6bcd8624ec
+		sourceLineageTag: uom_key
+		summarizeBy: none
+		sourceColumn: uom_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_activity_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 6fb4f4ca-562c-431d-abd2-8eebf07df70b
+		sourceLineageTag: order_activity_key
+		summarizeBy: none
+		sourceColumn: order_activity_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_uom_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 734ccfe9-447e-4830-9f0a-b88bb547d6bf
+		sourceLineageTag: item_uom_key
+		summarizeBy: none
+		sourceColumn: item_uom_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 736fff0d-beeb-41b2-a47e-26617effb39e
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 0382b459-356d-4770-8002-d81e072e4a37
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_sales_order_detail = entity
+		mode: directLake
+		source
+			entityName: fact_sales_order_detail
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

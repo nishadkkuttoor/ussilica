@@ -1,0 +1,114 @@
+table dim_plant
+	lineageTag: c3096cef-6f28-4243-9dff-ae7613e9e541
+	sourceLineageTag: [rpt].[dim_plant]
+
+	column last_refreshed_timestamp
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 09936081-704e-4309-b1d4-ffe24bd15def
+		sourceLineageTag: last_refreshed_timestamp
+		summarizeBy: none
+		sourceColumn: last_refreshed_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column plant_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: dffd2d81-cadc-4749-8ff9-32b7be6d8782
+		sourceLineageTag: plant_code
+		summarizeBy: none
+		sourceColumn: plant_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column plant_name
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 60a98e46-c162-4efe-8c5e-f5b142d8457e
+		sourceLineageTag: plant_name
+		summarizeBy: none
+		sourceColumn: plant_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column plant_name_compressed
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: c1f67cb3-8714-4e4b-b8a8-0f70f0fb8a8d
+		sourceLineageTag: plant_name_compressed
+		summarizeBy: none
+		sourceColumn: plant_name_compressed
+
+		annotation SummarizationSetBy = Automatic
+
+	column plant_category_code_02
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 75270143-9486-4824-bc17-e7db9be76b33
+		sourceLineageTag: plant_category_code_02
+		summarizeBy: none
+		sourceColumn: plant_category_code_02
+
+		annotation SummarizationSetBy = Automatic
+
+	column related_business_unit
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: cadd68b3-3c5c-4b20-9b04-9e4a739b4b8f
+		sourceLineageTag: related_business_unit
+		summarizeBy: none
+		sourceColumn: related_business_unit
+
+		annotation SummarizationSetBy = Automatic
+
+	column company
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2a3c6ac4-a9e2-40fe-9649-1033ffa38b1d
+		sourceLineageTag: company
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_cost_ct_020
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 4a11db9b-3fda-4175-b00e-7a1cbb62c56a
+		sourceLineageTag: category_code_cost_ct_020
+		summarizeBy: none
+		sourceColumn: category_code_cost_ct_020
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b3cb651c-286f-4f48-a78d-aa149fafe07c
+		sourceLineageTag: state
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column parent_plant_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: a3285697-5ce8-430e-ac66-6be02afe2c7d
+		sourceLineageTag: parent_plant_code
+		summarizeBy: none
+		sourceColumn: parent_plant_code
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_plant = entity
+		mode: directLake
+		source
+			entityName: dim_plant
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

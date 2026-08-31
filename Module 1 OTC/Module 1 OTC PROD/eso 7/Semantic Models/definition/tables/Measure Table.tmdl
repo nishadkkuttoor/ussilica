@@ -1,0 +1,87 @@
+table 'Measure Table'
+	lineageTag: 190dc6e8-1014-48ca-897c-785a2c9f6364
+
+	/// Returns the total open quantity across the selected order lines, rounded to 2 decimal places. Sums                      units_transaction_qty from F4211 — the transaction quantity in the unit of measure as entered on the sales order — for  all rows in the current filter context. Represents the quantity still due for shipment on open export orders.
+	measure 'Revised Quantity Due' = ```
+			ROUND(SUM(fact_extended_sales_order_7_v2[units_transaction_qty]), 2)
+			
+			```
+		lineageTag: e58c119b-1481-4b26-835c-d572ee53b171
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Returns the total weight in tons for the selected order lines by converting each line's transaction quantity to tons using a two-tier conversion factor lookup. For each row, multiplies units_transaction_qty by the conversion factor resolved in priority order: first the item-specific factor from dim_uom_conversion_item (Tier A — overrides when a conversion exists for that exact item and unit of measure), then the standard factor from dim_uom_conversion (Tier B — the general UOM-to-ton rate), and falls back to 1.0 if neither conversion is found, treating the quantity as already expressed in tons.
+	measure 'Total Tons' = ```
+			
+			SUMX(
+			    fact_extended_sales_order_7_v2,
+			    fact_extended_sales_order_7_v2[units_transaction_qty] *
+			    COALESCE(
+			        RELATED(dim_uom_conversion_item[conv_factor]),   -- Tier A
+			        RELATED(dim_uom_conversion[std_factor]),          -- Tier B
+			        1.0                                               -- Fallback
+			    
+			))
+			```
+		lineageTag: c7573269-4fa8-48a6-81d0-84fa4c76fe65
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Returns TRUE if the selected order line's shipment has no complete ocean routing record in JDE — meaning no F4941 row exists where both the origin port address and destination port address are populated for the OCE leg. Computed directly on the fact table from the is_missing_freight flag, which is derived by checking whether the shipment number appears in F4941 with a fully populated OCE routing step. When TRUE, the shipment is missing freight rates or routing assignments and requires follow-up.
+	measure 'Is Missing Freight' = MAX(fact_extended_sales_order_7_v2[is_missing_freight])
+		formatString: 0
+		lineageTag: 78e1456e-8486-4812-aadf-133bbd80a307
+
+	/// Returns the total Revised Quantity Due restricted to order lines where freight routing is incomplete. Filters the fact table to rows where is_missing_freight = TRUE — shipments that have no fully populated OCE routing record in F4941 — then sums the transaction quantity against those lines only. Use this measure to quantify the volume of open export orders that are still missing freight rates or routing assignments.
+	measure 'Lines With Missing Freight' = ```
+			
+			CALCULATE(
+			    [Revised Quantity Due],
+			    fact_extended_sales_order_7_v2[is_missing_freight] = TRUE()
+			)
+			
+			```
+		lineageTag: c7d22139-ade1-4d0e-969c-0a875cfe5495
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Always returns blank. the loading port name was derived by joining F4941 routing steps to the address book — however, for missing freight orders the ocean routing record is absent by definition, making the loading port name consistently empty across all rows in this report. 
+	measure 'Routing Load Port Name' = BLANK()
+		formatString: 0
+		lineageTag: 35637f24-9028-4dad-9d2e-b3bde3c7d12a
+
+	/// Always returns blank. the destination port name was derived by joining F4941 routing steps to the address book — however, for missing freight orders the ocean routing record is absent by definition, making the destination port name consistently empty across all rows in this report. 
+	measure 'Routing Dest Port Name' = BLANK()
+		formatString: 0
+		lineageTag: ee886c90-837e-4ec8-a2d9-2020dcd668cd
+
+	/// Calculates the most recent timestamp from a table in Eastern Time (ET). It ignores any visual, page, or report-level filters.
+	measure 'JDE Last Updated' =
+			
+			VAR _ts = CALCULATE (
+			        	  MAX ( 'fact_extended_sales_order_7_v2'[jde_updated_ts] ),
+			        	  REMOVEFILTERS ()
+			    	    )
+			RETURN
+			    IF ( NOT ISBLANK ( _ts ), FORMAT ( _ts, "MM/dd/yyyy HH:mm:ss" ) )
+		lineageTag: b5405847-f774-42d8-b553-bfd8ee945e95
+
+	column Column
+		formatString: 0
+		lineageTag: ee4fbe6f-5389-4a1b-b762-ae2e67d2ac97
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Measure Table' = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = d6a7492e9a8144ab9e9b56a0b354aab1
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":null}
+
+	annotation 277cc1b9-af89-4597-8e15-cacc25c0886b = To use special characters in a calculated table name, enclose the entire name in brackets ( [] ) and add a ] to any closing brackets in the name.
+

@@ -1,0 +1,57 @@
+table dim_uom_conversion_item
+	lineageTag: 1e458572-065b-4a7a-bdac-052a90f7fcf6
+	sourceLineageTag: [rpt].[dim_uom_conversion_item]
+
+	column identifier_short_item
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: b811a25d-ccea-4745-9741-d8771fa2fedf
+		sourceLineageTag: identifier_short_item
+		summarizeBy: none
+		sourceColumn: identifier_short_item
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column from_uom
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 9bb8e62a-ee22-408f-9f24-67794880219c
+		sourceLineageTag: from_uom
+		summarizeBy: none
+		sourceColumn: from_uom
+
+		annotation SummarizationSetBy = Automatic
+
+	column conv_factor
+		dataType: double
+		sourceProviderType: float
+		lineageTag: f5913d58-a08e-4e94-a3bd-169d6f785e6c
+		sourceLineageTag: conv_factor
+		summarizeBy: none
+		sourceColumn: conv_factor
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column item_uom_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: b3e8ae94-b560-4631-aabe-d05418f64f51
+		sourceLineageTag: item_uom_key
+		summarizeBy: none
+		sourceColumn: item_uom_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_uom_conversion_item = entity
+		mode: directLake
+		source
+			entityName: dim_uom_conversion_item
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

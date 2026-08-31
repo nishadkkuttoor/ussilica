@@ -1,0 +1,33 @@
+table dim_status_code_last
+	lineageTag: 597aa378-a29c-40d5-a5a6-5563d1e23f07
+	sourceLineageTag: [rpt].[dim_status_code_last]
+
+	column statuscodelast_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 1dff2713-a913-49f4-9c0a-c49efd880c09
+		sourceLineageTag: statuscodelast_code
+		summarizeBy: none
+		sourceColumn: statuscodelast_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column statuscodelast_description
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 7682b370-284b-4479-ab55-e3c6d4cd49a5
+		sourceLineageTag: statuscodelast_description
+		summarizeBy: none
+		sourceColumn: statuscodelast_description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_status_code_last = entity
+		mode: directLake
+		source
+			entityName: dim_status_code_last
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

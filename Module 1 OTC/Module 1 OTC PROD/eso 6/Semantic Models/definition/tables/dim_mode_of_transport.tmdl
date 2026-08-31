@@ -1,0 +1,33 @@
+table dim_mode_of_transport
+	lineageTag: f90f3e44-58d7-4a36-96fe-17a990348c34
+	sourceLineageTag: [rpt].[dim_mode_of_transport]
+
+	column modeoftransport_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 742ae43b-4d49-4f2a-b244-f3dcd30f9c60
+		sourceLineageTag: modeoftransport_code
+		summarizeBy: none
+		sourceColumn: modeoftransport_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column modeoftransport_description
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: cd12dbea-759f-499b-a22f-b4309064910f
+		sourceLineageTag: modeoftransport_description
+		summarizeBy: none
+		sourceColumn: modeoftransport_description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_mode_of_transport = entity
+		mode: directLake
+		source
+			entityName: dim_mode_of_transport
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

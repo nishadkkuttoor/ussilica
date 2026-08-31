@@ -1,0 +1,58 @@
+table dim_order_activity
+	lineageTag: 497fc9d7-b8c9-499e-a4d6-40a253f6f408
+	sourceLineageTag: [rpt].[dim_order_activity]
+
+	column order_activity_key
+		dataType: string
+		lineageTag: 3c6b51b0-6b92-4b60-afd6-c49b9e37a93e
+		sourceLineageTag: order_activity_key
+		summarizeBy: none
+		sourceColumn: order_activity_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		lineageTag: f832f5f3-3fc5-4f9c-9f3b-9092c32957a4
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_type
+		dataType: string
+		lineageTag: 4ea0b7f5-9ef3-4937-ad91-28813b8c9e1d
+		sourceLineageTag: line_type
+		summarizeBy: none
+		sourceColumn: line_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column status_code
+		dataType: string
+		lineageTag: e8bcd1b4-7d75-4e25-82c6-6fdb3cd8f67a
+		sourceLineageTag: status_code
+		summarizeBy: none
+		sourceColumn: status_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column description_status
+		dataType: string
+		lineageTag: 07b49da5-b2ad-4a67-af47-494490135dbf
+		sourceLineageTag: description_status
+		summarizeBy: none
+		sourceColumn: description_status
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_order_activity = entity
+		mode: directLake
+		source
+			entityName: dim_order_activity
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,60 @@
+relationship 46324b57-8968-4b82-cfe4-c10185f6f0e5
+	fromColumn: fact_extended_sales_order_7_v2.order_activity_key
+	toColumn: dim_order_activity.order_activity_key
+
+relationship 5ae36030-c5d4-f113-0ee8-58adb579df54
+	fromColumn: fact_extended_sales_order_7_v2.cost_center
+	toColumn: dim_plant.plant_code
+
+relationship c7d96b2d-40d0-1569-d509-8e404847b3e8
+	fromColumn: fact_extended_sales_order_7_v2.carrier
+	toColumn: dim_address_book_carrier.address_number
+
+relationship 9d77c4d4-9d7b-64f7-f75a-1bd17a62b2e9
+	fromColumn: fact_extended_sales_order_7_v2.mode_of_transport
+	toColumn: dim_mode_of_transport.modeoftransport_code
+
+relationship 2f498d96-1795-339d-cc8b-82132dde8d92
+	fromColumn: fact_extended_sales_order_7_v2.status_code_next
+	toColumn: dim_status_code_next.statuscodenext_code
+
+relationship b94b40c2-8422-d2c7-8ad6-78290d43c6d6
+	fromColumn: fact_extended_sales_order_7_v2.loading_port_address
+	toColumn: dim_address_book_loading_port.address_number
+
+relationship d5dd9cdf-6ed1-c159-5684-f69096ba39aa
+	fromColumn: fact_extended_sales_order_7_v2.destination_port_address
+	toColumn: dim_address_book_destination.address_number
+
+relationship cc626720-9670-7ab3-c4e9-0f496e7fb42a
+	fromColumn: fact_extended_sales_order_7_v2.ocean_carrier_address
+	toColumn: dim_address_book_ocean_carrier.address_number
+
+relationship bf6e2678-a04c-23ef-f6d6-a80e9e3c46d5
+	fromColumn: fact_extended_sales_order_7_v2.item_uom_key
+	toColumn: dim_uom_conversion_item.item_uom_key
+
+relationship 8c3cb6bd-b6e2-2de1-16f8-0392d7d277b8
+	fromColumn: fact_extended_sales_order_7_v2.uom_as_input
+	toColumn: dim_uom_conversion.from_uom
+
+relationship 0db14701-22db-7f7c-d8d9-654d2f45aa05
+	fromColumn: fact_extended_sales_order_7_v2.shipment_number
+	toColumn: dim_shipment.shipment_number
+
+relationship 8c911f56-a672-71b3-6bfa-1e39e82539c4
+	fromColumn: fact_extended_sales_order_7_v2.address_number
+	toColumn: dim_address_book_sold_to.address_number
+
+relationship 9345ef88-68c7-fccf-4f72-19a2562882ef
+	fromColumn: fact_extended_sales_order_7_v2.address_number_ship_to
+	toColumn: dim_customer.address_number
+
+relationship 3e1a4ee3-81a8-eebb-f531-ec67410d7693
+	fromColumn: fact_extended_sales_order_7_v2.address_number
+	toColumn: dim_address_book_ship_to.address_number
+
+relationship 45c013ea-cd3c-b891-0d83-7aee6134489c
+	fromColumn: fact_extended_sales_order_7_v2.address_number_parent
+	toColumn: dim_address_book_parent.address_number
+

@@ -1,0 +1,227 @@
+table dim_address_book_parent
+	lineageTag: 1e95f5f1-ac64-4042-a0b0-768d73553c9b
+	sourceLineageTag: [rpt].[dim_address_book_parent]
+
+	column last_refreshed_timestamp
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: f6b21d56-32b5-484a-ba46-1d2bd95fa821
+		sourceLineageTag: last_refreshed_timestamp
+		summarizeBy: none
+		sourceColumn: last_refreshed_timestamp
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: c7c49bcd-aaa4-49f6-822d-228b93963b4d
+		sourceLineageTag: address_number
+		summarizeBy: none
+		sourceColumn: address_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column name_alpha
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e6e0f802-5179-4224-8d67-015ef42f1c5c
+		sourceLineageTag: name_alpha
+		summarizeBy: none
+		sourceColumn: name_alpha
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_type_01
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: a779f17d-8cd8-4900-b87a-a37cd923e1d5
+		sourceLineageTag: address_type_01
+		summarizeBy: none
+		sourceColumn: address_type_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column standard_industry_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2c881d69-af15-45f3-a8b1-bd5a50913b7c
+		sourceLineageTag: standard_industry_code
+		summarizeBy: none
+		sourceColumn: standard_industry_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e7da4bbd-c6c3-4d9f-bab6-34134d7f388d
+		sourceLineageTag: city
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 899fa3a7-fdbf-4989-a3d4-361e4195c427
+		sourceLineageTag: state
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e2af4493-43d2-40ac-97b1-8e5be581b4d5
+		sourceLineageTag: country
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column zip_code_postal
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: dbf9b718-8181-4b77-8cdd-d8d9665a5edd
+		sourceLineageTag: zip_code_postal
+		summarizeBy: none
+		sourceColumn: zip_code_postal
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_01
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 64fc2c50-3e29-4430-874b-f8e793cde2ba
+		sourceLineageTag: address_line_01
+		summarizeBy: none
+		sourceColumn: address_line_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_02
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 8968b555-e797-4e38-b325-d3ec14950635
+		sourceLineageTag: address_line_02
+		summarizeBy: none
+		sourceColumn: address_line_02
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_03
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2eb3c8c9-21cf-4544-9cd9-0db48d78a7b8
+		sourceLineageTag: address_line_03
+		summarizeBy: none
+		sourceColumn: address_line_03
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_line_04
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 0326a069-87b0-4035-98e8-ecf734b94739
+		sourceLineageTag: address_line_04
+		summarizeBy: none
+		sourceColumn: address_line_04
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_05
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 14bf7ab7-a553-401f-9cdd-7928d05991c8
+		sourceLineageTag: category_code_05
+		summarizeBy: none
+		sourceColumn: category_code_05
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_14
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 0c6c66e2-86ff-44a0-ab89-ce180eaefb07
+		sourceLineageTag: category_code_14
+		summarizeBy: none
+		sourceColumn: category_code_14
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_rate
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 40adcc88-1113-4189-b5b4-a4f3d651d5b4
+		sourceLineageTag: address_rate
+		summarizeBy: none
+		sourceColumn: address_rate
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_10
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 7c490d57-5a2b-49e4-a8df-4c34e2bbcaff
+		sourceLineageTag: category_code_10
+		summarizeBy: none
+		sourceColumn: category_code_10
+
+		annotation SummarizationSetBy = Automatic
+
+	column related_address_3
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 0b6f0f62-b538-4d9f-9a95-fe8daa55897a
+		sourceLineageTag: related_address_3
+		summarizeBy: none
+		sourceColumn: related_address_3
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_code_01
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 7b10f3eb-52a3-4f49-9bfe-5073a0b590d5
+		sourceLineageTag: category_code_01
+		summarizeBy: none
+		sourceColumn: category_code_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_effective_date
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: 3aefaba0-b2d5-4969-9dd6-17fa363391f6
+		sourceLineageTag: address_effective_date
+		summarizeBy: none
+		sourceColumn: address_effective_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_postal_address
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: e75ce212-3e10-4874-943e-f7203999834a
+		sourceLineageTag: has_postal_address
+		summarizeBy: none
+		sourceColumn: has_postal_address
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_address_book_parent = entity
+		mode: directLake
+		source
+			entityName: dim_address_book_parent
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

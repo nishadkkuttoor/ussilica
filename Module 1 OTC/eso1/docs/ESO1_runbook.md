@@ -6,17 +6,17 @@ notebooks under `nb/`, the model/report under `report/`, and the full design in
 `docs/ESO1_gold_layer_design.md` (v2.17 — batch; `fact_price_adjustment` added). Order: **verify reused dims → run the five Gold builders (batch overwrite) →
 validate → semantic model → report → maintain → deploy → operate**.
 
-> **Two report subsystems, one shared Gold star (design v2.16).** ESO1 serves two Power BI reports off conformed
-> dimensions in `lh_jde_gold.rpt`:
-> - **Billable v Payable Freight** → `fact_sales_order_freight` (order-line grain, freight denormalized) —
->   built by `nb_eso1_gold_fact_sales_order_freight` + `nb_eso1_gold_dim_item`.
-> - **SOP0027 Commission** → `fact_sales_commission` (sales line × commission-record grain, F4211-driven, F42005
->   LEFT-joined) — built by `nb_eso1_gold_fact_sales_commission` + `nb_eso1_gold_dim_category_code_10`.
+> **Reports off one shared Gold star.** ESO1 builds conformed facts/dims in `lh_jde_gold.rpt` that feed several Power BI
+> models. The **primary report model is `Extended Sales Order 1`** (freight + price_adjustment facts) → report
+> **`Extended Sales Orders 1`**. Two OTC-PROD models reuse the same Gold tables: **`… Sales Commission`** (SOP0027,
+> `fact_sales_commission`) and **`… Sales Order Price Adjustment`** (`fact_price_adjustment`).
+> - **`fact_sales_order_freight`** (order-line grain, freight denormalized) — `nb_eso1_gold_fact_sales_order_freight` + `nb_eso1_gold_dim_item`.
+> - **`fact_price_adjustment`** (F4074 adjustment grain) — `nb_eso1_gold_fact_price_adjustment`.
+> - **`fact_sales_commission`** (sales line × commission-record grain, F4211-driven, F42005 LEFT) — `nb_eso1_gold_fact_sales_commission` + `nb_eso1_gold_dim_category_code_10`.
 >
-> Both facts live in the **one** Direct Lake model `billable_payable_freight` and share the reused address/plant/item
-> dims. Every filter is a **Power BI page-level** slicer — Gold applies no business filters. **This runbook covers both.**
-> ⚠ **Current asymmetry:** `nb_validate_gold_eso1` and `nb_maintenance_gold_eso1` are still **freight-only** (see §3, §7,
-> and Open item F) — the commission fact + `dim_category_code_10` are built but not yet validated/maintained.
+> Every filter is a **Power BI page-level** slicer — Gold applies no business filters. **This runbook covers building all
+> the Gold tables.** ⚠ `nb_validate_gold_eso1` / `nb_maintenance_gold_eso1` are still **freight-only** (see Open item F) —
+> the commission + price-adjustment facts are built but not yet in validate/maintenance.
 
 ---
 
@@ -37,7 +37,8 @@ validate → semantic model → report → maintain → deploy → operate**.
      `nb_eso1_gold_fact_sales_order_freight` (builds `fact_sales_order_freight`).
    - **Commission subsystem:** `nb_eso1_gold_dim_category_code_10` (builds `dim_category_code_10` from F0005
      UDC 01/10), `nb_eso1_gold_fact_sales_commission` (builds `fact_sales_commission`).
-   - **Shared:** `nb_validate_gold_eso1`, `nb_maintenance_gold_eso1`, `nb_semantic_model_eso1`.
+   - **Shared:** `nb_validate_gold_eso1`, `nb_maintenance_gold_eso1`. *(`nb_semantic_model_eso1` is SUPERSEDED — the model
+     is now hand-maintained TMDL, no builder; see §5.)*
 
    **All seven are self-contained — no `%run`**, so each declares its own constants/transforms inline and can be
    imported/run independently (nothing to resolve across notebooks, so the `%run` "notebook not found" failure can't
@@ -78,7 +79,7 @@ may be SQL-endpoint-only):
 | `nb_eso1_gold_dim_item` (Step 2a) | — | **no reused-dimension preflight** (builds only `dim_item` from F4101) |
 | `nb_eso1_gold_dim_category_code_10` (Step 2c) | — | **no reused-dimension preflight**; builds only `dim_category_code_10` from F0005 (soft — absent F0005 is a warning, not fatal) |
 | `nb_eso1_gold_fact_sales_commission` (Step 2d) | preflight before build | **aborts** if `dim_address_book`/`dim_plant` missing; also requires **F4211 (driver)** + **F42005** in Silver |
-| `nb_semantic_model_eso1` (Step 5) | preflight before model bind | **aborts** (base dims + new tables incl. `fact_sales_commission`, `dim_category_code_10`, **`fact_price_adjustment`**, **`dim_uom_conversion` (F41003 Tier-B)**, **`dim_uom_conversion_item` (F41002 Tier-A, built by `nb_silver_to_gold_dim_uom_conversion_item`)**; role views → warn only) |
+| ~~`nb_semantic_model_eso1`~~ (SUPERSEDED) | — | model is now hand-maintained TMDL (`Extended Sales Order 1.SemanticModel`), no builder/preflight. Before binding, ensure the reused dims + all built tables (`fact_sales_order_freight`, `fact_price_adjustment`, `dim_item`, `dim_uom_conversion`/`_item`, the `dim_address_book_*` role sources, etc.) exist in `rpt`. |
 | `nb_validate_gold_eso1` (Step 3) | §0 health + fact↔dim RI | logged **pass/fail** (incl. role-view subset consistency) — ⚠ **freight fact only** (commission not yet covered) |
 | `nb_maintenance_gold_eso1` (Step 7) | read-only status | reused dims **never** OPTIMIZE/VACUUM'd; flags `⚠ STALE` > 7 days — ⚠ owns **freight fact + `dim_item` only** (commission tables not yet listed) |
 
@@ -242,26 +243,25 @@ its sources, runs `build_*()` once, and overwrites its Gold table. **No Change D
 
 ---
 
-## 5. Build / bind the semantic model (Direct Lake)
+## 5. The semantic model (Direct Lake)
 
-**One Direct Lake model, `billable_payable_freight`, holding BOTH facts** over the shared conformed dims.
-Two equivalent representations — keep in sync:
-- **Runtime builder:** `nb/nb_semantic_model_eso1.py` (sempy_labs) — generates the model from **12 tables**
-  (`fact_sales_order_freight`, `fact_sales_commission`, `dim_item`, `dim_category_code_10` built here + reused
-  `dim_address_*` role views incl. **`dim_address_salesperson`** / `dim_plant` / `dim_mode_of_transport`, all in `rpt`),
-  **14 relationships** (freight: ship-to/bill-to/carrier/parent/destination → role views, branch_plant → dim_plant,
-  item, mode_of_transport; commission: salesperson/ship-to/sold-to → role views, branch_plant, item,
-  **category_code_10 → dim_category_code_10**), and **28 measures** (20 freight, shipment-deduped; 8 commission —
-  plain-SUM commission amounts + `is_primary_commission_line`-deduped F4211 line metrics + Salesperson Name), keys
-  hidden. **No date table** — dates slice off each fact's raw date columns.
-- **Declarative twin (the report binds to this):** `report/billable_payable_freight.SemanticModel/` (TMDL) —
-  **hand-maintained** (12 tables / 14 relationships / 28 measures). ⚠ `report/generate_tmdl_semantic_model.py` is
-  **stale** (predates the commission fact, the reused-dim adds, and the `otc`→`rpt` schema move) — **do not regenerate
-  without reconciling**; the hand-maintained twin is the source of truth.
+**One Direct Lake model, `Extended Sales Order 1`** — hand-maintained TMDL at `report/Extended Sales Order 1.SemanticModel/`,
+consumed by the report `Extended Sales Orders 1` (`byPath`). **No generator / runtime builder** — the old
+`generate_tmdl_semantic_model.py`, the `billable_payable_freight` model, and `nb/nb_semantic_model_eso1.py` are all
+superseded/deleted (2026-08-31). **Edit the TMDL model directly.**
 
-The notebook's **In[2] preflight aborts if a base reused dim or new table is missing** — including
-`fact_sales_commission` and `dim_category_code_10` (role views incl. `dim_address_salesperson` → warn only, since
-Direct Lake binds them via the SQL endpoint) — so the model never binds against absent sources.
+**26 tables / 24 relationships / 61 measures** (all in a measures-only `measure_tbl`):
+- **Facts (2):** `fact_sales_order_freight` + `fact_price_adjustment` (many:1 on `sales_order_line_key`). ⚠ **Commission is
+  NOT in this model** — `fact_sales_commission` (SOP0027) lives in the separate `Extended Sales Order 1 Sales Commission`
+  model (OTC PROD). The commission builder in §2d still produces that physical Gold table.
+- **Dims (23):** eight `dim_address_book_*` role dims (ship_to / sold_to / carrier / parent / destination / ocean_carrier /
+  loading_port / vendor) + `dim_item` / `dim_plant` / `dim_company` / `dim_mode_of_transport` / `dim_freight_handling_code` /
+  `dim_hold_orders_code` / `dim_status_code_last` / `dim_status_code_next` / `dim_order_number` / `dim_second_item` /
+  `dim_uom_conversion` / `dim_uom_conversion_item` / `dim_sic` / `dim_category_code_05` / `dim_category_code_05_sold_to`.
+  **No date table** — dates slice off the fact's raw date columns.
+
+The reused dims (`rpt.dim_address_book` + role sources, `rpt.dim_plant`) and the built ESO1 tables must all exist in
+`lh_jde_gold.rpt` before the model binds. See design §7 for the full relationship list.
 
 **Before binding, fill the Direct Lake source** in `…SemanticModel/definition/expressions.tmdl`:
 `<SQL_ANALYTICS_ENDPOINT>` (the `lh_jde_gold` SQL endpoint) and `<LH_JDE_GOLD_DATABASE>`.
@@ -270,25 +270,20 @@ Direct Lake binds them via the SQL endpoint) — so the model never binds agains
 
 ## 6. Deploy the report
 
-`report/ESO1_Billable_v_Payable_Freight.Report/` (PBIR, 4 pages: overview / detail / lineDetail /
-exceptions). `definition.pbir` binds `byPath → ../billable_payable_freight.SemanticModel`. Already baked in:
-Detail→lineDetail **drill-through** on `shipment_number`, and
-conditional formatting (Variance<0 red, CM% data bars). Ship-to/carrier names resolve via
-`dim_address_ship_to[name_alpha]` / `dim_address_carrier[name_alpha]`; plant via `dim_plant[plant_name]`.
+`report/Extended Sales Orders 1.Report/` (PBIR) — the polished ESO1 report (43 visuals + bookmarks + theme + logo).
+`definition.pbir` binds **`byPath → ../Extended Sales Order 1.SemanticModel`**. Ship-to/carrier names resolve via
+`dim_address_book_ship_to[name_alpha]` / `dim_address_book_carrier[name_alpha]`; plant via `dim_plant[plant_name]`; a
+price-adjustment-type slicer uses `fact_price_adjustment[price_adjustment_type]`.
+*(The old `ESO1_Billable_v_Payable_Freight.Report` — 4 pages, bound to `billable_payable_freight` — was **deleted**
+2026-08-31 when this report superseded it.)*
 
-> **v2.1/v2.2:** CDC deletes rows outright (no `is_deleted` column on **any** built table), so the old **report-level
-> `is_deleted = False` filter must be removed** — it references a non-existent column on both the fact and `dim_item`.
-> The new slicer fields (`price_adjustment_type`, `standard_industry_code`, `category_code_05/14`, `search_type`,
-> `uom_structure`, `payment_terms`, `item_segment_04`) are available on the fact for report filters.
+> **No `is_deleted` anywhere:** CDC deletes rows outright (no `is_deleted` column on any built table), so there is no
+> report-level `is_deleted = False` filter — one such dead filter was removed during the 2026-08-31 migration.
 
-> ⚠ **SOP0027 Commission report/page not yet authored.** The PBIR under `report/` is the **freight** report only
-> (4 pages, all freight). The semantic model carries the commission fact + its 8 measures + `dim_category_code_10` /
-> `dim_address_salesperson`, but **no report or page binds to them yet**. To surface SOP0027, add a page (or a separate
-> `.Report` bound to the same `billable_payable_freight` model) with the commission measures and the page-level filters
-> from `docs/SOP0027 - Commission.docx` (§3): `status_code_next='999'`, `status_code_last<>'980'`, the `line_type` /
-> `second_item_number` exclusions, `order_type IN ('SO','CO')`, `company<>'00750'`, `sold_to IS NOT NULL`, and the
-> ABAT1 `sold_to_search_type` band — all page slicers (Gold applies none). Show the category description via
-> `dim_category_code_10[category_code_10_desc]`.
+> **SOP0027 Commission** is authored against the **separate** `Extended Sales Order 1 Sales Commission` model (OTC PROD),
+> not this one. Its page-level filters from `docs/SOP0027 - Commission.docx` (§3): `status_code_next='999'`,
+> `status_code_last<>'980'`, the `line_type` / `second_item_number` exclusions, `order_type IN ('SO','CO')`,
+> `company<>'00750'`, `sold_to IS NOT NULL`, and the ABAT1 `sold_to_search_type` band — all page slicers (Gold applies none).
 
 Open once in Power BI Desktop to confirm rendering, then promote Dev→Test→Prod with **`dpl_jde`**.
 **Remember:** schedules, SQL views (the address role views), and lakehouse *data* never promote — recreate

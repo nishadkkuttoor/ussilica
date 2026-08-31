@@ -1,0 +1,33 @@
+table dim_state
+	lineageTag: a84cbc66-fb88-4f6b-996f-17e9cd55675c
+	sourceLineageTag: [rpt].[dim_state]
+
+	column state_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 4658c5ec-d63f-4a80-8bba-707c93d97953
+		sourceLineageTag: state_code
+		summarizeBy: none
+		sourceColumn: state_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column state_description
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 29d4d1aa-6ac6-4f4b-a402-ab4d030b6360
+		sourceLineageTag: state_description
+		summarizeBy: none
+		sourceColumn: state_description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_state = entity
+		mode: directLake
+		source
+			entityName: dim_state
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

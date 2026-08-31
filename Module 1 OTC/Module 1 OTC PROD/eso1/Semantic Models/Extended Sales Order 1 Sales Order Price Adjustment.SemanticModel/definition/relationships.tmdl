@@ -1,0 +1,48 @@
+relationship 57a2e3a6-4b0b-faa7-bbb3-07b84efd65b2
+	fromColumn: dim_address_book_ship_to.category_code_05
+	toColumn: dim_category_code_05.reportcodeaddbook005_code
+
+relationship 8d0489ca-ba50-5577-fa03-d664a5cd287f
+	fromColumn: fact_sales_order_price_adjustment.company_key_order_no
+	toColumn: dim_company.company
+
+relationship 15c9750f-aaeb-742a-fb6e-37c80e7a03b8
+	fromColumn: fact_sales_order_price_adjustment.freight_handling_code
+	toColumn: dim_freight_handling_code.freighthandlingcode_code
+
+relationship 15e024c1-aca5-ce8b-54b1-5b1a68ac2d5f
+	fromColumn: fact_sales_order_price_adjustment.item_number_short
+	toColumn: dim_item.item_number_short
+
+relationship fdca671e-aa6d-56fa-38c8-32fb8196c639
+	fromColumn: fact_sales_order_price_adjustment.mode_of_transport
+	toColumn: dim_mode_of_transport.modeoftransport_code
+
+relationship 8a95e37d-e8f0-19e7-a980-2c19441a668a
+	fromColumn: fact_sales_order_price_adjustment.branch_plant
+	toColumn: dim_plant.plant_code
+
+relationship bbedb39e-0a90-1061-6632-bc6ded221f5d
+	fromColumn: fact_sales_order_price_adjustment.ship_to
+	toColumn: dim_address_book_ship_to.address_number
+
+relationship d45ed88f-a733-f090-ae90-88a70d20e0d8
+	fromColumn: fact_sales_order_price_adjustment.sold_to
+	toColumn: dim_address_book_sold_to.address_number
+
+relationship 6488fdad-399b-8935-c440-1f9c10980105
+	fromColumn: fact_sales_order_price_adjustment.address_number_parent
+	toColumn: dim_address_book_parent.address_number
+
+relationship 3ca44a5d-8501-4402-032c-007865ab2c11
+	fromColumn: fact_sales_order_price_adjustment.cars
+	toColumn: dim_address_book_carrier.address_number
+
+relationship 9fedb610-e260-565b-eec7-18b0e09ae599
+	fromColumn: fact_sales_order_price_adjustment.status_code_last
+	toColumn: dim_status_code_last.statuscodelast_code
+
+relationship 4527dcc5-2104-dd84-2f32-52a8e49fbf82
+	fromColumn: fact_sales_order_price_adjustment.status_code_next
+	toColumn: dim_status_code_next.statuscodenext_code
+

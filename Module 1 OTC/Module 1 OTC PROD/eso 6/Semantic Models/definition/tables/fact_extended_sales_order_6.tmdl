@@ -1,0 +1,222 @@
+table fact_extended_sales_order_6
+	lineageTag: dcce09e4-fe5b-4a1a-9bd1-06a5002d609a
+	sourceLineageTag: [rpt].[fact_extended_sales_order_6]
+
+	column fact_key
+		dataType: string
+		lineageTag: 82b3e01d-8059-45c0-a01c-9d0007a76c3e
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_key_order_no
+		dataType: string
+		lineageTag: 00fdc813-bf9e-4eee-8ee7-1ce0d9c9e5b0
+		sourceLineageTag: company_key_order_no
+		summarizeBy: none
+		sourceColumn: company_key_order_no
+
+		annotation SummarizationSetBy = Automatic
+
+	column document_order_invoice_e
+		dataType: string
+		lineageTag: f7035970-024c-45b5-9540-149def024543
+		sourceLineageTag: document_order_invoice_e
+		summarizeBy: none
+		sourceColumn: document_order_invoice_e
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		lineageTag: 43bac0d8-28df-4f31-96b5-1d5a1f81a924
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 08e89d8c-29ad-4263-afe8-1fb76f6d8edd
+		sourceLineageTag: line_number
+		summarizeBy: sum
+		sourceColumn: line_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column shipment_number
+		dataType: string
+		lineageTag: fa04590d-1abd-4a9a-97f7-997a2d87fa45
+		sourceLineageTag: shipment_number
+		summarizeBy: none
+		sourceColumn: shipment_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column mode_of_transport
+		dataType: string
+		lineageTag: 413582c0-e346-46d1-956a-1433fcbcdfd0
+		sourceLineageTag: mode_of_transport
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+
+		annotation SummarizationSetBy = Automatic
+
+	column carrier
+		dataType: string
+		lineageTag: 3a3158e3-1322-425e-9eb6-6e4c2651bd6e
+		sourceLineageTag: carrier
+		summarizeBy: none
+		sourceColumn: carrier
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column route_number
+		dataType: string
+		lineageTag: a39e0ee5-22dd-4685-b1db-3f60aeb218c3
+		sourceLineageTag: route_number
+		summarizeBy: none
+		sourceColumn: route_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column number_of_containers
+		dataType: int64
+		lineageTag: c44be014-f78f-45d6-93ad-fe3af2dbff1e
+		sourceLineageTag: number_of_containers
+		summarizeBy: sum
+		sourceColumn: number_of_containers
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column booking_no
+		dataType: string
+		lineageTag: 211aaa22-6c06-4ba2-8918-08ec54d6cc39
+		sourceLineageTag: booking_no
+		summarizeBy: none
+		sourceColumn: booking_no
+
+		annotation SummarizationSetBy = Automatic
+
+	column vessel_name
+		dataType: string
+		lineageTag: a5fba1f8-d469-4635-9ce2-342332e44f8c
+		sourceLineageTag: vessel_name
+		summarizeBy: none
+		sourceColumn: vessel_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column reference_01
+		dataType: string
+		lineageTag: 777dc59c-dce1-4223-afb6-73aa0d1495ef
+		sourceLineageTag: reference_01
+		summarizeBy: none
+		sourceColumn: reference_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_type
+		dataType: string
+		lineageTag: 7e69638b-a046-415a-833b-5a0d062344b8
+		sourceLineageTag: line_type
+		summarizeBy: none
+		sourceColumn: line_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column status_code_next
+		dataType: string
+		lineageTag: 84329b76-98c2-431a-8d20-c0937ffa9d1a
+		sourceLineageTag: status_code_next
+		summarizeBy: none
+		sourceColumn: status_code_next
+
+		annotation SummarizationSetBy = Automatic
+
+	column status_code_last
+		dataType: string
+		lineageTag: eb787b6a-b68e-4f3f-b043-417d7b034498
+		sourceLineageTag: status_code_last
+		summarizeBy: none
+		sourceColumn: status_code_last
+
+		annotation SummarizationSetBy = Automatic
+
+	column cost_center
+		dataType: string
+		lineageTag: 3995138f-6431-477c-8080-f1577971e60c
+		sourceLineageTag: cost_center
+		summarizeBy: none
+		sourceColumn: cost_center
+
+		annotation SummarizationSetBy = Automatic
+
+	column units_transaction_qty
+		dataType: decimal
+		lineageTag: ebb31d91-2424-42ed-aa17-0b794a029ad1
+		sourceLineageTag: units_transaction_qty
+		summarizeBy: sum
+		sourceColumn: units_transaction_qty
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column order_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: ac55c9cc-14d0-481a-85eb-d4155b2aa12e
+		sourceLineageTag: order_key
+		summarizeBy: none
+		sourceColumn: order_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: f9aba2a9-6775-49cc-aafd-fc8123d81da2
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 9e8a59ab-c0fb-4a11-8c6e-64e11be2dd9a
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_extended_sales_order_6 = entity
+		mode: directLake
+		source
+			entityName: fact_extended_sales_order_6
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

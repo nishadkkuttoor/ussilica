@@ -1,0 +1,935 @@
+table fact_sales_order_price_adjustment
+	lineageTag: c1d30fcd-3bc4-4d2b-a61f-e6abd807ca91
+	sourceLineageTag: [rpt].[fact_sales_order_price_adjustment]
+
+	column price_adjustment_key
+		dataType: string
+		lineageTag: 1561c7a8-2965-4789-914b-c629728158ac
+		sourceLineageTag: price_adjustment_key
+		summarizeBy: none
+		sourceColumn: price_adjustment_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column sales_order_line_key
+		dataType: string
+		lineageTag: e2ebdf33-2731-4397-a3dc-2e94c67e8661
+		sourceLineageTag: sales_order_line_key
+		summarizeBy: none
+		sourceColumn: sales_order_line_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column company
+		dataType: string
+		lineageTag: afab3550-7c51-496c-9f34-dc45af84a531
+		sourceLineageTag: company
+		summarizeBy: none
+		sourceColumn: company
+
+		annotation SummarizationSetBy = Automatic
+
+	column company_key_order_no
+		dataType: string
+		lineageTag: 949736df-4568-415b-806b-95cd0b3c6cd1
+		sourceLineageTag: company_key_order_no
+		summarizeBy: none
+		sourceColumn: company_key_order_no
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_type
+		dataType: string
+		lineageTag: 21d033be-592b-4ad0-9bfb-9b1c03f650b7
+		sourceLineageTag: order_type
+		summarizeBy: none
+		sourceColumn: order_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_number
+		dataType: string
+		lineageTag: 20d96798-af6f-420c-a93a-2b5cdfd17a64
+		sourceLineageTag: order_number
+		summarizeBy: none
+		sourceColumn: order_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column document_number
+		dataType: string
+		lineageTag: 9ede8551-90bc-428e-89e0-52e0e8c67a1b
+		sourceLineageTag: document_number
+		summarizeBy: none
+		sourceColumn: document_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_number
+		dataType: double
+		lineageTag: 29ff0794-6b46-44b2-8b38-6866ed35a4d8
+		sourceLineageTag: line_number
+		summarizeBy: sum
+		sourceColumn: line_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column shipment_number
+		dataType: string
+		lineageTag: f319ea94-691a-407c-ab1e-03029c757640
+		sourceLineageTag: shipment_number
+		summarizeBy: none
+		sourceColumn: shipment_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column hold_orders_code
+		dataType: string
+		lineageTag: 6c5e6dc3-82e9-4943-94ce-04c6c51689e8
+		sourceLineageTag: hold_orders_code
+		summarizeBy: none
+		sourceColumn: hold_orders_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column status_code_last
+		dataType: string
+		lineageTag: ab03c1d4-f36e-4c64-9ecd-8707c8019de5
+		sourceLineageTag: status_code_last
+		summarizeBy: none
+		sourceColumn: status_code_last
+
+		annotation SummarizationSetBy = Automatic
+
+	column status_code_next
+		dataType: string
+		lineageTag: 1b75f4ce-2e9b-4b52-84d1-3e47938d9790
+		sourceLineageTag: status_code_next
+		summarizeBy: none
+		sourceColumn: status_code_next
+
+		annotation SummarizationSetBy = Automatic
+
+	column next_status_num
+		dataType: int64
+		formatString: 0
+		lineageTag: d70fb30a-04b7-45b0-8507-288da7fae460
+		sourceLineageTag: next_status_num
+		summarizeBy: sum
+		sourceColumn: next_status_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_status_num
+		dataType: int64
+		formatString: 0
+		lineageTag: dd0b57a5-2d4a-43f3-b701-eb2bbc09ef19
+		sourceLineageTag: last_status_num
+		summarizeBy: sum
+		sourceColumn: last_status_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column freight_handling_code
+		dataType: string
+		lineageTag: f7443fc6-b1a8-42a6-950b-8d6b364c6499
+		sourceLineageTag: freight_handling_code
+		summarizeBy: none
+		sourceColumn: freight_handling_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column cars
+		dataType: string
+		lineageTag: 2d3b42ff-00f6-4b57-90fa-9ae499dc7095
+		sourceLineageTag: cars
+		summarizeBy: none
+		sourceColumn: cars
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column mode_of_transport
+		dataType: string
+		lineageTag: 91226f24-2a81-46a7-bb07-f17290d3cb30
+		sourceLineageTag: mode_of_transport
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+
+		annotation SummarizationSetBy = Automatic
+
+	column container_id
+		dataType: string
+		lineageTag: 7545e76e-05a8-4fe6-adba-1ae6a6875611
+		sourceLineageTag: container_id
+		summarizeBy: none
+		sourceColumn: container_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_po_number
+		dataType: string
+		lineageTag: e4cc327b-40b0-44bd-954a-9434ba4b3144
+		sourceLineageTag: customer_po_number
+		summarizeBy: none
+		sourceColumn: customer_po_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column gl_class
+		dataType: string
+		lineageTag: 3380b946-fdba-4d2b-81a9-9df398be27c6
+		sourceLineageTag: gl_class
+		summarizeBy: none
+		sourceColumn: gl_class
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_type
+		dataType: string
+		lineageTag: 346972c8-d3a8-4469-8cc9-7827441862c9
+		sourceLineageTag: line_type
+		summarizeBy: none
+		sourceColumn: line_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column sales_reporting_code_01
+		dataType: string
+		lineageTag: 4c1d1bd3-1b8a-4d95-89a9-dd7e5625f739
+		sourceLineageTag: sales_reporting_code_01
+		summarizeBy: none
+		sourceColumn: sales_reporting_code_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column sales_reporting_code_02
+		dataType: string
+		lineageTag: 849cc5b0-cdb7-48be-a60f-31aba5235bde
+		sourceLineageTag: sales_reporting_code_02
+		summarizeBy: none
+		sourceColumn: sales_reporting_code_02
+
+		annotation SummarizationSetBy = Automatic
+
+	column sales_reporting_code_03
+		dataType: string
+		lineageTag: d7eb1d3b-6dca-45ae-9f0f-5d06e89f9a2b
+		sourceLineageTag: sales_reporting_code_03
+		summarizeBy: none
+		sourceColumn: sales_reporting_code_03
+
+		annotation SummarizationSetBy = Automatic
+
+	column sales_reporting_code_04
+		dataType: string
+		lineageTag: bc127b24-3dc8-4509-96a7-f8efd7fca4c3
+		sourceLineageTag: sales_reporting_code_04
+		summarizeBy: none
+		sourceColumn: sales_reporting_code_04
+
+		annotation SummarizationSetBy = Automatic
+
+	column sales_reporting_code_05
+		dataType: string
+		lineageTag: 7fa08ec2-eb4e-48d5-9edd-91f21160f0fa
+		sourceLineageTag: sales_reporting_code_05
+		summarizeBy: none
+		sourceColumn: sales_reporting_code_05
+
+		annotation SummarizationSetBy = Automatic
+
+	column ship_to
+		dataType: string
+		lineageTag: 7e33746f-78c5-415f-9473-556d9dc8c7bb
+		sourceLineageTag: ship_to
+		summarizeBy: none
+		sourceColumn: ship_to
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column sold_to
+		dataType: string
+		lineageTag: 5e36948d-bab7-4387-914e-d86efde5bb56
+		sourceLineageTag: sold_to
+		summarizeBy: none
+		sourceColumn: sold_to
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_number_parent
+		dataType: string
+		lineageTag: aaf8bedc-90e6-48fa-9b38-e0bf016f2233
+		sourceLineageTag: address_number_parent
+		summarizeBy: none
+		sourceColumn: address_number_parent
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column branch_plant
+		dataType: string
+		lineageTag: 78f803c7-0696-4759-836b-1876a3d7b63a
+		sourceLineageTag: branch_plant
+		summarizeBy: none
+		sourceColumn: branch_plant
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_number_short
+		dataType: double
+		lineageTag: b36fc509-344b-48ab-9a7d-97bca0f1766d
+		sourceLineageTag: item_number_short
+		summarizeBy: none
+		sourceColumn: item_number_short
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column second_item_number
+		dataType: string
+		lineageTag: 0a9e48be-1d6f-456c-8f02-caaaec5b449b
+		sourceLineageTag: second_item_number
+		summarizeBy: none
+		sourceColumn: second_item_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column third_item_number
+		dataType: string
+		lineageTag: 0fe94c19-ffcf-477b-8fa2-f1bb8250cd38
+		sourceLineageTag: third_item_number
+		summarizeBy: none
+		sourceColumn: third_item_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_segment_4
+		dataType: string
+		lineageTag: 9b975fab-8666-4b66-9fe8-80afbe7b1e5f
+		sourceLineageTag: item_segment_4
+		summarizeBy: none
+		sourceColumn: item_segment_4
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: d3932b66-c6cf-40c9-aab7-efddfbf4b612
+		sourceLineageTag: order_date
+		summarizeBy: none
+		sourceColumn: order_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column requested_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: db070f16-83e1-44cc-98d7-0d67dacb0b9b
+		sourceLineageTag: requested_date
+		summarizeBy: none
+		sourceColumn: requested_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column actual_ship_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 6bf1364b-a856-4dfc-8f6e-15733b95e02c
+		sourceLineageTag: actual_ship_date
+		summarizeBy: none
+		sourceColumn: actual_ship_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 8144b422-580d-4251-b9e8-875bd486df37
+		sourceLineageTag: invoice_date
+		summarizeBy: none
+		sourceColumn: invoice_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column gl_date
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 13953511-b5ee-4e3f-a601-8c585c60874c
+		sourceLineageTag: gl_date
+		summarizeBy: none
+		sourceColumn: gl_date
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: cf394d25-7e4d-4572-a80a-f43b97860876
+		sourceLineageTag: order_date_key
+		summarizeBy: sum
+		sourceColumn: order_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column requested_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: e09472bd-550f-4153-b772-65ef47de854a
+		sourceLineageTag: requested_date_key
+		summarizeBy: sum
+		sourceColumn: requested_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column ship_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b562dd3-056c-4680-8ed0-ed1fc9cb71f5
+		sourceLineageTag: ship_date_key
+		summarizeBy: sum
+		sourceColumn: ship_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: 1d865649-5daf-4b98-8c30-48823782b975
+		sourceLineageTag: invoice_date_key
+		summarizeBy: sum
+		sourceColumn: invoice_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column gl_date_key
+		dataType: int64
+		formatString: 0
+		lineageTag: c3c8c0a9-b6ef-4846-a19f-3dbc06f553ef
+		sourceLineageTag: gl_date_key
+		summarizeBy: sum
+		sourceColumn: gl_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column uom
+		dataType: string
+		lineageTag: 392cf6d7-9c3c-4894-96c5-dd3e9794c15b
+		sourceLineageTag: uom
+		summarizeBy: none
+		sourceColumn: uom
+
+		annotation SummarizationSetBy = Automatic
+
+	column uom_primary
+		dataType: string
+		lineageTag: 25973988-f0af-4996-a1dc-f4b776c72649
+		sourceLineageTag: uom_primary
+		summarizeBy: none
+		sourceColumn: uom_primary
+
+		annotation SummarizationSetBy = Automatic
+
+	column conversion_to_tons_rate
+		dataType: double
+		lineageTag: 03fd1963-37ce-4958-b31c-9d9e69724df0
+		sourceLineageTag: conversion_to_tons_rate
+		summarizeBy: sum
+		sourceColumn: conversion_to_tons_rate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column missing_conversion_flag
+		dataType: string
+		lineageTag: aeb79674-9c91-410b-be24-f44489c6407a
+		sourceLineageTag: missing_conversion_flag
+		summarizeBy: none
+		sourceColumn: missing_conversion_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column ordered_tons
+		dataType: double
+		lineageTag: bc32fb09-f1c6-4572-921c-7553a8dad607
+		sourceLineageTag: ordered_tons
+		summarizeBy: sum
+		sourceColumn: ordered_tons
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column shipped_tons
+		dataType: double
+		lineageTag: 710723aa-fdc7-494f-b9e1-e2122bcc5c4b
+		sourceLineageTag: shipped_tons
+		summarizeBy: sum
+		sourceColumn: shipped_tons
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column quantity_shipped
+		dataType: double
+		lineageTag: 21e3c5c4-a349-4d6b-9554-f4007cff0c5f
+		sourceLineageTag: quantity_shipped
+		summarizeBy: sum
+		sourceColumn: quantity_shipped
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column primary_quantity_ordered
+		dataType: double
+		lineageTag: f68a689b-f0c4-4ba1-8352-b82d3c7686a0
+		sourceLineageTag: primary_quantity_ordered
+		summarizeBy: sum
+		sourceColumn: primary_quantity_ordered
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column transaction_quantity
+		dataType: double
+		lineageTag: 3dee9b5c-7fa9-4996-b0f1-5fd513823caa
+		sourceLineageTag: transaction_quantity
+		summarizeBy: sum
+		sourceColumn: transaction_quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column extended_price
+		dataType: double
+		lineageTag: cc6d5077-e412-41f1-9739-db4872e5a597
+		sourceLineageTag: extended_price
+		summarizeBy: sum
+		sourceColumn: extended_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column extended_cost
+		dataType: double
+		lineageTag: d569eaa6-364f-4c39-8572-b11706dd9d5e
+		sourceLineageTag: extended_cost
+		summarizeBy: sum
+		sourceColumn: extended_cost
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column unit_price
+		dataType: double
+		lineageTag: a9177057-a6b2-4d43-b04f-156ce29d378e
+		sourceLineageTag: unit_price
+		summarizeBy: sum
+		sourceColumn: unit_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column currency_code_base
+		dataType: string
+		lineageTag: 569a9740-10f6-48b5-a25c-0a783bbd7cb9
+		sourceLineageTag: currency_code_base
+		summarizeBy: none
+		sourceColumn: currency_code_base
+
+		annotation SummarizationSetBy = Automatic
+
+	column location
+		dataType: string
+		lineageTag: d72f169c-a11b-414d-9156-19969c26a158
+		sourceLineageTag: location
+		summarizeBy: none
+		sourceColumn: location
+
+		annotation SummarizationSetBy = Automatic
+
+	column lot_number
+		dataType: string
+		lineageTag: d3d0bdd3-03ce-4d9c-9346-44334b6babd3
+		sourceLineageTag: lot_number
+		summarizeBy: none
+		sourceColumn: lot_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_reserved_code
+		dataType: string
+		lineageTag: 89cbffa9-35a5-4e7d-a886-270f05eb71ab
+		sourceLineageTag: user_reserved_code
+		summarizeBy: none
+		sourceColumn: user_reserved_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_reserved_number
+		dataType: string
+		lineageTag: d9d3d034-d1ac-4a04-9da3-b809473e2bb5
+		sourceLineageTag: user_reserved_number
+		summarizeBy: none
+		sourceColumn: user_reserved_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_reserved_reference
+		dataType: string
+		lineageTag: 1c64099b-52fc-4ad0-8435-64aa3ea01452
+		sourceLineageTag: user_reserved_reference
+		summarizeBy: none
+		sourceColumn: user_reserved_reference
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_override_code
+		dataType: string
+		lineageTag: 52e81d1d-acd5-4f31-8613-4180c84530a0
+		sourceLineageTag: price_override_code
+		summarizeBy: none
+		sourceColumn: price_override_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_adjustment_schedule
+		dataType: string
+		lineageTag: 4d94d482-2ffa-4cb5-b1ad-7b2dccf8927e
+		sourceLineageTag: price_adjustment_schedule
+		summarizeBy: none
+		sourceColumn: price_adjustment_schedule
+
+		annotation SummarizationSetBy = Automatic
+
+	column transaction_originator
+		dataType: string
+		lineageTag: 24c50e72-57a5-42fa-986f-3b243d18431c
+		sourceLineageTag: transaction_originator
+		summarizeBy: none
+		sourceColumn: transaction_originator
+
+		annotation SummarizationSetBy = Automatic
+
+	column user_id
+		dataType: string
+		lineageTag: b2f2b1a8-d9ae-4b42-b502-1072b0674844
+		sourceLineageTag: user_id
+		summarizeBy: none
+		sourceColumn: user_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_updated
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: b1dea31c-883d-44f6-b11f-d7ca727bfeb7
+		sourceLineageTag: date_updated
+		summarizeBy: none
+		sourceColumn: date_updated
+
+		annotation SummarizationSetBy = Automatic
+
+	column time_of_day
+		dataType: string
+		lineageTag: 1ad70520-fe1f-45f1-8e65-2145129078b2
+		sourceLineageTag: time_of_day
+		summarizeBy: none
+		sourceColumn: time_of_day
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column zone_number
+		dataType: string
+		lineageTag: 468b7030-f476-45f3-a45c-e6228a062e81
+		sourceLineageTag: zone_number
+		summarizeBy: none
+		sourceColumn: zone_number
+
+		annotation SummarizationSetBy = Automatic
+
+	column deferred_entries_flag
+		dataType: string
+		lineageTag: ec5307d6-1cb8-4f5b-865b-c55b3e9ebd26
+		sourceLineageTag: deferred_entries_flag
+		summarizeBy: none
+		sourceColumn: deferred_entries_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column price_adjustment_type
+		dataType: string
+		lineageTag: 6d4756a5-d9df-406e-9829-5611a372f560
+		sourceLineageTag: price_adjustment_type
+		summarizeBy: none
+		sourceColumn: price_adjustment_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column adj_print_code
+		dataType: string
+		lineageTag: b0adcce7-e917-4ab7-b3ab-a425d27e32b9
+		sourceLineageTag: adj_print_code
+		summarizeBy: none
+		sourceColumn: adj_print_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column adj_unit_price
+		dataType: double
+		lineageTag: 67d1a27d-f32c-4828-b08b-f71cec94bdfb
+		sourceLineageTag: adj_unit_price
+		summarizeBy: sum
+		sourceColumn: adj_unit_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column adj_uom
+		dataType: string
+		lineageTag: ea1cc97e-5464-46e0-9e6f-406e1338faa8
+		sourceLineageTag: adj_uom
+		summarizeBy: none
+		sourceColumn: adj_uom
+
+		annotation SummarizationSetBy = Automatic
+
+	column adj_based_on_value
+		dataType: double
+		lineageTag: c6f4867d-b135-4949-9fd0-98c1520f3b08
+		sourceLineageTag: adj_based_on_value
+		summarizeBy: sum
+		sourceColumn: adj_based_on_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column adj_gl_class
+		dataType: string
+		lineageTag: ea443207-74ac-4b28-985d-c2373d505efd
+		sourceLineageTag: adj_gl_class
+		summarizeBy: none
+		sourceColumn: adj_gl_class
+
+		annotation SummarizationSetBy = Automatic
+
+	column adj_factor_value
+		dataType: double
+		lineageTag: 9bc59b16-ef10-4661-b8c5-8b2f83e8dfe1
+		sourceLineageTag: adj_factor_value
+		summarizeBy: sum
+		sourceColumn: adj_factor_value
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column is_primary_line_row
+		dataType: string
+		lineageTag: a2af2949-492c-45e0-ad0a-128415249cc1
+		sourceLineageTag: is_primary_line_row
+		summarizeBy: none
+		sourceColumn: is_primary_line_row
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_product_line
+		dataType: string
+		lineageTag: c2f934d8-2d3b-4e35-b26c-aaedeb545dc0
+		sourceLineageTag: is_product_line
+		summarizeBy: none
+		sourceColumn: is_product_line
+
+		annotation SummarizationSetBy = Automatic
+
+	column freight_hide_amount
+		dataType: double
+		lineageTag: 48f8561c-0bc2-4108-a622-a6a16d2a0569
+		sourceLineageTag: freight_hide_amount
+		summarizeBy: sum
+		sourceColumn: freight_hide_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_ordered_tons
+		dataType: double
+		lineageTag: 2a608935-8af8-4185-bc27-f9d93e1f4db1
+		sourceLineageTag: product_ordered_tons
+		summarizeBy: sum
+		sourceColumn: product_ordered_tons
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column product_ext_price
+		dataType: double
+		lineageTag: 016d56f9-1fea-4be3-a47a-dcea80564df4
+		sourceLineageTag: product_ext_price
+		summarizeBy: sum
+		sourceColumn: product_ext_price
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column non_product_amount
+		dataType: double
+		lineageTag: d96ac03a-8b87-459c-a51b-1b992b3bbef6
+		sourceLineageTag: non_product_amount
+		summarizeBy: sum
+		sourceColumn: non_product_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column al_severance_amount
+		dataType: double
+		lineageTag: e2a5a7f3-2c73-4288-b08a-b1a6aa67e43f
+		sourceLineageTag: al_severance_amount
+		summarizeBy: sum
+		sourceColumn: al_severance_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column misc_billing_amount
+		dataType: double
+		lineageTag: 6a99857c-5aa0-4b38-a1f9-059ce669fb55
+		sourceLineageTag: misc_billing_amount
+		summarizeBy: sum
+		sourceColumn: misc_billing_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column freight_amount
+		dataType: double
+		lineageTag: 27e461da-624b-48c7-9f89-aa32bc8426e6
+		sourceLineageTag: freight_amount
+		summarizeBy: sum
+		sourceColumn: freight_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column car_charges_amount
+		dataType: double
+		lineageTag: 3d90d79b-a8c0-46b0-b3bf-469852ea2a86
+		sourceLineageTag: car_charges_amount
+		summarizeBy: sum
+		sourceColumn: car_charges_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column payment_terms_code_01
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 81118969-13a0-47e9-8ef6-2c14d3948d0b
+		sourceLineageTag: payment_terms_code_01
+		summarizeBy: none
+		sourceColumn: payment_terms_code_01
+
+		annotation SummarizationSetBy = Automatic
+
+	column uom_structure
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 10471195-6195-4e2b-ae6f-6c04c07cd99b
+		sourceLineageTag: uom_structure
+		summarizeBy: none
+		sourceColumn: uom_structure
+
+		annotation SummarizationSetBy = Automatic
+
+	column dryer_freight_amount
+		dataType: double
+		sourceProviderType: float
+		lineageTag: 1b0a0dd1-172c-44ee-95f9-6b3eb586ddc6
+		sourceLineageTag: dryer_freight_amount
+		summarizeBy: sum
+		sourceColumn: dryer_freight_amount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 59818883-86e7-415b-8a58-2fa07b57476f
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 254a7a3a-e968-478c-b510-d7799a33a8d3
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 2f272b39-fe30-4ced-a836-93c8cc7b4dae
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_sales_order_price_adjustment = entity
+		mode: directLake
+		source
+			entityName: fact_sales_order_price_adjustment
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

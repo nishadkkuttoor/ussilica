@@ -1,0 +1,114 @@
+table fact_shipment_routing
+	lineageTag: 579b3446-ba66-4f8a-8967-df10b260e511
+	sourceLineageTag: [rpt].[fact_shipment_routing]
+
+	column shipment_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 19cf202b-d7f4-4378-b364-4d1f31834fe1
+		sourceLineageTag: shipment_number
+		summarizeBy: none
+		sourceColumn: shipment_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column routing_step_number
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: a77cc670-4fd9-4b87-b0d3-b5949da34d02
+		sourceLineageTag: routing_step_number
+		summarizeBy: sum
+		sourceColumn: routing_step_number
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column mode_of_transport
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 50a67c52-324d-4757-8822-2f69d7e81890
+		sourceLineageTag: mode_of_transport
+		summarizeBy: none
+		sourceColumn: mode_of_transport
+
+		annotation SummarizationSetBy = Automatic
+
+	column load_port
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 58967d91-16a4-478a-a90e-2bd515aa1089
+		sourceLineageTag: load_port
+		summarizeBy: none
+		sourceColumn: load_port
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column address_number_deconsolida
+		dataType: double
+		sourceProviderType: decimal(38, 18)
+		lineageTag: 5fbe508b-1d5c-4cc2-b6e8-7852cd1b1566
+		sourceLineageTag: address_number_deconsolida
+		summarizeBy: sum
+		sourceColumn: address_number_deconsolida
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column date_release_julian
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: date
+		lineageTag: c26f1efc-ca69-4a52-a6d0-90d8b70678a5
+		sourceLineageTag: date_release_julian
+		summarizeBy: none
+		sourceColumn: date_release_julian
+
+		annotation SummarizationSetBy = Automatic
+
+	column jde_updated_ts
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: f7053d72-db4e-4e20-bf16-802d2e931ab0
+		sourceLineageTag: jde_updated_ts
+		summarizeBy: none
+		sourceColumn: jde_updated_ts
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: ae8e397a-a6ff-4fe9-a665-6b7fefff4348
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 642ac73a-c995-4687-8078-f9b5d0237a3a
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_shipment_routing = entity
+		mode: directLake
+		source
+			entityName: fact_shipment_routing
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

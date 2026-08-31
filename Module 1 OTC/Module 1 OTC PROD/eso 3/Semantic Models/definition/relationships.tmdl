@@ -1,0 +1,8 @@
+relationship 10efa67e-6cb7-ac7b-b1f7-0092e4d3b66f
+	fromColumn: fact_extended_sales_order_3.company
+	toColumn: dim_company.company
+
+relationship 4d4994e9-e0eb-6a1c-71aa-61a4dd9534b5
+	fromColumn: fact_extended_sales_order_3.cost_center
+	toColumn: dim_plant.plant_code
+

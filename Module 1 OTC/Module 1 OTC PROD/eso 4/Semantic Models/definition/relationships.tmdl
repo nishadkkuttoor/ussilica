@@ -1,0 +1,32 @@
+relationship 97f9fcc6-7eea-0737-24b9-37282c49134f
+	fromColumn: fact_customer_ledger.invoice_scope_key
+	toColumn: dim_invoice_reconciliation.invoice_scope_key
+
+relationship d0749c46-2d7f-4529-7949-f2a3133f931b
+	fromColumn: dim_invoice_reconciliation.plant
+	toColumn: dim_plant.plant_code
+
+relationship 87e76081-c156-e106-f239-6e5071a9c7aa
+	fromColumn: dim_invoice_reconciliation.jurisdiction
+	toColumn: dim_state.state_code
+
+relationship 40969c25-16bc-57c8-9b9b-4e646a608aff
+	fromColumn: dim_invoice_reconciliation.sic_code
+	toColumn: dim_sic.standardindustrycode_code
+
+relationship 7949b866-7b63-039d-c52d-eaf548a48d39
+	fromColumn: fact_customer_ledger.company_key
+	toColumn: dim_company.company
+
+relationship 94494c4c-de37-0c9c-eb8e-8c11132e6f0f
+	fromColumn: dim_invoice_reconciliation.parent_number
+	toColumn: dim_address_book_parent.address_number
+
+relationship e3bfb122-6ea6-a80a-8d7a-2ba77c79076c
+	fromColumn: dim_invoice_reconciliation.ship_to
+	toColumn: dim_address_book_ship_to.address_number
+
+relationship 381e5210-3fa0-24ad-05c6-cceaaae25199
+	fromColumn: dim_invoice_reconciliation.sold_to
+	toColumn: dim_address_book_sold_to.address_number
+

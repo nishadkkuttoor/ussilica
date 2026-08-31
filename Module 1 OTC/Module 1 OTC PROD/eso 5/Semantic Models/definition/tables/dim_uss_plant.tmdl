@@ -1,0 +1,53 @@
+table dim_uss_plant
+	lineageTag: 22078ae4-765c-4a58-90c3-fc1e5a71cc35
+	sourceLineageTag: [rpt].[dim_uss_plant]
+
+	column uss_plant_sand
+		dataType: string
+		lineageTag: 25e49fd3-2ada-4e3a-8024-d6e21c8a4b37
+		sourceLineageTag: uss_plant_sand
+		summarizeBy: none
+		sourceColumn: uss_plant_sand
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipped_from
+		dataType: string
+		lineageTag: 11090e33-d02c-4653-93da-44ade296101c
+		sourceLineageTag: shipped_from
+		summarizeBy: none
+		sourceColumn: shipped_from
+
+		annotation SummarizationSetBy = Automatic
+
+	column lofa_mcu
+		dataType: string
+		lineageTag: a21dfac6-e942-4ab7-9506-91581573ca13
+		sourceLineageTag: lofa_mcu
+		summarizeBy: none
+		sourceColumn: lofa_mcu
+
+		annotation SummarizationSetBy = Automatic
+
+	column vendor_number
+		dataType: string
+		lineageTag: eedd3b10-87ea-497e-a98a-f31ddc828746
+		sourceLineageTag: vendor_number
+		summarizeBy: none
+		sourceColumn: vendor_number
+
+		changedProperty = IsHidden
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_uss_plant = entity
+		mode: directLake
+		source
+			entityName: dim_uss_plant
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

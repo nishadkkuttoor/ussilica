@@ -1,0 +1,192 @@
+table measure_tbl
+	lineageTag: a0102686-e96c-4cfb-982d-78963f38904a
+
+	/// Line extended price (SDAEXP), one row per line
+	measure 'Sales Amount' =
+			
+			SUMX ( FILTER ( 'fact_sales_order_price_adjustment', 'fact_sales_order_price_adjustment'[is_primary_line_row] = "Y" ),
+			       'fact_sales_order_price_adjustment'[extended_price] )
+		lineageTag: e287337c-8758-420f-831c-3e85bfb0a1e5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Line extended cost (SDECST), deduped per line.
+	measure 'Extended Cost' =
+			
+			SUMX ( FILTER ( 'fact_sales_order_price_adjustment', 'fact_sales_order_price_adjustment'[is_primary_line_row] = "Y" ),
+			       'fact_sales_order_price_adjustment'[extended_cost] )
+		lineageTag: d89c49de-534f-4a98-a400-81cb13a85255
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Line shipped qty (SDSOQS), deduped per line
+	measure 'Quantity Shipped' =
+			
+			SUMX ( FILTER ( 'fact_sales_order_price_adjustment', 'fact_sales_order_price_adjustment'[is_primary_line_row] = "Y" ),
+			       'fact_sales_order_price_adjustment'[quantity_shipped] )
+		lineageTag: e2cd76c6-57b4-489d-8d11-d5ee9cbefd6f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Line ordered qty in primary UOM (SDPQOR), deduped per line.
+	measure 'Primary Qty Ordered' =
+			
+			SUMX ( FILTER ( 'fact_sales_order_price_adjustment', 'fact_sales_order_price_adjustment'[is_primary_line_row] = "Y" ),
+			       'fact_sales_order_price_adjustment'[primary_quantity_ordered] )
+		lineageTag: 717311f6-71ce-49ea-9281-3658b84891df
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Line ordered qty converted to tons, deduped per line
+	measure 'Ordered Tons' =
+			
+			SUMX ( FILTER ( 'fact_sales_order_price_adjustment', 'fact_sales_order_price_adjustment'[is_primary_line_row] = "Y" ),
+			       'fact_sales_order_price_adjustment'[ordered_tons] )
+		lineageTag: 6232b6e7-288e-4b7d-bc3e-38fe6d45887d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Line shipped qty converted to tons, deduped per line
+	measure 'Shipped Tons' =
+			
+			SUMX ( FILTER ( 'fact_sales_order_price_adjustment', 'fact_sales_order_price_adjustment'[is_primary_line_row] = "Y" ),
+			       'fact_sales_order_price_adjustment'[shipped_tons] )
+		lineageTag: 19dc3670-dc75-4506-9599-cc1f5d517457
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Line shipped qty converted to tons, deduped per line
+	measure 'Order Lines' = DISTINCTCOUNT ( 'fact_sales_order_price_adjustment'[sales_order_line_key] )
+		formatString: 0
+		lineageTag: 7700fff4-4a80-4640-8405-5682a3ab8c7c
+
+	///  Line extended price where UDDEFF flag is set (⚠ keys off cycle-billing flag; no Hubble basis).
+	measure 'Deferred Revenue' =
+			
+			SUMX ( FILTER ( 'fact_sales_order_price_adjustment',
+			               'fact_sales_order_price_adjustment'[is_primary_line_row] = "Y"
+			                   && TRIM ( 'fact_sales_order_price_adjustment'[deferred_entries_flag] ) <> "" ),
+			       'fact_sales_order_price_adjustment'[extended_price] )
+		lineageTag: 61225cd9-e44f-43ed-a0c3-6f1673963791
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Sum of the precomputed product-line ordered tons
+	measure 'Total Tons' = SUM ( 'fact_sales_order_price_adjustment'[product_ordered_tons] )
+		lineageTag: eabd7c4f-534e-4ef6-8f94-5a6b484f5cbb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Product-line extended price, net of the embedded Freight Hide
+	measure 'Product Price' = SUM ( 'fact_sales_order_price_adjustment'[product_ext_price] ) - [Freight Hide]
+		lineageTag: 013b11b9-b758-406a-901b-0989b301bc95
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Product price ÷ total tons
+	measure 'Price Per Ton' = DIVIDE ( [Product Price], [Total Tons] )
+		lineageTag: 6ac303be-8724-47cf-9b3d-551183604dc6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Freight-line extended price (BIL/FRE/FUE/TRA…) + FRTTAXN/FRTTAXY adjustment rows
+	measure Freight = SUM ( 'fact_sales_order_price_adjustment'[freight_amount] )
+		lineageTag: cdebbb55-e55a-4d94-9e8a-84e778abb23f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Rail/car freight-line extended price (RAI equipment / ALAPRP1=CAR)
+	measure 'Car Charges' = SUM ( 'fact_sales_order_price_adjustment'[car_charges_amount] )
+		lineageTag: fa669a4d-e27a-4ccb-aaea-8a6d1f737b6e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Non-product adjustment amount (ALAPRP1='NON')
+	measure 'Non Product' = SUM ( 'fact_sales_order_price_adjustment'[non_product_amount] )
+		lineageTag: f5cda366-a0f3-411b-8564-33105227ce8f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Alabama severance adjustment amount (ALA)
+	measure 'AL Severance Tax' = SUM ( 'fact_sales_order_price_adjustment'[al_severance_amount] )
+		lineageTag: 8720fdbd-b172-47fd-af52-62598524bf82
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Misc billing / transload / banking / expedite fee lines
+	measure 'Misc Billing' = SUM ( 'fact_sales_order_price_adjustment'[misc_billing_amount] )
+		lineageTag: ebe5cf71-9d08-4fa4-8080-10c20a960868
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Hidden-freight adjustment amount (FRTHIDE = adj_unit_price × qty-in-ALUOM)
+	measure 'Freight Hide' = SUM ( 'fact_sales_order_price_adjustment'[freight_hide_amount] )
+		lineageTag: cfd883d6-6e2d-4a70-b9a0-830842c88a8e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// FRTHIDE-only negative adjustment −(ALUPRC×ordered tons); row kept at 0 when the line has a whitelisted adjustment, else BLANK
+	measure 'Adj Product Price' =
+			
+			VAR FrtHide =
+			    SUMX (
+			        FILTER ( 'fact_sales_order_price_adjustment',
+			                 'fact_sales_order_price_adjustment'[adj_based_on_value] <> 0
+			                     && 'fact_sales_order_price_adjustment'[price_adjustment_type] = "FRTHIDE"
+			                     && TRIM ( 'fact_sales_order_price_adjustment'[adj_uom] ) = "TN" ),
+			        - 'fact_sales_order_price_adjustment'[adj_unit_price] * 'fact_sales_order_price_adjustment'[ordered_tons]
+			    )
+			VAR HasWhitelisted =
+			    COUNTROWS (
+			        FILTER ( 'fact_sales_order_price_adjustment',
+			                 'fact_sales_order_price_adjustment'[adj_based_on_value] <> 0
+			                     && ( LEFT ( 'fact_sales_order_price_adjustment'[price_adjustment_type], 2 ) = "PP"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "A03"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "CASLB"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "FRTHIDE"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "FRTTAXN"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "FRTTAXY"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "COLPALN"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "COLPALT"
+			                       || 'fact_sales_order_price_adjustment'[price_adjustment_type] = "ALST" ) )
+			    )
+			RETURN IF ( HasWhitelisted > 0, FrtHide + 0, BLANK () )
+		lineageTag: 349bd3b6-a5e0-45ee-bc88-408c553c9e65
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Calculates the most recent timestamp from a table in Eastern Time (ET). It ignores any visual, page, or report-level filters.
+	measure 'JDE Last Updated' =
+			
+			VAR _ts = CALCULATE (
+			        	  MAX ( 'fact_sales_order_price_adjustment'[jde_updated_ts] ),
+			        	  REMOVEFILTERS ()
+			    	    )
+			RETURN
+			    IF ( NOT ISBLANK ( _ts ), FORMAT ( _ts, "MM/dd/yyyy HH:mm:ss" ) )
+		lineageTag: bd323a58-65e4-4161-92a2-52d5f26abeb2
+
+	/// F/FT freight lines with SDAITM prefix DRY (SOP0008)
+	measure 'Dryer Freight Charge' = SUM('fact_sales_order_price_adjustment'[dryer_freight_amount])
+		lineageTag: 89591677-7863-4919-aefd-4ff05e66579f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Column
+		isHidden
+		formatString: 0
+		lineageTag: 1a2c3c20-323f-46e2-8223-c1cd23f640e5
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Column]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition measure_tbl = calculated
+		mode: import
+		source = Row("Column", BLANK())
+
+	annotation PBI_Id = ac442adf90d546feab8acd24016b3d54
+
+	annotation 436ba87b-9c83-4389-a31b-ebd06a36be98 = {"Expression":""}
+

@@ -1,0 +1,33 @@
+table dim_hold_orders_code
+	lineageTag: 4c68179d-ef83-4536-8734-5937393b91aa
+	sourceLineageTag: [rpt].[dim_hold_orders_code]
+
+	column holdorderscode_code
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 35533dd7-2e07-4a89-91f3-a17cf12e0d39
+		sourceLineageTag: holdorderscode_code
+		summarizeBy: none
+		sourceColumn: holdorderscode_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column holdorderscode_description
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 2393a156-746d-4a3b-a3db-51dc3ae33560
+		sourceLineageTag: holdorderscode_description
+		summarizeBy: none
+		sourceColumn: holdorderscode_description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_hold_orders_code = entity
+		mode: directLake
+		source
+			entityName: dim_hold_orders_code
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

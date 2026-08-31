@@ -1,0 +1,56 @@
+table dim_order_number
+	lineageTag: a71ea6d0-ad8b-42ae-8a27-f1b9a647160f
+	sourceLineageTag: [rpt].[dim_order_number]
+
+	column order_number
+		dataType: string
+		sourceProviderType: decimal(38, 18)
+		lineageTag: e6096888-83ab-48a3-816b-b72d6cd2581f
+		sourceLineageTag: order_number
+		summarizeBy: none
+		sourceColumn: order_number
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+	column mak_export_filter
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: 3f868c9c-33cf-494c-9fb2-026c2316f800
+		sourceLineageTag: mak_export_filter
+		summarizeBy: none
+		sourceColumn: mak_export_filter
+
+		annotation SummarizationSetBy = Automatic
+
+	column fact_key
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: c009e23c-e385-43a9-86a2-b8f918a543aa
+		sourceLineageTag: fact_key
+		summarizeBy: none
+		sourceColumn: fact_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column last_update_date_time_utc
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: bffcbc13-dff0-4b7e-b2c0-add74f101807
+		sourceLineageTag: last_update_date_time_utc
+		summarizeBy: none
+		sourceColumn: last_update_date_time_utc
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_order_number = entity
+		mode: directLake
+		source
+			entityName: dim_order_number
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+

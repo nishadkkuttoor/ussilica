@@ -1,0 +1,32 @@
+relationship c85801c5-8677-0c4f-0fa8-6e5ac1b437fe
+	fromColumn: fact_sales_commission.salesperson
+	toColumn: dim_address_book_carrier.address_number
+
+relationship da199f87-9b90-c8fb-4c32-00c2f9466437
+	fromColumn: fact_sales_commission.ship_to
+	toColumn: dim_address_book_ship_to.address_number
+
+relationship 1e11d978-9cac-f22a-b12e-8020267d09f0
+	fromColumn: fact_sales_commission.sold_to
+	toColumn: dim_address_book_sold_to.address_number
+
+relationship fcbbad0f-c078-0319-cb07-fdd5a10017e2
+	fromColumn: fact_sales_commission.branch_plant
+	toColumn: dim_plant.plant_code
+
+relationship bf49501a-03d1-5b98-aad4-e1d5ea5ec7a5
+	fromColumn: fact_sales_commission.item_number_short
+	toColumn: dim_item.item_number_short
+
+relationship 9cfea2c6-b0cc-76ad-2653-3e204a599e7a
+	fromColumn: fact_sales_commission.category_code_10
+	toColumn: dim_category_code_10.reportcodeaddbook010_code
+
+relationship 99839892-8b37-8dbf-af29-45cc0af14f5d
+	fromColumn: fact_sales_commission.company_key_order_no
+	toColumn: dim_company.company
+
+relationship a0a90ebd-7712-bc26-850c-f62c2d4c17a0
+	fromColumn: fact_sales_commission.address_number_parent
+	toColumn: dim_address_book_parent.address_number
+

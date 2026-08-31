@@ -1,0 +1,49 @@
+/// Row Type — a disconnected 2-row DATATABLE ("Product Price"/"Adjustment", with a hidden Sort column for ordering); no relationship to any table, so it only supplies UI state, not a filter
+table 'Row Type'
+	lineageTag: fe0fe355-bdee-4573-a6e3-39af226e1ca0
+
+	/// SOP0025 interleave: tons shown only on the Product Price row, blank on the Adjustment row.
+	measure 'Tons Value' =
+			
+			VAR rt = SELECTEDVALUE ( 'Row Type'[Row Type] )
+			RETURN SWITCH ( rt, "Product Price", [Total Tons], "Adjustment", BLANK (), [Total Tons] )
+		lineageTag: 1ab70058-27fa-44b8-aa30-59b47a49d805
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// SOP0025 interleave: shows Product Price / Adj Product Price / their sum per the disconnected Row Type slicer
+	measure 'Price Value' =
+			
+			VAR rt = SELECTEDVALUE ( 'Row Type'[Row Type] )
+			RETURN SWITCH ( rt, "Product Price", [Product Price], "Adjustment", [Adj Product Price],
+			                [Product Price] + [Adj Product Price] )
+		lineageTag: b88c448d-f396-4e05-850e-afbd4a323e7d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Row Type'
+		lineageTag: a9ee1b88-542f-4f79-b43a-dac12a9938ca
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Row Type]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sort
+		isHidden
+		formatString: 0
+		lineageTag: 9e8f75dc-63e4-4b36-8ce9-4bc684d157e9
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Sort]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Row Type' = calculated
+		mode: import
+		source =
+				
+				DATATABLE ( "Row Type", STRING, "Sort", INTEGER, { { "Product Price", 0 }, { "Adjustment", 1 } } )
+
+	annotation PBI_Id = 9bfb6ad6eb37442095e6aea39252c0d6
+

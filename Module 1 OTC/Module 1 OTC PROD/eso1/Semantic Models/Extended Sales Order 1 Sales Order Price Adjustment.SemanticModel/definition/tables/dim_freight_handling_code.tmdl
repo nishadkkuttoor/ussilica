@@ -1,0 +1,31 @@
+table dim_freight_handling_code
+	lineageTag: 44680102-0a50-49f3-88bf-d864afe036ad
+	sourceLineageTag: [rpt].[dim_freight_handling_code]
+
+	column freighthandlingcode_code
+		dataType: string
+		lineageTag: c2bbea13-8767-438b-83ee-e756bf68b6c7
+		sourceLineageTag: freighthandlingcode_code
+		summarizeBy: none
+		sourceColumn: freighthandlingcode_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column freighthandlingcode_description
+		dataType: string
+		lineageTag: ec6bc171-c441-4897-a3c7-d73254ab9e87
+		sourceLineageTag: freighthandlingcode_description
+		summarizeBy: none
+		sourceColumn: freighthandlingcode_description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_freight_handling_code = entity
+		mode: directLake
+		source
+			entityName: dim_freight_handling_code
+			schemaName: rpt
+			expressionSource: DatabaseQuery
+
+	annotation PBI_ResultType = Table
+
